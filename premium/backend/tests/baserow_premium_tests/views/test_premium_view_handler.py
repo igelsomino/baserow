@@ -1,15 +1,14 @@
 import pytest
-from baserow_premium.views.handler import get_rows_grouped_by_single_select_field
-
-from baserow.contrib.database.views.models import View
-import pytest
 from unittest.mock import patch
+
+from baserow.core.exceptions import PermissionDenied
+from baserow.contrib.database.views.models import View
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.contrib.database.views.models import (
     GridView,
+    OWNERSHIP_TYPE_COLLABORATIVE,
 )
-from django.test.utils import override_settings
-
+from baserow_premium.views.handler import get_rows_grouped_by_single_select_field
 
 @pytest.mark.django_db
 def test_get_rows_grouped_by_single_select_field(
@@ -242,8 +241,72 @@ def test_get_rows_grouped_by_single_select_field_with_empty_table(
 
 
 @pytest.mark.django_db
-@patch("baserow.contrib.database.views.signals.view_created.send")
-def test_create_view_personal_ownership_type(send_mock, data_fixture, premium_data_fixture, alternative_per_group_license_service):
+@pytest.mark.view_ownership
+def test_list_views_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
+    )
+    view2 = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+
+    user_views = handler.list_views(user, table, "grid", None, None, None, 10)
+    assert len(user_views) == 2
+
+    user2_views = handler.list_views(user2, table, "grid", None, None, None, 10)
+    assert len(user2_views) == 1
+    assert user2_views[0].id == view.id
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_get_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+
+    handler.get_view(user, view.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_view(user2, view.id)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_create_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
@@ -262,4 +325,138 @@ def test_create_view_personal_ownership_type(send_mock, data_fixture, premium_da
     )
 
     grid = GridView.objects.all().first()
+    assert grid.created_by == user
     assert grid.ownership_type == "personal"
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_update_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+
+    handler.update_view(user=user, view=view, name="Renamed")
+    view.refresh_from_db()
+    assert view.name == "Renamed"
+
+    with pytest.raises(PermissionDenied):
+        handler.update_view(user=user2, view=view, name="Not my view")
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_duplicate_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+
+    duplicated_view = handler.duplicate_view(user, view)
+    assert duplicated_view.ownership_type == "personal"
+    assert duplicated_view.created_by == user
+
+    with pytest.raises(PermissionDenied):
+        handler.get_view(user2, duplicated_view.id)
+
+    with pytest.raises(PermissionDenied):
+        duplicated_view = handler.duplicate_view(user2, view)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_delete_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+
+    handler.delete_view(user, view)
+    
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+
+    with pytest.raises(PermissionDenied):
+        handler.delete_view(user2, view)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_update_field_options_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+
+    handler.update_field_options(view, {}, user)
+
+    with pytest.raises(PermissionDenied):
+        handler.update_field_options(view, {}, user2)

@@ -2,7 +2,7 @@ import logging
 import traceback
 from copy import deepcopy
 from datetime import datetime
-from typing import List, Optional, Set, Tuple
+from typing import Any, List, Optional, Set, Tuple, Type
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -10,9 +10,20 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from baserow.core.action.models import Action
-from baserow.core.action.registries import ActionScopeStr, action_type_registry
+from baserow.api.sessions import (
+    get_client_undo_redo_action_group_id,
+    get_untrusted_client_session_id,
+)
 from baserow.core.exceptions import LockConflict
+
+from .models import Action
+from .registries import (
+    ActionType,
+    ActionScopeStr,
+    UndoRedoActionTypeMixin,
+    action_type_registry,
+)
+from .signals import action_done, actions_undone, actions_redone
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +51,36 @@ class ActionHandler:
     Contains methods to do high level operations on ActionType's like undoing or
     redoing them.
     """
+
+    @classmethod
+    def register_action(
+        cls,
+        user: AbstractUser,
+        action_type: Type[ActionType],
+        params: Any,
+        scope: ActionScopeStr,
+    ) -> Action:
+        """
+        Registers a new action in the database using the untrusted client session id
+        if set in the request headers.
+
+        """
+
+        session = get_untrusted_client_session_id(user)
+        action_group = get_client_undo_redo_action_group_id(user)
+
+        action = Action.objects.create(
+            user=user,
+            type=action_type.type,
+            params=params,
+            can_be_undone=issubclass(action_type, UndoRedoActionTypeMixin),
+            scope=scope,
+            session=session,
+            action_group=action_group,
+        )
+
+        action_done.send(sender=cls, action=action)
+        return action
 
     @classmethod
     def _undo_action(
@@ -71,7 +112,7 @@ class ActionHandler:
 
         latest_not_undone_action = (
             Action.objects.filter(user=user, undone_at__isnull=True, session=session)
-            .filter(scopes_to_q_filter(scopes))
+            .filter(scopes_to_q_filter(scopes), can_be_undone=True)
             .order_by("-created_on", "-id")
             .select_for_update(of=("self",))
             .first()
@@ -84,6 +125,7 @@ class ActionHandler:
         else:
             actions_being_undone = list(
                 Action.objects.filter(
+                    can_be_undone=True,
                     undone_at__isnull=True,
                     action_group=latest_not_undone_action.action_group,
                     session=session,
@@ -114,7 +156,9 @@ class ActionHandler:
             )
 
         # refresh actions from db to ensure everything is updated
-        return list(Action.objects.filter(pk__in=action_being_undone_ids))
+        actions = list(Action.objects.filter(pk__in=action_being_undone_ids))
+        actions_undone.send(sender=cls, actions=actions)
+        return actions
 
     @classmethod
     def _redo_action(cls, user: AbstractUser, action: Action) -> None:
@@ -220,11 +264,13 @@ class ActionHandler:
                 )
 
         # refresh actions from db to ensure everything is updated
-        return list(
+        actions = list(
             Action.objects.filter(pk__in=actions_being_redone_ids).order_by(
                 "created_on", "id"
             )
         )
+        actions_redone.send(sender=cls, actions=actions)
+        return actions
 
     @classmethod
     def clean_up_old_actions(cls):

@@ -30,6 +30,7 @@ class Action(CreatedAndUpdatedOnMixin, models.Model):
     type = models.TextField(db_index=True)
     params = models.JSONField(encoder=JSONEncoderSupportingDataClasses)
     scope = models.TextField(db_index=True)
+    can_be_undone = models.BooleanField(default=True)
     undone_at = models.DateTimeField(null=True, blank=True, db_index=True)
     error = models.TextField(null=True, blank=True)
     action_group = models.UUIDField(null=True, blank=True, db_index=True)

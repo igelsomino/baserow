@@ -1,17 +1,16 @@
 import abc
 import dataclasses
-from typing import Any, NewType, Optional
+from typing import Any, NewType, Optional, Type, cast
 
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 
 from rest_framework import serializers
 
-from baserow.api.sessions import (
-    get_client_undo_redo_action_group_id,
-    get_untrusted_client_session_id,
-)
-from baserow.core.action.models import Action
 from baserow.core.registry import Instance, Registry
+
+from .models import Action
+
 
 # An alias type of a str (its exactly a str, just with a different name in the type
 # system). We use this instead of a normal str for type safety ensuring
@@ -87,6 +86,38 @@ class ActionScopeRegistry(Registry[ActionScopeType]):
     name = "action_scope"
 
 
+class UndoRedoActionTypeMixin(abc.ABC):
+    @classmethod
+    @abc.abstractmethod
+    def undo(cls, user: AbstractUser, params: Any, action_being_undone: Action):
+        """
+        Should undo the action done by the `do` method above, this should never call
+        another ActionType's.do method as that would register a new action which we
+        do not want to do as the result of an undo.
+
+        :param user: The user performing the undo.
+        :param params: The deserialized cls.Params dataclass from the `do` method.
+        :param action_being_undone: The action that is being undone.
+        """
+
+        pass
+
+    @classmethod
+    @abc.abstractmethod
+    def redo(cls, user: AbstractUser, params: Any, action_being_redone: Action):
+        """
+        Should redo the action undone by the `undo` method above, this should never call
+        another ActionType's.do method as that would register a new action which we
+        do not want to do as the result of an redo.
+
+        :param user: The user performing the redo.
+        :param params: The deserialized cls.Params dataclass from the `do` method.
+        :param action_being_redone: The action that is being redone.
+        """
+
+        pass
+
+
 class ActionType(Instance, abc.ABC):
     type: str = NotImplemented
 
@@ -126,41 +157,30 @@ class ActionType(Instance, abc.ABC):
         pass
 
     @classmethod
-    @abc.abstractmethod
-    def undo(cls, user: AbstractUser, params: Any, action_being_undone: Action):
+    # TODO: add @abc.abstractmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Any, *args, **kwargs
+    ) -> str:
         """
-        Should undo the action done by the `do` method above, this should never call
-        another ActionType's.do method as that would register a new action which we
-        do not want to do as the result of an undo.
-
-        :param user: The user performing the undo.
-        :param params: The deserialized cls.Params dataclass from the `do` method.
-        :param action_being_undone: The action that is being undone.
+        Should return a human readable description of the action being performed.
         """
 
-        pass
+        return ""
 
     @classmethod
-    @abc.abstractmethod
-    def redo(cls, user: AbstractUser, params: Any, action_being_redone: Action):
+    # TODO: add @abc.abstractmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Any, *args, **kwargs
+    ) -> str:
         """
-        Should redo the action undone by the `undo` method above, this should never call
-        another ActionType's.do method as that would register a new action which we
-        do not want to do as the result of an redo.
-
-        :param user: The user performing the redo.
-        :param params: The deserialized cls.Params dataclass from the `do` method.
-        :param action_being_redone: The action that is being redone.
+        Should return a human readable description of the action type being performed.
         """
 
-        pass
+        return ""
 
     @classmethod
     def register_action(
-        cls,
-        user: AbstractUser,
-        params: Any,
-        scope: ActionScopeStr,
+        cls, user: AbstractUser, params: Any, scope: ActionScopeStr
     ) -> Action:
         """
         Registers a new action in the database using the untrusted client session id
@@ -172,18 +192,11 @@ class ActionType(Instance, abc.ABC):
         :param scope: The scope in which this action occurred.
         """
 
-        session = get_untrusted_client_session_id(user)
-        action_group = get_client_undo_redo_action_group_id(user)
+        from .handler import ActionHandler
 
-        action = Action.objects.create(
-            user=user,
-            type=cls.type,
-            params=params,
-            scope=scope,
-            session=session,
-            action_group=action_group,
+        return ActionHandler.register_action(
+            user=user, action_type=cls, params=params, scope=scope
         )
-        return action
 
     @classmethod
     def clean_up_any_extra_action_data(cls, action_being_cleaned_up: Action):
@@ -202,6 +215,10 @@ class ActionType(Instance, abc.ABC):
             cls.clean_up_any_extra_action_data.__func__
             != ActionType.clean_up_any_extra_action_data.__func__
         )
+
+
+class UndoRedoActionType(UndoRedoActionTypeMixin, ActionType):
+    pass
 
 
 class ActionTypeRegistry(Registry[ActionType]):

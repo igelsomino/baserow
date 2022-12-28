@@ -39,12 +39,17 @@ from baserow.contrib.database.views.operations import (
     DeleteViewSortOperationType,
     DuplicateViewOperationType,
     OrderViewsOperationType,
+    ListViewSortOperationType,
     ReadViewFilterOperationType,
     ReadViewOperationType,
     ReadViewsOrderOperationType,
+    ReadViewDecorationOperationType,
     ReadViewSortOperationType,
     UpdateViewFieldOptionsOperationType,
     UpdateViewFilterOperationType,
+    ListViewDecorationOperationType,
+    CreateViewDecorationOperationType,
+    UpdateViewDecorationOperationType,
     UpdateViewOperationType,
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
@@ -499,8 +504,6 @@ class ViewHandler:
 
         view_deleted.send(self, view_id=view_id, view=view, user=user)
 
-    # TODO: progress
-
     def update_field_options(
         self,
         view: View,
@@ -747,6 +750,7 @@ class ViewHandler:
         return filter_builder.apply_to_queryset(queryset)
 
     def list_filters(self, user: AbstractUser, view_id: int) -> QuerySet[ViewFilter]:
+        # TODO: document
         view = self.get_view(user, view_id)
         group = view.table.database.group
         CoreHandler().check_permissions(
@@ -1048,6 +1052,19 @@ class ViewHandler:
 
         return queryset
 
+    def list_sorts(self, user: AbstractUser, view_id: int) -> QuerySet[ViewSort]:
+        # TODO: docs
+        
+        view = ViewHandler().get_view(user, view_id)
+        CoreHandler().check_permissions(
+            user,
+            ListViewSortOperationType.type,
+            group=view.table.database.group,
+            context=view,
+        )
+        sortings = ViewSort.objects.filter(view=view)
+        return sortings
+
     def get_sort(self, user, view_sort_id, base_queryset=None):
         """
         Returns an existing view sort with the given id.
@@ -1271,6 +1288,14 @@ class ViewHandler:
         :return: The created view decoration instance.
         """
 
+        group = view.table.database.group
+        CoreHandler().check_permissions(
+            user,
+            CreateViewDecorationOperationType.type,
+            group=group,
+            context=view,
+        )
+
         # Check if view supports decoration
         view_type = view_type_registry.get_by_model(view.specific_class)
         if not view_type.can_decorate:
@@ -1309,8 +1334,22 @@ class ViewHandler:
 
         return view_decoration
 
+    def list_decorations(self, user: AbstractUser, view_id: int) -> QuerySet[ViewDecoration]:
+        # TODO: docs
+
+        view = ViewHandler().get_view(user, view_id)
+        CoreHandler().check_permissions(
+            user,
+            ListViewDecorationOperationType.type,
+            group=view.table.database.group,
+            context=view,
+        )
+        decorations = ViewDecoration.objects.filter(view=view)
+        return decorations
+
     def get_decoration(
         self,
+        user: AbstractUser,
         view_decoration_id: int,
         base_queryset: QuerySet = None,
     ) -> ViewDecoration:
@@ -1324,6 +1363,8 @@ class ViewHandler:
             exists.
         :return: The requested view decoration instance.
         """
+        
+        # TODO: add docs on user
 
         if base_queryset is None:
             base_queryset = ViewDecoration.objects
@@ -1332,6 +1373,13 @@ class ViewHandler:
             view_decoration = base_queryset.select_related(
                 "view__table__database__group"
             ).get(pk=view_decoration_id)
+            group = view_decoration.view.table.database.group
+            CoreHandler().check_permissions(
+                user,
+                ReadViewDecorationOperationType.type,
+                group=group,
+                context=view_decoration,
+            )
         except ViewDecoration.DoesNotExist:
             raise ViewDecorationDoesNotExist(
                 f"The view decoration with id {view_decoration_id} does not exist."
@@ -1372,6 +1420,14 @@ class ViewHandler:
             provided is not compatible with the decorator type.
         :return: The updated view decoration instance.
         """
+
+        group = view_decoration.view.table.database.group
+        CoreHandler().check_permissions(
+            user,
+            UpdateViewDecorationOperationType.type,
+            group=group,
+            context=view_decoration,
+        )
 
         if decorator_type_name is None:
             decorator_type_name = view_decoration.type
@@ -1439,6 +1495,8 @@ class ViewHandler:
             view_filter=view_decoration,
             user=user,
         )
+
+    # TODO: Progress
 
     def get_queryset(
         self,

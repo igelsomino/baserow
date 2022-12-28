@@ -41,7 +41,7 @@ from baserow.contrib.database.views.operations import (
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
 )
-from baserow.contrib.database.views.models import View, OWNERSHIP_TYPE_COLLABORATIVE
+from baserow.contrib.database.views.models import View, ViewSort, ViewDecoration, OWNERSHIP_TYPE_COLLABORATIVE
 from baserow_premium.license.handler import LicenseHandler
 from baserow_premium.license.features import PREMIUM
 
@@ -67,16 +67,20 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
     See each PermissionManager method and `CoreHandler` methods for more details.
     """
 
+    # TODO: refactor from strings to types?
     type = "view_ownership"
     operations = [
         # views
         # TODO: create
+        # "database.table.create_view",
         "database.table.view.read",
         "database.table.view.update",
         "database.table.view.duplicate",
         "database.table.view.delete",
+        # "database.table.view.restore",
 
         # field options
+        # "database.table.view.read_field_options",
         "database.table.view.update_field_options",
 
         # view filters
@@ -85,6 +89,24 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         "database.table.view.filter.read",
         "database.table.view.filter.update",
         "database.table.view.filter.delete",
+
+        # sorts
+        "database.table.view.create_sort",
+        "database.table.view.list_sort",
+        "database.table.view.sort.read",
+        "database.table.view.sort.update",
+        "database.table.view.sort.delete",
+
+        # decorations
+        "database.table.view.create_decoration",
+        "database.table.view.list_decoration",
+        "database.table.view.decoration.delete",
+        "database.table.view.decoration.update",
+        "database.table.view.decoration.read",
+
+        # "database.table.view.update_slug",
+        # "database.table.read_view_order",
+        # "database.table.order_views",
     ]
 
     def check_permissions(
@@ -122,6 +144,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
             can't decide.
         """
 
+        # TODO: remove
         print("*** View Ownership Permission Manager")
         print(operation_name)
         print(context)
@@ -140,6 +163,12 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         premium = LicenseHandler.user_has_feature(PREMIUM, actor, group)
 
         if isinstance(context, ViewFilter):
+            context = context.view
+
+        if isinstance(context, ViewSort):
+            context = context.view
+
+        if isinstance(context, ViewDecoration):
             context = context.view
 
         if premium:

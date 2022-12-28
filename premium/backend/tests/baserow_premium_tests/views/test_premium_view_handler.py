@@ -512,3 +512,120 @@ def test_filters_personal_ownership_type(data_fixture, premium_data_fixture, alt
         handler.delete_filter(user2, filter)
 
     handler.delete_filter(user, filter)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_sorts_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+    field = data_fixture.create_text_field(table=view.table)
+    
+    sort = handler.create_sort(user=user, view=view, field=field, order="ASC")
+
+    with pytest.raises(PermissionDenied):
+        handler.create_sort(user=user2, view=view, field=field, order="ASC")
+
+    handler.get_sort(user, sort.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_sort(user2, sort.id)
+
+    list = handler.list_sorts(user, view.id)
+    assert len(list) == 1
+
+    with pytest.raises(PermissionDenied):
+        handler.list_sorts(user2, view.id)
+
+    handler.update_sort(user, sort, field)
+
+    with pytest.raises(PermissionDenied):
+        handler.update_sort(user2, sort, field)
+
+    with pytest.raises(PermissionDenied):
+        handler.delete_sort(user2, sort)
+
+    handler.delete_sort(user, sort)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_decorations_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+    decorator_type_name = "left_border_color"
+    value_provider_type_name = ""
+    value_provider_conf = {}
+    
+    decoration = handler.create_decoration(
+        view,
+        decorator_type_name,
+        value_provider_type_name,
+        value_provider_conf,
+        user=user,
+    )
+
+    with pytest.raises(PermissionDenied):
+        handler.create_decoration(
+            view,
+            decorator_type_name,
+            value_provider_type_name,
+            value_provider_conf,
+            user=user2,
+        )
+
+    result = handler.get_decoration(user, decoration.id)
+    assert result == decoration
+
+    with pytest.raises(PermissionDenied):
+        handler.get_decoration(user2, decoration.id)
+
+    list = handler.list_decorations(user, view.id)
+    assert len(list) == 1
+
+    with pytest.raises(PermissionDenied):
+        handler.list_decorations(user2, view.id)
+
+    handler.update_decoration(decoration, user)
+
+    with pytest.raises(PermissionDenied):
+        handler.update_decoration(decoration, user2)
+
+    with pytest.raises(PermissionDenied):
+        handler.delete_decoration(decoration, user2)
+
+    handler.delete_decoration(decoration, user)

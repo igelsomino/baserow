@@ -2447,3 +2447,121 @@ def test_filters_view_ownership_type(data_fixture):
 
     with pytest.raises(PermissionDenied):
         handler.delete_filter(user2, filter)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_sorts_view_ownership_type(data_fixture):
+    group = data_fixture.create_group(name="Group 1")
+    user = data_fixture.create_user(group=group)
+    user2 = data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
+    )
+    field = data_fixture.create_text_field(table=view.table)
+    equal_sort = data_fixture.create_view_sort(user=user, view=view, field=field)
+    view.ownership_type = "personal"
+    view.save()
+
+    with pytest.raises(PermissionDenied):
+        handler.create_sort(user=user, view=view, field=field, order="ASC")
+
+    with pytest.raises(PermissionDenied):
+        handler.create_sort(user=user2, view=view, field=field, order="ASC")
+
+    with pytest.raises(PermissionDenied):
+        handler.get_sort(user, equal_sort.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_sort(user2, equal_sort.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.list_sorts(user, view.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.list_sorts(user2, view.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.update_sort(user, equal_sort, field)
+
+    with pytest.raises(PermissionDenied):
+        handler.update_sort(user2, equal_sort, field)
+    
+    with pytest.raises(PermissionDenied):
+        handler.delete_sort(user, equal_sort)
+
+    with pytest.raises(PermissionDenied):
+        handler.delete_sort(user2, equal_sort)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_decorations_view_ownership_type(data_fixture):
+    group = data_fixture.create_group(name="Group 1")
+    user = data_fixture.create_user(group=group)
+    user2 = data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
+    )
+    decorator_type_name = "left_border_color"
+    value_provider_type_name = ""
+    value_provider_conf = {}
+    decoration = data_fixture.create_view_decoration(user=user, view=view)
+    view.ownership_type = "personal"
+    view.save()
+
+    with pytest.raises(PermissionDenied):
+        handler.create_decoration(
+            view,
+            decorator_type_name,
+            value_provider_type_name,
+            value_provider_conf,
+            user=user,
+        )
+
+    with pytest.raises(PermissionDenied):
+        handler.create_decoration(
+            view,
+            decorator_type_name,
+            value_provider_type_name,
+            value_provider_conf,
+            user=user2,
+        )
+
+    with pytest.raises(PermissionDenied):
+        handler.get_decoration(user, decoration.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_decoration(user2, decoration.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.list_decorations(user, view.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.list_decorations(user2, view.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.update_decoration(decoration, user)
+
+    with pytest.raises(PermissionDenied):
+        handler.update_decoration(decoration, user2)
+    
+    with pytest.raises(PermissionDenied):
+        handler.delete_decoration(decoration, user)
+
+    with pytest.raises(PermissionDenied):
+        handler.delete_decoration(decoration, user2)

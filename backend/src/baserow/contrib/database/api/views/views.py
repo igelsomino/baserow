@@ -981,14 +981,7 @@ class ViewDecorationsView(APIView):
         if the user has access to that group.
         """
 
-        view = ViewHandler().get_view(request.user, view_id)
-        CoreHandler().check_permissions(
-            request.user,
-            ListViewDecorationOperationType.type,
-            group=view.table.database.group,
-            context=view,
-        )
-        decorations = ViewDecoration.objects.filter(view=view)
+        decorations = ViewHandler().list_decorations(request.user, view_id)
         serializer = ViewDecorationSerializer(decorations, many=True)
         return Response(serializer.data)
 
@@ -1044,14 +1037,6 @@ class ViewDecorationsView(APIView):
         view_handler = ViewHandler()
         view = view_handler.get_view(request.user, view_id)
 
-        group = view.table.database.group
-        CoreHandler().check_permissions(
-            request.user,
-            CreateViewDecorationOperationType.type,
-            group=group,
-            context=view,
-        )
-
         # We can safely assume the field exists because the
         # CreateViewDecorationSerializer has already checked that.
         view_decoration = action_type_registry.get_by_type(
@@ -1101,16 +1086,7 @@ class ViewDecorationView(APIView):
     def get(self, request, view_decoration_id):
         """Selects a single decoration and responds with a serialized version."""
 
-        view_decoration = ViewHandler().get_decoration(view_decoration_id)
-
-        group = view_decoration.view.table.database.group
-        CoreHandler().check_permissions(
-            request.user,
-            ReadViewDecorationOperationType.type,
-            group=group,
-            context=view_decoration,
-        )
-
+        view_decoration = ViewHandler().get_decoration(request.user, view_decoration_id)
         serializer = ViewDecorationSerializer(view_decoration)
         return Response(serializer.data)
 
@@ -1157,14 +1133,6 @@ class ViewDecorationView(APIView):
         view_decoration = handler.get_decoration(
             view_decoration_id,
             base_queryset=ViewDecoration.objects.select_for_update(of=("self",)),
-        )
-
-        group = view_decoration.view.table.database.group
-        CoreHandler().check_permissions(
-            request.user,
-            UpdateViewDecorationOperationType.type,
-            group=group,
-            context=view_decoration,
         )
 
         type_name = request.data.get(
@@ -1294,14 +1262,7 @@ class ViewSortingsView(APIView):
         has access to that group.
         """
 
-        view = ViewHandler().get_view(request.user, view_id)
-        CoreHandler().check_permissions(
-            request.user,
-            ListViewSortOperationType.type,
-            group=view.table.database.group,
-            context=view,
-        )
-        sortings = ViewSort.objects.filter(view=view)
+        sortings = ViewHandler().list_sorts(request.user, view_id)
         serializer = ViewSortSerializer(sortings, many=True)
         return Response(serializer.data)
 

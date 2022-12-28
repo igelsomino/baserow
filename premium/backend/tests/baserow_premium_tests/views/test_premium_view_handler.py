@@ -460,3 +460,55 @@ def test_update_field_options_personal_ownership_type(data_fixture, premium_data
 
     with pytest.raises(PermissionDenied):
         handler.update_field_options(view, {}, user2)
+
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_filters_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type="personal",
+    )
+    field = data_fixture.create_text_field(table=view.table)
+    
+    filter = handler.create_filter(user, view, field, "equal", "value")
+
+    with pytest.raises(PermissionDenied):
+        handler.create_filter(user2, view, field, "equal", "value")
+
+    handler.get_filter(user, filter.id)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_filter(user2, filter.id)
+
+    list = handler.list_filters(user, view.id)
+    assert len(list) == 1
+
+    with pytest.raises(PermissionDenied):
+        handler.list_filters(user2, view.id)
+
+    handler.update_filter(user, filter, field, "equal", "another value")
+
+    with pytest.raises(PermissionDenied):
+        handler.update_filter(user2, filter, field, "equal", "another value")
+
+    with pytest.raises(PermissionDenied):
+        handler.delete_filter(user2, filter)
+
+    handler.delete_filter(user, filter)

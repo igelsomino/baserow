@@ -99,7 +99,6 @@ from baserow.contrib.database.views.operations import (
     CreateViewDecorationOperationType,
     DeleteViewDecorationOperationType,
     ListViewDecorationOperationType,
-    ListViewFilterOperationType,
     ListViewsOperationType,
     ListViewSortOperationType,
     ReadViewDecorationOperationType,
@@ -720,12 +719,7 @@ class ViewFiltersView(APIView):
         has access to that group.
         """
 
-        view = ViewHandler().get_view(request.user, view_id)
-        group = view.table.database.group
-        CoreHandler().check_permissions(
-            request.user, ListViewFilterOperationType.type, group=group, context=view
-        )
-        filters = ViewFilter.objects.filter(view=view)
+        filters = ViewHandler().list_filters(request.user, view_id)
         serializer = ViewFilterSerializer(filters, many=True)
         return Response(serializer.data)
 

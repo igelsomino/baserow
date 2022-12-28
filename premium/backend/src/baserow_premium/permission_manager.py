@@ -20,6 +20,7 @@ from baserow.core.registries import (
     PermissionManagerType,
     operation_type_registry,
 )
+from baserow.contrib.database.views.models import ViewFilter
 from baserow.contrib.database.views.operations import (
     CreateViewFilterOperationType,
     CreateViewOperationType,
@@ -68,13 +69,22 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
 
     type = "view_ownership"
     operations = [
+        # views
         # TODO: create
         "database.table.view.read",
         "database.table.view.update",
         "database.table.view.duplicate",
         "database.table.view.delete",
 
+        # field options
         "database.table.view.update_field_options",
+
+        # view filters
+        "database.table.view.create_filter",
+        "database.table.view.list_filter",
+        "database.table.view.filter.read",
+        "database.table.view.filter.update",
+        "database.table.view.filter.delete",
     ]
 
     def check_permissions(
@@ -128,6 +138,9 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
             return
 
         premium = LicenseHandler.user_has_feature(PREMIUM, actor, group)
+
+        if isinstance(context, ViewFilter):
+            context = context.view
 
         if premium:
             if context.ownership_type == OWNERSHIP_TYPE_COLLABORATIVE:

@@ -30,6 +30,7 @@ from baserow.contrib.database.rows.signals import rows_created
 from baserow.contrib.database.table.models import GeneratedTableModel, Table
 from baserow.contrib.database.views.operations import (
     CreateViewFilterOperationType,
+    ListViewFilterOperationType,
     CreateViewOperationType,
     CreateViewSortOperationType,
     DeleteViewDecorationOperationType,
@@ -744,6 +745,15 @@ class ViewHandler:
 
         filter_builder = self._get_filter_builder(view, model)
         return filter_builder.apply_to_queryset(queryset)
+
+    def list_filters(self, user: AbstractUser, view_id: int) -> QuerySet[ViewFilter]:
+        view = self.get_view(user, view_id)
+        group = view.table.database.group
+        CoreHandler().check_permissions(
+            user, ListViewFilterOperationType.type, group=group, context=view
+        )
+        filters = ViewFilter.objects.filter(view=view)
+        return filters
 
     def get_filter(
         self,

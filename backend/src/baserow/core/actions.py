@@ -65,18 +65,14 @@ class DeleteGroupActionType(UndoRedoActionType):
         CoreHandler().delete_group_by_id(user, params.group_id)
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _('Group "%(group_name)s" (%(group_id)s) deleted') % {
             "group_name": params.group_name,
             "group_id": params.group_id,
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Group deleted")
 
 
@@ -134,18 +130,14 @@ class CreateGroupActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _('Created group "%(group_name)s" (%(group_id)s)') % {
             "group_name": params.group_name,
             "group_id": params.group_id,
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Group created")
 
 
@@ -222,9 +214,7 @@ class UpdateGroupActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Group (%(group_id)s) name changed from "%(original_group_name)s" to "%(group_name)s"'
         ) % {
@@ -234,9 +224,7 @@ class UpdateGroupActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Group updated")
 
 
@@ -296,15 +284,11 @@ class OrderGroupsActionType(UndoRedoActionType):
         CoreHandler().order_groups(user, params.group_ids)
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Groups order changed")
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Groups reordered")
 
 
@@ -356,17 +340,13 @@ class OrderApplicationsActionType(UndoRedoActionType):
         CoreHandler().order_applications(user, group, params.application_ids)
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Applications order changed in group "%(group_name)s" (%(group_id)s)'
         ) % {"group_id": params.group_id, "group_name": params.group_name}
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Applications reordered")
 
 
@@ -439,9 +419,7 @@ class CreateApplicationActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             '%(application_type)s "%(application_name)s" (%(application_id)s) '
             'created in group "%(group_name)s" (%(group_id)s)'
@@ -454,9 +432,7 @@ class CreateApplicationActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Application created")
 
 
@@ -514,9 +490,7 @@ class DeleteApplicationActionType(UndoRedoActionType):
         CoreHandler().delete_application(user, application)
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             '%(application_type)s "%(application_name)s" (%(application_id)s) '
             'moved into trash in group "%(group_name)s" (%(group_id)s)'
@@ -529,9 +503,7 @@ class DeleteApplicationActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Application deleted")
 
 
@@ -598,9 +570,7 @@ class UpdateApplicationActionType(UndoRedoActionType):
         CoreHandler().update_application(user, application, params.application_name)
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             '%(application_type)s %(application_id)s renamed from "%(original_name)s" '
             'to "%(application_name)s" in group "%(group_name)s" (%(group_id)s)'
@@ -614,9 +584,7 @@ class UpdateApplicationActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Application updated")
 
 
@@ -691,9 +659,7 @@ class DuplicateApplicationActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             '%(application_type)s "%(application_name)s" (%(application_id)s) '
             'created as duplicate from "%(original_app_id)s" (%(original_app_id)s) '
@@ -709,9 +675,7 @@ class DuplicateApplicationActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Application duplicated")
 
 
@@ -785,9 +749,7 @@ class InstallTemplateActionType(UndoRedoActionType):
             )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Template "%(template_name)s" (%(template_id)s) '
             'installed in group "%(group_name)s" (%(group_id)s)'
@@ -799,7 +761,5 @@ class InstallTemplateActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Template installed")

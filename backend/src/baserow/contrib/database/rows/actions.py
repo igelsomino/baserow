@@ -97,9 +97,7 @@ class CreateRowActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Row with ID (%(row_id)s) created in table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -109,9 +107,7 @@ class CreateRowActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Row created")
 
 
@@ -188,9 +184,7 @@ class CreateRowsActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Rows with ID (%(row_ids)s) created in table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -200,9 +194,7 @@ class CreateRowsActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Rows created")
 
 
@@ -281,9 +273,7 @@ class ImportRowsActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Rows with ID (%(row_ids)s) imported in table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -293,9 +283,7 @@ class ImportRowsActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Rows imported")
 
 
@@ -355,9 +343,7 @@ class DeleteRowActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Row with ID (%(row_id)s) deleted from table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -367,9 +353,7 @@ class DeleteRowActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Row deleted")
 
 
@@ -437,9 +421,7 @@ class DeleteRowsActionType(UndoRedoActionType):
         action_being_redone.params = params
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Rows with IDs (%(row_ids)s) deleted from table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -449,9 +431,7 @@ class DeleteRowsActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Rows deleted")
 
 
@@ -625,9 +605,7 @@ class MoveRowActionType(UndoRedoActionType):
         row_handler.move_row(user, table, row, before_row=before_row, model=model)
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Row with ID (%(row_id)s) moved in table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -637,9 +615,7 @@ class MoveRowActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Row moved")
 
 
@@ -740,9 +716,7 @@ class UpdateRowActionType(UndoRedoActionType):
         )
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Row with ID (%(row_id)s) updated in table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -752,9 +726,7 @@ class UpdateRowActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Row updated")
 
 
@@ -845,9 +817,7 @@ class UpdateRowsActionType(UndoRedoActionType):
         RowHandler().update_rows(user, table, params.new_rows)
 
     @classmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Params, *args, **kwargs) -> str:
         return _(
             'Rows with IDs (%(row_ids)s) updated in table "%(table_name)s" (%(table_id)s)'
         ) % {
@@ -857,7 +827,5 @@ class UpdateRowsActionType(UndoRedoActionType):
         }
 
     @classmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Params, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Params, *args, **kwargs) -> str:
         return _("Rows updated")

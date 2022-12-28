@@ -2,6 +2,7 @@ import dataclasses
 from typing import Any, List, Optional
 
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext as _
 
 from baserow.core.action.models import Action
 from baserow.core.action.registries import ActionScopeStr, UndoRedoActionType
@@ -11,8 +12,6 @@ from baserow.core.models import Application, Group, GroupUser, Template
 from baserow.core.registries import application_type_registry
 from baserow.core.trash.handler import TrashHandler
 from baserow.core.utils import ChildProgressBuilder
-
-from django.utils.translation import gettext as _
 
 
 class DeleteGroupActionType(UndoRedoActionType):

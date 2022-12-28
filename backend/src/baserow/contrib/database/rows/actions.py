@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext as _
 
 from baserow.contrib.database.action.scopes import TableActionScopeType
 from baserow.contrib.database.rows.handler import (
@@ -14,18 +15,22 @@ from baserow.contrib.database.table.handler import TableHandler
 from baserow.contrib.database.table.models import GeneratedTableModel, Table
 from baserow.contrib.database.table.signals import table_updated
 from baserow.core.action.models import Action
-from baserow.core.action.registries import ActionScopeStr, ActionType
+from baserow.core.action.registries import ActionScopeStr, UndoRedoActionType
 from baserow.core.trash.handler import TrashHandler
 from baserow.core.utils import Progress
 
 
-class CreateRowActionType(ActionType):
+class CreateRowActionType(UndoRedoActionType):
     type = "create_row"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
+        table_name: str
         row_id: int
+        row_values: Dict[str, Any]
 
     @classmethod
     def do(
@@ -66,7 +71,11 @@ class CreateRowActionType(ActionType):
             user_field_names=user_field_names,
         )
 
-        params = cls.Params(table.id, row.id)
+        group = table.database.group
+
+        params = cls.Params(
+            group.id, group.name, table.id, table.name, row.id, dict(values)
+        )
         cls.register_action(user, params, cls.scope(table.id))
 
         return row
@@ -87,13 +96,34 @@ class CreateRowActionType(ActionType):
             user, "row", params.row_id, parent_trash_item_id=params.table_id
         )
 
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Row with ID (%(row_id)s) created in table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_id": params.row_id,
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
 
-class CreateRowsActionType(ActionType):
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Row created")
+
+
+class CreateRowsActionType(UndoRedoActionType):
     type = "create_rows"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
+        table_name: str
         row_ids: List[int]
         trashed_rows_entry_id: Optional[int] = None
 
@@ -127,7 +157,11 @@ class CreateRowsActionType(ActionType):
             user, table, rows_values, before_row=before_row, model=model
         )
 
-        params = cls.Params(table.id, [row.id for row in rows])
+        group = table.database.group
+
+        params = cls.Params(
+            group.id, group.name, table.id, table.name, [row.id for row in rows]
+        )
         cls.register_action(user, params, cls.scope(table.id))
 
         return rows
@@ -153,13 +187,34 @@ class CreateRowsActionType(ActionType):
             parent_trash_item_id=params.table_id,
         )
 
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Rows with ID (%(row_ids)s) created in table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_ids": ",".join(map(str, params.row_ids)),
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
 
-class ImportRowsActionType(ActionType):
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Rows created")
+
+
+class ImportRowsActionType(UndoRedoActionType):
     type = "import_rows"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
+        table_name: str
         row_ids: List[int]
         trashed_rows_entry_id: Optional[int] = None
 
@@ -196,7 +251,10 @@ class ImportRowsActionType(ActionType):
         # big amount of data.
         table_updated.send(cls, table=table, user=user, force_table_refresh=True)
 
-        params = cls.Params(table.id, [row.id for row in created_rows])
+        group = table.database.group
+        params = cls.Params(
+            group.id, group.name, table.id, table.name, [row.id for row in created_rows]
+        )
         cls.register_action(user, params, cls.scope(table.id))
 
         return created_rows, error_report
@@ -222,13 +280,34 @@ class ImportRowsActionType(ActionType):
             parent_trash_item_id=params.table_id,
         )
 
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Rows with ID (%(row_ids)s) imported in table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_ids": ",".join(map(str, params.row_ids)),
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
 
-class DeleteRowActionType(ActionType):
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Rows imported")
+
+
+class DeleteRowActionType(UndoRedoActionType):
     type = "delete_row"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
+        table_name: str
         row_id: int
 
     @classmethod
@@ -254,8 +333,9 @@ class DeleteRowActionType(ActionType):
         """
 
         RowHandler().delete_row_by_id(user, table, row_id, model=model)
+        group = table.database.group
 
-        params = cls.Params(table.id, row_id)
+        params = cls.Params(group.id, group.name, table.id, table.name, row_id)
         cls.register_action(user, params, cls.scope(table.id))
 
     @classmethod
@@ -274,13 +354,34 @@ class DeleteRowActionType(ActionType):
             user, TableHandler().get_table(params.table_id), params.row_id
         )
 
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Row with ID (%(row_id)s) deleted from table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_id": params.row_id,
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
 
-class DeleteRowsActionType(ActionType):
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Row deleted")
+
+
+class DeleteRowsActionType(UndoRedoActionType):
     type = "delete_rows"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
+        table_name: str
         row_ids: List[int]
         trashed_rows_entry_id: int
 
@@ -307,8 +408,11 @@ class DeleteRowsActionType(ActionType):
         """
 
         trashed_rows_entry = RowHandler().delete_rows(user, table, row_ids, model=model)
+        group = table.database.group
 
-        params = cls.Params(table.id, row_ids, trashed_rows_entry.id)
+        params = cls.Params(
+            group.id, group.name, table.id, table.name, row_ids, trashed_rows_entry.id
+        )
         cls.register_action(user, params, cls.scope(table.id))
 
     @classmethod
@@ -331,6 +435,24 @@ class DeleteRowsActionType(ActionType):
         )
         params.trashed_rows_entry_id = trashed_rows_entry.id
         action_being_redone.params = params
+
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Rows with IDs (%(row_ids)s) deleted from table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_ids": ",".join(map(str, params.row_ids)),
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
+
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Rows deleted")
 
 
 def get_rows_displacement(
@@ -401,12 +523,15 @@ def get_before_row_from_displacement(
             return queryset.last()
 
 
-class MoveRowActionType(ActionType):
+class MoveRowActionType(UndoRedoActionType):
     type = "move_row"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
+        table_name: str
         row_id: int
         rows_displacement: int
 
@@ -458,7 +583,11 @@ class MoveRowActionType(ActionType):
         if rows_displacement == 0:
             return updated_row
 
-        params = cls.Params(table.id, row.id, rows_displacement)
+        group = table.database.group
+
+        params = cls.Params(
+            group.id, group.name, table.id, table.name, row.id, rows_displacement
+        )
         cls.register_action(user, params, cls.scope(table.id))
 
         return updated_row
@@ -495,16 +624,37 @@ class MoveRowActionType(ActionType):
 
         row_handler.move_row(user, table, row, before_row=before_row, model=model)
 
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Row with ID (%(row_id)s) moved in table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_id": params.row_id,
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
 
-class UpdateRowActionType(ActionType):
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Row moved")
+
+
+class UpdateRowActionType(UndoRedoActionType):
     type = "update_row"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
+        table_name: str
         row_id: int
+        row_values: Dict[str, Any]
         original_row_values: Dict[str, Any]
-        new_row_values: Dict[str, Any]
 
     @classmethod
     def do(
@@ -555,14 +705,17 @@ class UpdateRowActionType(ActionType):
         )
 
         updated_row = row_handler.update_row(user, table, row, values, model=model)
-
-        new_row_values = row_handler.get_internal_values_for_fields(row, field_keys)
+        row_values = row_handler.get_internal_values_for_fields(row, field_keys)
+        group = table.database.group
 
         params = cls.Params(
+            group.id,
+            group.name,
             table.id,
+            table.name,
             row.id,
+            row_values,
             original_row_values,
-            new_row_values,
         )
         cls.register_action(user, params, cls.scope(table.id))
 
@@ -586,22 +739,43 @@ class UpdateRowActionType(ActionType):
             user, table, row_id=params.row_id, values=params.new_row_values
         )
 
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Row with ID (%(row_id)s) updated in table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_id": params.row_id,
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
 
-class UpdateRowsActionType(ActionType):
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Row updated")
+
+
+class UpdateRowsActionType(UndoRedoActionType):
     type = "update_rows"
 
     @dataclasses.dataclass
     class Params:
+        group_id: int
+        group_name: str
         table_id: int
-        original_rows_values: List
-        new_rows: List
+        table_name: str
+        rows: List[Dict[str, Any]]
+        original_rows_values: List[Dict[str, Any]]
 
     @classmethod
     def do(
         cls,
         user: AbstractUser,
         table: Table,
-        rows: List,
+        rows: List[Dict[str, Any]],
         model: Optional[Type[GeneratedTableModel]] = None,
     ) -> List[GeneratedTableModelForUpdate]:
         """
@@ -642,9 +816,16 @@ class UpdateRowsActionType(ActionType):
         updated_rows = row_handler.update_rows(
             user, table, rows, model=model, rows_to_update=original_rows
         )
+        group = table.database.group
 
-        params = cls.Params(table.id, original_rows_values, new_rows)
-
+        params = cls.Params(
+            group.id,
+            group.name,
+            table.id,
+            table.name,
+            new_rows,
+            original_rows_values,
+        )
         cls.register_action(user, params, cls.scope(table.id))
 
         return updated_rows
@@ -662,3 +843,21 @@ class UpdateRowsActionType(ActionType):
     def redo(cls, user: AbstractUser, params: Params, action_being_redone: Action):
         table = TableHandler().get_table(params.table_id)
         RowHandler().update_rows(user, table, params.new_rows)
+
+    @classmethod
+    def get_action_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _(
+            'Rows with IDs (%(row_ids)s) updated in table "%(table_name)s" (%(table_id)s)'
+        ) % {
+            "row_ids": ",".join(map(str, params.row_ids)),
+            "table_id": params.table_id,
+            "table_name": params.table_name,
+        }
+
+    @classmethod
+    def get_type_description(
+        cls, user: AbstractUser, params: Params, *args, **kwargs
+    ) -> str:
+        return _("Rows updated")

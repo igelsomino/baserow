@@ -53,6 +53,7 @@ from baserow.contrib.database.views.operations import (
     UpdateViewOperationType,
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
+    ReadViewFieldOptionsOperationType,
 )
 from baserow.core.handler import CoreHandler
 from baserow.core.trash.handler import TrashHandler
@@ -503,6 +504,20 @@ class ViewHandler:
         TrashHandler().trash(user, group, view.table.database, view)
 
         view_deleted.send(self, view_id=view_id, view=view, user=user)
+
+    def get_field_options(self, user: AbstractUser, view: View):
+        # TODO: return type, docs
+
+        group = view.table.database.group
+        CoreHandler().check_permissions(
+            user,
+            ReadViewFieldOptionsOperationType.type,
+            group=group,
+            context=view,
+            allow_if_template=True,
+        )
+        view_type = view_type_registry.get_by_model(view)
+        return view_type
 
     def update_field_options(
         self,

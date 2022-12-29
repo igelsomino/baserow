@@ -435,7 +435,7 @@ def test_delete_view_personal_ownership_type(data_fixture, premium_data_fixture,
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_update_field_options_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_field_options_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
@@ -456,11 +456,15 @@ def test_update_field_options_personal_ownership_type(data_fixture, premium_data
         ownership_type="personal",
     )
 
+    handler.get_field_options(user, view)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_field_options(user2, view)
+
     handler.update_field_options(view, {}, user)
 
     with pytest.raises(PermissionDenied):
         handler.update_field_options(view, {}, user2)
-
 
 
 @pytest.mark.django_db

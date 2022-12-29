@@ -80,7 +80,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         # "database.table.view.restore",
 
         # field options
-        # "database.table.view.read_field_options",
+        "database.table.view.read_field_options",
         "database.table.view.update_field_options",
 
         # view filters

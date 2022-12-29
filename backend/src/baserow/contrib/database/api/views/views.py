@@ -1520,15 +1520,7 @@ class ViewFieldOptionsView(APIView):
         """Returns the field options of the view."""
 
         view = ViewHandler().get_view(request.user, view_id).specific
-        group = view.table.database.group
-        CoreHandler().check_permissions(
-            request.user,
-            ReadViewFieldOptionsOperationType.type,
-            group=group,
-            context=view,
-            allow_if_template=True,
-        )
-        view_type = view_type_registry.get_by_model(view)
+        view_type = ViewHandler().get_field_options(request.user, view)        
 
         try:
             serializer_class = view_type.get_field_options_serializer_class(

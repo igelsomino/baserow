@@ -2390,6 +2390,12 @@ def test_update_field_options_view_ownership_type(data_fixture):
     view.save()
 
     with pytest.raises(PermissionDenied):
+        handler.get_field_options(user, view)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_field_options(user2, view)
+
+    with pytest.raises(PermissionDenied):
         handler.update_field_options(view, {}, user)
 
     with pytest.raises(PermissionDenied):

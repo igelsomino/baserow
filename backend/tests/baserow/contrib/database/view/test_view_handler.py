@@ -2610,3 +2610,30 @@ def test_aggregations_view_ownership_type(data_fixture):
 
     with pytest.raises(PermissionDenied):
         handler.get_view_field_aggregations(user2, view)
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_update_view_slug_ownership_type(data_fixture):
+    group = data_fixture.create_group(name="Group 1")
+    user = data_fixture.create_user(group=group)
+    user2 = data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    field = data_fixture.create_number_field(user=user, table=table)
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="form",
+        name="Form",
+        ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
+    )
+    view.ownership_type = "personal"
+    view.save()
+
+    with pytest.raises(PermissionDenied):
+        handler.update_form_slug(user, view, "new-slug")
+
+    with pytest.raises(PermissionDenied):
+        handler.update_form_slug(user2, view, "new-slug")

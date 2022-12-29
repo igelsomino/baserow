@@ -20,6 +20,7 @@ from baserow.core.registries import (
     PermissionManagerType,
     operation_type_registry,
 )
+from baserow.contrib.database.table.models import Table
 from baserow.contrib.database.views.models import ViewFilter
 from baserow.contrib.database.views.operations import (
     CreateViewFilterOperationType,
@@ -59,11 +60,10 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
     type = "view_ownership"
     operations = [
         # views
-        # TODO: create
-        # "database.table.create_view",
+        # "database.table.create_view", # TODO: ?
         "database.table.view.read",
         "database.table.view.update",
-        # "database.table.view.update_slug",
+        "database.table.view.update_slug",
         "database.table.view.duplicate",
         "database.table.view.delete",
         "database.table.view.restore",
@@ -95,7 +95,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
 
         # aggregations
         "database.table.view.list_aggregations",
-        # "database.table.field.read_aggregation", # TODO: ask Jeremy
+        # "database.table.field.read_aggregation", # TODO: ?
 
         # ordering
         # "database.table.read_view_order",

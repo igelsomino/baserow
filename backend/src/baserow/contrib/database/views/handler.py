@@ -1873,7 +1873,6 @@ class ViewHandler:
         new_slug = View.create_new_slug()
         return self.update_view_slug(user, view, new_slug)
 
-    # TODO: Progress
 
     def update_view_slug(self, user: AbstractUser, view: View, slug: str) -> View:
         """
@@ -1902,6 +1901,8 @@ class ViewHandler:
         view_updated.send(self, view=view, user=user)
 
         return view
+
+    # TODO: Progress
 
     def get_public_view_by_slug(
         self,

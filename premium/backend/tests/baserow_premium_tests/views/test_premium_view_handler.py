@@ -8,6 +8,8 @@ from baserow.contrib.database.views.models import (
     OWNERSHIP_TYPE_COLLABORATIVE,
 )
 from baserow_premium.views.handler import get_rows_grouped_by_single_select_field
+from baserow.contrib.database.views.exceptions import ViewDoesNotExist
+
 
 @pytest.mark.django_db
 def test_get_rows_grouped_by_single_select_field(
@@ -703,3 +705,36 @@ def test_update_view_slug_personal_ownership_type(data_fixture, premium_data_fix
 
     with pytest.raises(PermissionDenied):
         handler.update_form_slug(user2, view, "new-slug")
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_get_public_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="form",
+        name="Form",
+        ownership_type="personal",
+    )
+    view.ownership_type = "personal"
+    view.public = False
+    view.slug = "slug"
+    view.save()
+    
+    handler.get_public_view_by_slug(user, "slug")
+
+    with pytest.raises(ViewDoesNotExist):
+        handler.get_public_view_by_slug(user2, "slug")

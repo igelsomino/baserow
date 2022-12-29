@@ -2637,3 +2637,36 @@ def test_update_view_slug_ownership_type(data_fixture):
 
     with pytest.raises(PermissionDenied):
         handler.update_form_slug(user2, view, "new-slug")
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_get_public_view_ownership_type(data_fixture):
+    group = data_fixture.create_group(name="Group 1")
+    user = data_fixture.create_user(group=group)
+    user2 = data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Grid",
+        ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
+    )
+    view.ownership_type = "personal"
+    view.public = False
+    view.slug = "slug"
+    view.save()
+
+    with pytest.raises(ViewDoesNotExist):
+        handler.get_public_view_by_slug(user, "slug")
+
+    with pytest.raises(ViewDoesNotExist):
+        handler.get_public_view_by_slug(user2, "slug")
+
+    view.public = True
+    view.save()
+
+    handler.get_public_view_by_slug(user, "slug")

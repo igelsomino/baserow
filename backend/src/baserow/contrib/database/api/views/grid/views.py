@@ -53,9 +53,9 @@ from baserow.contrib.database.fields.operations import (
 )
 from baserow.contrib.database.rows.registries import row_metadata_registry
 from baserow.contrib.database.table.operations import (
-    ListAggregationDatabaseTableOperationType,
     ListRowsDatabaseTableOperationType,
 )
+from baserow.contrib.database.views.operations import ListAggregationViewOperationType
 from baserow.contrib.database.views.exceptions import (
     AggregationTypeDoesNotExist,
     NoAuthorizationToPubliclySharedView,
@@ -441,19 +441,11 @@ class GridViewFieldAggregationsView(APIView):
         view_handler = ViewHandler()
         view = view_handler.get_view(request.user, view_id, GridView)
 
-        CoreHandler().check_permissions(
-            request.user,
-            ListAggregationDatabaseTableOperationType.type,
-            group=view.table.database.group,
-            context=view.table,
-            allow_if_template=True,
-        )
-
         # Compute aggregation
         # Note: we can't optimize model by giving a model with just
         # the aggregated field because we may need other fields for filtering
         result = view_handler.get_view_field_aggregations(
-            view, with_total=total, search=search
+            request.user, view, with_total=total, search=search
         )
 
         return Response(result)
@@ -549,13 +541,6 @@ class GridViewFieldAggregationView(APIView):
         view = view_handler.get_view(request.user, view_id, GridView)
 
         field_instance = FieldHandler().get_field(field_id)
-        CoreHandler().check_permissions(
-            request.user,
-            ReadAggregationDatabaseTableOperationType.type,
-            group=view.table.database.group,
-            context=field_instance,
-            allow_if_template=True,
-        )
 
         aggregation_type = request.GET.get("type")
 
@@ -563,7 +548,7 @@ class GridViewFieldAggregationView(APIView):
         # Note: we can't optimize model by giving a model with just
         # the aggregated field because we may need other fields for filtering
         aggregations = view_handler.get_field_aggregations(
-            view, [(field_instance, aggregation_type)], with_total=total
+            request.user, view, [(field_instance, aggregation_type)], with_total=total
         )
 
         result = {

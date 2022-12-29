@@ -41,6 +41,7 @@ from baserow.contrib.database.views.operations import (
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
 )
+from baserow.contrib.database.fields.models import Field
 from baserow.contrib.database.views.models import View, ViewSort, ViewDecoration, OWNERSHIP_TYPE_COLLABORATIVE
 from baserow_premium.license.handler import LicenseHandler
 from baserow_premium.license.features import PREMIUM
@@ -54,19 +55,6 @@ if TYPE_CHECKING:
 # TODO: bypass public views
 
 class ViewOwnershipPermissionManagerType(PermissionManagerType):
-    """
-    A permission manager is responsible to permit or disallow a specific operation
-    according to the given context.
-
-    A permission manager is also responsible to generate the data sent to the
-    frontend to make it check the permission.
-
-    And finally, a permission manager can filter the list querysets
-    to remove disallowed objects from this list.
-
-    See each PermissionManager method and `CoreHandler` methods for more details.
-    """
-
     # TODO: refactor from strings to types?
     type = "view_ownership"
     operations = [
@@ -75,6 +63,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         # "database.table.create_view",
         "database.table.view.read",
         "database.table.view.update",
+        # "database.table.view.update_slug",
         "database.table.view.duplicate",
         "database.table.view.delete",
         "database.table.view.restore",
@@ -104,7 +93,11 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         "database.table.view.decoration.update",
         "database.table.view.decoration.read",
 
-        # "database.table.view.update_slug",
+        # aggregations
+        "database.table.view.list_aggregations",
+        # "database.table.field.read_aggregation", # TODO: ask Jeremy
+
+        # ordering
         # "database.table.read_view_order",
         # "database.table.order_views",
     ]

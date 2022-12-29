@@ -99,6 +99,9 @@ class ListViewFilterOperationType(ViewOperationType):
     type = "database.table.view.list_filter"
 
 
+class ListAggregationViewOperationType(ViewOperationType):
+    type = "database.table.view.list_aggregations"
+
 class ReadViewFilterOperationType(ViewFilterOperationType):
     type = "database.table.view.filter.read"
 

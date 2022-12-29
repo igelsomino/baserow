@@ -28,6 +28,9 @@ from baserow.contrib.database.fields.registries import field_type_registry
 from baserow.contrib.database.rows.handler import RowHandler
 from baserow.contrib.database.rows.signals import rows_created
 from baserow.contrib.database.table.models import GeneratedTableModel, Table
+from baserow.contrib.database.fields.operations import (
+    ReadAggregationDatabaseTableOperationType,
+)
 from baserow.contrib.database.views.operations import (
     CreateViewFilterOperationType,
     ListViewFilterOperationType,
@@ -45,6 +48,7 @@ from baserow.contrib.database.views.operations import (
     ReadViewsOrderOperationType,
     ReadViewDecorationOperationType,
     ReadViewSortOperationType,
+    ListAggregationViewOperationType,
     UpdateViewFieldOptionsOperationType,
     UpdateViewFilterOperationType,
     ListViewDecorationOperationType,
@@ -1511,7 +1515,6 @@ class ViewHandler:
             user=user,
         )
 
-    # TODO: Progress
 
     def get_queryset(
         self,
@@ -1543,6 +1546,8 @@ class ViewHandler:
         :return: The appropriate queryset for the provided view.
         :rtype: QuerySet
         """
+
+        # TODO:
 
         if model is None:
             model = view.table.get_model()
@@ -1663,6 +1668,7 @@ class ViewHandler:
 
     def get_view_field_aggregations(
         self,
+        user: AbstractUser,
         view: View,
         model: Union[GeneratedTableModel, None] = None,
         with_total: bool = False,
@@ -1688,6 +1694,15 @@ class ViewHandler:
             field aggregation.
         :return: A dict of aggregation value
         """
+        # TODO: docs: user
+
+        CoreHandler().check_permissions(
+            user,
+            ListAggregationViewOperationType.type,
+            group=view.table.database.group,
+            context=view,
+            allow_if_template=True,
+        )
 
         view_type = view_type_registry.get_by_model(view.specific_class)
 
@@ -1725,6 +1740,7 @@ class ViewHandler:
         # Do we need to compute some aggregations?
         if need_computation or with_total:
             db_result = self.get_field_aggregations(
+                user,
                 view,
                 [
                     (n["instance"], n["aggregation_type"])
@@ -1763,6 +1779,7 @@ class ViewHandler:
 
     def get_field_aggregations(
         self,
+        user: AbstractUser,
         view: View,
         aggregations: Iterable[Tuple[django_models.Field, str]],
         model: Union[GeneratedTableModel, None] = None,
@@ -1788,6 +1805,7 @@ class ViewHandler:
             view.
         :return: A dict of aggregation values
         """
+        # TODO: docs: user
 
         if model is None:
             model = view.table.get_model()
@@ -1811,6 +1829,14 @@ class ViewHandler:
         aggregation_dict = {}
 
         for (field_instance, aggregation_type_name) in aggregations:
+            CoreHandler().check_permissions(
+                user,
+                ReadAggregationDatabaseTableOperationType.type,
+                group=view.table.database.group,
+                context=field_instance,
+                allow_if_template=True,
+            )
+            
             field_name = field_instance.db_column
 
             # Check whether the field belongs to the table.
@@ -1846,6 +1872,8 @@ class ViewHandler:
 
         new_slug = View.create_new_slug()
         return self.update_view_slug(user, view, new_slug)
+
+    # TODO: Progress
 
     def update_view_slug(self, user: AbstractUser, view: View, slug: str) -> View:
         """

@@ -495,7 +495,6 @@ class DatabaseConfig(AppConfig):
             DeleteDatabaseTableOperationType,
             DuplicateDatabaseTableOperationType,
             ImportRowsDatabaseTableOperationType,
-            ListAggregationDatabaseTableOperationType,
             ListenToAllDatabaseTableEventsOperationType,
             ListRowNamesDatabaseTableOperationType,
             ListRowsDatabaseTableOperationType,
@@ -521,6 +520,7 @@ class DatabaseConfig(AppConfig):
             ListViewFilterOperationType,
             ListViewsOperationType,
             ListViewSortOperationType,
+            ListAggregationViewOperationType,
             OrderViewsOperationType,
             ReadViewDecorationOperationType,
             ReadViewFieldOptionsOperationType,
@@ -595,7 +595,7 @@ class DatabaseConfig(AppConfig):
         operation_type_registry.register(ListRowNamesDatabaseTableOperationType())
         operation_type_registry.register(ReadAdjacentRowDatabaseRowOperationType())
         operation_type_registry.register(ReadAggregationDatabaseTableOperationType())
-        operation_type_registry.register(ListAggregationDatabaseTableOperationType())
+        operation_type_registry.register(ListAggregationViewOperationType())
         operation_type_registry.register(ExportTableOperationType())
         operation_type_registry.register(ListFieldsOperationType())
         operation_type_registry.register(ListViewsOperationType())

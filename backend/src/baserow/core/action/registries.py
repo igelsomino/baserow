@@ -1,16 +1,16 @@
 import abc
 import dataclasses
-from typing import Any, NewType, Optional, Type, cast
+from typing import Any, NewType, Optional, Tuple
 
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
+from baserow.core.models import Group
 from baserow.core.registry import Instance, Registry
 
 from .models import Action
-
 
 # An alias type of a str (its exactly a str, just with a different name in the type
 # system). We use this instead of a normal str for type safety ensuring
@@ -120,6 +120,10 @@ class UndoRedoActionTypeMixin(abc.ABC):
 
 class ActionType(Instance, abc.ABC):
     type: str = NotImplemented
+    description: Tuple[str, str] = (
+        _("%(action_type)s"),
+        _("%(action_type)s: %(params)s"),
+    )
 
     @dataclasses.dataclass
     class Params:
@@ -157,30 +161,44 @@ class ActionType(Instance, abc.ABC):
         pass
 
     @classmethod
+    def _render_params(cls, params: Any) -> Any:
+        """
+        Should return the params to be used when rendering the action description.
+        """
+
+        return {
+            "action_type": cls.type.replace("_", " ").capitalize(),
+            "params": params,
+            **params,
+        }
+
+    @classmethod
     # TODO: add @abc.abstractmethod
-    def get_action_description(
-        cls, user: AbstractUser, params: Any, *args, **kwargs
-    ) -> str:
+    def get_action_description(cls, params: Any, *args, **kwargs) -> str:
         """
         Should return a human readable description of the action being performed.
         """
 
-        return ""
+        _, description = cls.description
+        return description % cls._render_params(params)
 
     @classmethod
     # TODO: add @abc.abstractmethod
-    def get_type_description(
-        cls, user: AbstractUser, params: Any, *args, **kwargs
-    ) -> str:
+    def get_type_description(cls, params: Any, *args, **kwargs) -> str:
         """
         Should return a human readable description of the action type being performed.
         """
 
-        return ""
+        description, _ = cls.description
+        return description % cls._render_params(params)
 
     @classmethod
     def register_action(
-        cls, user: AbstractUser, params: Any, scope: ActionScopeStr
+        cls,
+        user: AbstractUser,
+        params: Any,
+        scope: ActionScopeStr,
+        group: Optional[Group] = None,
     ) -> Action:
         """
         Registers a new action in the database using the untrusted client session id
@@ -195,7 +213,7 @@ class ActionType(Instance, abc.ABC):
         from .handler import ActionHandler
 
         return ActionHandler.register_action(
-            user=user, action_type=cls, params=params, scope=scope
+            user=user, action_type=cls, params=params, scope=scope, group=group
         )
 
     @classmethod

@@ -9,7 +9,11 @@ from django.db.models import Q, UniqueConstraint
 
 from rest_framework.exceptions import NotAuthenticated
 
-from baserow.core.jobs.mixins import JobWithUndoRedoIds, JobWithWebsocketId
+from baserow.core.jobs.mixins import (
+    JobWithUndoRedoIds,
+    JobWithUserIpAddress,
+    JobWithWebsocketId,
+)
 from baserow.core.jobs.models import Job
 from baserow.core.user_files.models import UserFile
 
@@ -451,7 +455,9 @@ class TrashEntry(models.Model):
         ]
 
 
-class DuplicateApplicationJob(JobWithWebsocketId, JobWithUndoRedoIds, Job):
+class DuplicateApplicationJob(
+    JobWithUserIpAddress, JobWithWebsocketId, JobWithUndoRedoIds, Job
+):
 
     original_application = models.ForeignKey(
         Application,
@@ -485,7 +491,9 @@ class Snapshot(models.Model):
         unique_together = ("name", "snapshot_from_application")
 
 
-class InstallTemplateJob(JobWithWebsocketId, JobWithUndoRedoIds, Job):
+class InstallTemplateJob(
+    JobWithUserIpAddress, JobWithWebsocketId, JobWithUndoRedoIds, Job
+):
     group = models.ForeignKey(
         Group,
         on_delete=models.CASCADE,

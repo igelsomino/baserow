@@ -3,9 +3,9 @@ from typing import Dict, List, Union
 from django.db.models import Q, QuerySet
 
 from baserow.api.exceptions import (
+    InvalidFilterAttributeException,
     InvalidSortAttributeException,
     InvalidSortDirectionException,
-    InvalidFilterAttributeException,
     UnknownFieldProvided,
 )
 

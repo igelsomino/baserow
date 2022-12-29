@@ -13,6 +13,8 @@ class AuditLogSerializer(serializers.ModelSerializer):
         return f"{obj.user_email} ({obj.user_id})"
 
     def get_group(self, obj):
+        if obj.group_id is None:
+            return ""
         return f"{obj.group_name} ({obj.group_id})"
 
     def get_type(self, obj):

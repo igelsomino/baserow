@@ -1,8 +1,10 @@
 import dataclasses
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from uuid import uuid4
 
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext as _
 
 from baserow.contrib.database.fields.backup_handler import (
     BackupData,
@@ -14,26 +16,41 @@ from baserow.contrib.database.fields.registries import field_type_registry
 from baserow.contrib.database.table.models import Table
 from baserow.contrib.database.table.scopes import TableActionScopeType
 from baserow.core.action.models import Action
-from baserow.core.action.registries import ActionScopeStr, ActionType
+from baserow.core.action.registries import ActionScopeStr, UndoRedoActionType
 from baserow.core.trash.handler import TrashHandler
 from baserow.core.utils import ChildProgressBuilder
 
 
-class UpdateFieldActionType(ActionType):
+class UpdateFieldActionType(UndoRedoActionType):
     type = "update_field"
+    description = (
+        _("Update field"),
+        _(
+            'Field "%(field_name)s" (%(field_id)s) updated in table "%(table_name)s" '
+            '(%(table_id)s) of database "%(database_name)s" (%(database_id)s)'
+        ),
+    )
 
     @dataclasses.dataclass
     class Params:
+        table_id: int
+        table_name: str
+        database_id: int
+        database_name: str
         field_id: int
+        field_name: str
+        field_type: str
+
         # We also need to persist the actual name of the database table in-case the
         # field itself is perm deleted by the time we clean up we can still find the
         # table and delete the column if need be.
         database_table_name: str
 
-        previous_field_type: str
-        previous_field_params: Dict[str, Any]
+        original_field_type: str
+        original_field_params: Dict[str, Any]
 
         backup_data: Optional[Dict[str, Any]]
+        backup_uid: Optional[str] = None
 
     @classmethod
     def do(
@@ -62,16 +79,13 @@ class UpdateFieldActionType(ActionType):
         from_field_type_name = from_field_type.type
         to_field_type_name = new_type_name or from_field_type_name
 
+        backup_uuid = str(uuid4()).replace("-", "")
         original_exported_values = cls._get_prepared_field_attrs(
             field, kwargs, to_field_type_name
         )
 
-        # We initially create the action with blank params so we have an action id
-        # to use when naming a possible backup field/table.
-        action = cls.register_action(user, {}, cls.scope(field.table_id))
-
         optional_backup_data = cls._backup_field_if_required(
-            field, kwargs, action, to_field_type_name, False
+            field, kwargs, to_field_type_name, backup_uuid
         )
 
         field, updated_fields = FieldHandler().update_field(
@@ -82,14 +96,23 @@ class UpdateFieldActionType(ActionType):
             **kwargs,
         )
 
-        action.params = cls.Params(
-            field_id=field.id,
+        table = field.table
+        params = cls.Params(
+            table.id,
+            table.name,
+            table.database.id,
+            table.database.name,
+            field.id,
+            field.name,
+            to_field_type_name,
             database_table_name=field.table.get_database_table_name(),
-            previous_field_type=from_field_type_name,
-            previous_field_params=original_exported_values,
+            original_field_type=from_field_type_name,
+            original_field_params=original_exported_values,
             backup_data=optional_backup_data,
+            backup_uid=backup_uuid,
         )
-        action.save()
+        group = table.database.group
+        cls.register_action(user, params, cls.scope(table.id), group)
 
         return field, updated_fields
 
@@ -131,9 +154,9 @@ class UpdateFieldActionType(ActionType):
         cls,
         original_field: Field,
         allowed_new_field_attrs: Dict[str, Any],
-        action: Action,
         to_field_type_name: str,
-        for_undo: bool,
+        backup_uuid: str,
+        for_undo: bool = False,
     ) -> Optional[BackupData]:
         """
         Performs a backup if needed and returns a dictionary of backup data which can
@@ -147,7 +170,7 @@ class UpdateFieldActionType(ActionType):
             backup_data = FieldDataBackupHandler.backup_field_data(
                 original_field,
                 identifier_to_backup_into=cls._get_backup_identifier(
-                    action, original_field.id, for_undo=for_undo
+                    original_field.id, backup_uuid, for_undo=for_undo
                 ),
             )
         else:
@@ -218,14 +241,14 @@ class UpdateFieldActionType(ActionType):
 
     @classmethod
     def _get_backup_identifier(
-        cls, action: Action, field_id: int, for_undo: bool
+        cls, field_id: int, backup_uuid: str, for_undo: bool
     ) -> str:
         """
         Returns a column/table name unique to this action and field which can be
         used to safely store backup data in the database.
         """
 
-        base_name = f"field_{field_id}_backup_{action.id}"
+        base_name = f"field_{field_id}_backup_{backup_uuid}"
         if for_undo:
             # When undoing we need to backup into a different column/table so we
             # don't accidentally overwrite the data we are about to restore using.
@@ -241,21 +264,22 @@ class UpdateFieldActionType(ActionType):
         params: Params,
         for_undo: bool,
     ):
-        new_field_attributes = deepcopy(params.previous_field_params)
-        to_field_type_name = params.previous_field_type
+        new_field_attributes = deepcopy(params.original_field_params)
+        to_field_type_name = params.original_field_type
 
         handler = FieldHandler()
         field = handler.get_specific_field_for_update(params.field_id)
 
         updated_field_attrs = set(new_field_attributes.keys())
-        previous_field_params = cls._get_prepared_field_attrs(
+        original_field_params = cls._get_prepared_field_attrs(
             field, updated_field_attrs, to_field_type_name
         )
         from_field_type = field_type_registry.get_by_model(field)
         from_field_type_name = from_field_type.type
 
+        backup_uid = params.backup_uid or action.id
         optional_backup_data = cls._backup_field_if_required(
-            field, new_field_attributes, action, to_field_type_name, for_undo
+            field, new_field_attributes, to_field_type_name, backup_uid, for_undo
         )
 
         def after_field_schema_change_callback(
@@ -288,17 +312,30 @@ class UpdateFieldActionType(ActionType):
         )
 
         params.backup_data = optional_backup_data
-        params.previous_field_type = from_field_type_name
-        params.previous_field_params = previous_field_params
+        params.original_field_type = from_field_type_name
+        params.original_field_params = original_field_params
         action.params = params
 
 
-class CreateFieldActionType(ActionType):
+class CreateFieldActionType(UndoRedoActionType):
     type = "create_field"
+    description = (
+        _("Create field"),
+        _(
+            'Field "%(field_name)s" (%(field_id)s) created in table "%(table_name)s" '
+            '(%(table_id)s) of database "%(database_name)s" (%(database_id)s)'
+        ),
+    )
 
     @dataclasses.dataclass
     class Params:
+        table_id: int
+        table_name: str
+        database_id: int
+        database_name: str
         field_id: int
+        field_name: str
+        field_type: str
 
     @classmethod
     def do(
@@ -347,9 +384,17 @@ class CreateFieldActionType(ActionType):
             field = result
             updated_fields = None
 
-        cls.register_action(
-            user=user, params=cls.Params(field_id=field.id), scope=cls.scope(table.id)
+        params = cls.Params(
+            table.id,
+            table.name,
+            table.database.id,
+            table.database.name,
+            field.id,
+            field.name,
+            type_name,
         )
+        group = table.database.group
+        cls.register_action(user, params, cls.scope(table.id), group)
 
         return (field, updated_fields) if return_updated_fields else field
 
@@ -367,12 +412,24 @@ class CreateFieldActionType(ActionType):
         TrashHandler().restore_item(user, "field", params.field_id)
 
 
-class DeleteFieldActionType(ActionType):
+class DeleteFieldActionType(UndoRedoActionType):
     type = "delete_field"
+    description = (
+        _("Delete field"),
+        _(
+            'Field "%(field_name)s" (%(field_id)s) deleted in table "%(table_name)s" '
+            '(%(table_id)s) of database "%(database_name)s" (%(database_id)s)'
+        ),
+    )
 
     @dataclasses.dataclass
     class Params:
+        table_id: int
+        table_name: str
+        database_id: int
+        database_name: str
         field_id: int
+        field_name: str
 
     @classmethod
     def do(
@@ -394,13 +451,17 @@ class DeleteFieldActionType(ActionType):
 
         result = FieldHandler().delete_field(user, field)
 
-        cls.register_action(
-            user=user,
-            params=cls.Params(
-                field.id,
-            ),
-            scope=cls.scope(field.table_id),
+        table = field.table
+        group = table.database.group
+        params = cls.Params(
+            table.id,
+            table.name,
+            table.database.id,
+            table.database.name,
+            field.id,
+            field.name,
         )
+        cls.register_action(user, params, cls.scope(table.id), group)
 
         return result
 
@@ -421,12 +482,29 @@ class DeleteFieldActionType(ActionType):
         )
 
 
-class DuplicateFieldActionType(ActionType):
+class DuplicateFieldActionType(UndoRedoActionType):
     type = "duplicate_field"
+    description = (
+        _("Duplicate field"),
+        _(
+            'Field "%(field_name)s" (%(field_id)s) duplicated '
+            '(with_data=%(with_data)s) from field "%(original_field_name)s" '
+            '(%(original_field_id)s) in table "%(table_name)s" (%(table_id)s) '
+            'of database "%(database_name)s" (%(database_id)s)'
+        ),
+    )
 
     @dataclasses.dataclass
     class Params:
+        table_id: int
+        table_name: str
+        database_id: int
+        database_name: str
         field_id: int
+        field_name: str
+        with_data: bool
+        original_field_id: int
+        original_field_name: str
 
     @classmethod
     def do(
@@ -452,9 +530,20 @@ class DuplicateFieldActionType(ActionType):
         new_field_clone, updated_fields = FieldHandler().duplicate_field(
             user, field, duplicate_data, progress_builder=progress_builder
         )
-        cls.register_action(
-            user, cls.Params(new_field_clone.id), cls.scope(field.table_id)
+        table = field.table
+        params = cls.Params(
+            table.id,
+            table.name,
+            table.database.id,
+            table.database.name,
+            new_field_clone.id,
+            new_field_clone.name,
+            duplicate_data,
+            field.id,
+            field.name,
         )
+        group = table.database.group
+        cls.register_action(user, params, cls.scope(field.table_id), group)
         return new_field_clone, updated_fields
 
     @classmethod

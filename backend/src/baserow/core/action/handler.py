@@ -15,15 +15,16 @@ from baserow.api.sessions import (
     get_untrusted_client_session_id,
 )
 from baserow.core.exceptions import LockConflict
+from baserow.core.models import Group
 
 from .models import Action
 from .registries import (
-    ActionType,
     ActionScopeStr,
+    ActionType,
     UndoRedoActionTypeMixin,
     action_type_registry,
 )
-from .signals import action_done, actions_undone, actions_redone
+from .signals import action_done, actions_redone, actions_undone
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,7 @@ class ActionHandler:
         action_type: Type[ActionType],
         params: Any,
         scope: ActionScopeStr,
+        group: Optional[Group] = None,
     ) -> Action:
         """
         Registers a new action in the database using the untrusted client session id
@@ -79,7 +81,9 @@ class ActionHandler:
             action_group=action_group,
         )
 
-        action_done.send(sender=cls, action=action)
+        action_done.send(
+            sender=cls, user=user, action=action, action_type=action_type, group=group
+        )
         return action
 
     @classmethod

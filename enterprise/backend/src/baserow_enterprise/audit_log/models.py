@@ -1,7 +1,36 @@
-from django.db import models
-from baserow.core.action.models import JSONEncoderSupportingDataClasses
+from functools import wraps
 
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from baserow.core.action.models import JSONEncoderSupportingDataClasses
 from baserow.core.action.registries import action_type_registry
+
+
+def action_type_getter(fallback_attr: str):
+    def decorate_audit_log_entry_attr(func):
+        @wraps(func)
+        def wrapper(audit_log_entry, *args, **kwargs):
+            """
+            This wrapper ensure a string is returned even if the action type is not
+            registered anymore or if Param class is changed.
+            """
+
+            fallback_str = getattr(audit_log_entry, fallback_attr) or ""
+            try:
+                action_type = action_type_registry.get(audit_log_entry.action_type)
+                return func(audit_log_entry, action_type, audit_log_entry.action_params)
+            except Exception:
+                return _(fallback_str) % audit_log_entry.action_params
+
+        return wrapper
+
+    return decorate_audit_log_entry_attr
+
+
+class ActionDoneManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(action_undone_at=None)
 
 
 class AuditLogEntry(models.Model):
@@ -16,34 +45,39 @@ class AuditLogEntry(models.Model):
     action_params = models.JSONField(
         null=True, encoder=JSONEncoderSupportingDataClasses
     )
+    action_undone_at = models.DateTimeField(null=True)
+
     timestamp = models.DateTimeField(auto_now_add=True, editable=False)
+
+    # we don't want that a change in the original action type or action description
+    # break the audit log. So we store the original description and type in the
+    # database so to use it as a fallback just in case.
+    original_type_description = models.TextField(null=True, blank=True)
+    original_action_description = models.TextField(null=True, blank=True)
 
     ip_address = models.GenericIPAddressField(null=True)
 
-    def get_type(self):
-        try:
-            action_type = action_type_registry.get(self.action_type)
-        except action_type_registry.does_not_exist_exception_class:
-            return self.action_type
+    objects = models.Manager()
+    entries = ActionDoneManager()
 
-        return action_type.get_type_description(
-            action_type.Params(**self.action_params)
-        )
+    @action_type_getter(fallback_attr="original_type_description")
+    def get_type(self, action_type, params):
+        return action_type.get_type_description(params)
 
-    def get_description(self):
-        try:
-            action_type = action_type_registry.get(self.action_type)
-        except action_type_registry.does_not_exist_exception_class:
-            return f"Unknown action type: {self.action_type} - {self.action_params}"
-
-        return action_type.get_action_description(
-            action_type.Params(**self.action_params)
-        )
+    @action_type_getter(fallback_attr="original_action_description")
+    def get_description(self, action_type, params):
+        return action_type.get_action_description(params)
 
     class Meta:
         ordering = ["-timestamp"]
         indexes = [
             models.Index(
-                fields=["user_email", "group_name", "action_type", "timestamp"],
+                fields=[
+                    "user_email",
+                    "group_name",
+                    "action_type",
+                    "action_undone_at",
+                    "timestamp",
+                ],
             )
         ]

@@ -1,17 +1,19 @@
 from django.utils import translation
+
+from baserow_premium.api.admin.views import AdminListingView
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAdminUser
 
-from baserow_premium.api.admin.views import AdminListingView
 from baserow_enterprise.audit_log.models import AuditLogEntry
-from baserow_enterprise.features import SSO
 
 from .serializers import (
+    AuditLogActionTypeSerializer,
+    AuditLogGroupSerializer,
     AuditLogSerializer,
     AuditLogUserSerializer,
-    AuditLogGroupSerializer,
-    AuditLogActionTypeSerializer,
 )
+
+# from baserow_enterprise.features import SSO
 
 
 class AdminAuditLogView(AdminListingView):
@@ -34,7 +36,7 @@ class AdminAuditLogView(AdminListingView):
     default_order_by = "-timestamp"
 
     def get_queryset(self, request):
-        return AuditLogEntry.objects.all()
+        return AuditLogEntry.entries.all()
 
     def get_serializer(self, request, *args, **kwargs):
         return super().get_serializer(
@@ -64,7 +66,7 @@ class AdminAuditLogUserFilterView(AdminListingView):
     default_order_by = "user_email"
 
     def get_queryset(self, request):
-        return AuditLogEntry.objects.only(self.default_order_by).distinct(
+        return AuditLogEntry.entries.only(self.default_order_by).distinct(
             self.default_order_by
         )
 
@@ -90,8 +92,10 @@ class AdminAuditLogGroupFilterView(AdminListingView):
     default_order_by = "group_name"
 
     def get_queryset(self, request):
-        return AuditLogEntry.objects.only(self.default_order_by).distinct(
-            self.default_order_by
+        return (
+            AuditLogEntry.entries.filter(group_id__isnull=False)
+            .only(self.default_order_by)
+            .distinct(self.default_order_by)
         )
 
     @extend_schema(
@@ -116,7 +120,7 @@ class AdminAuditLogActionTypeFilterView(AdminListingView):
     default_order_by = "action_type"
 
     def get_queryset(self, request):
-        return AuditLogEntry.objects.only(self.default_order_by).distinct(
+        return AuditLogEntry.entries.only(self.default_order_by).distinct(
             self.default_order_by
         )
 

@@ -1,10 +1,10 @@
 from django.urls import re_path
 
 from .views import (
-    AdminAuditLogView,
-    AdminAuditLogUserFilterView,
-    AdminAuditLogGroupFilterView,
     AdminAuditLogActionTypeFilterView,
+    AdminAuditLogGroupFilterView,
+    AdminAuditLogUserFilterView,
+    AdminAuditLogView,
 )
 
 app_name = "baserow_enterprise.api.audit_log"

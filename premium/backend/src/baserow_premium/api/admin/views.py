@@ -1,4 +1,5 @@
 from typing import Dict, List
+
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 from rest_framework.permissions import IsAdminUser
@@ -6,9 +7,9 @@ from rest_framework.views import APIView
 
 from baserow.api.decorators import map_exceptions
 from baserow.api.errors import (
+    ERROR_INVALID_FILTER_ATTRIBUTE,
     ERROR_INVALID_SORT_ATTRIBUTE,
     ERROR_INVALID_SORT_DIRECTION,
-    ERROR_INVALID_FILTER_ATTRIBUTE,
 )
 from baserow.api.exceptions import (
     InvalidFilterAttributeException,
@@ -16,9 +17,9 @@ from baserow.api.exceptions import (
     InvalidSortDirectionException,
 )
 from baserow.api.mixins import (
+    FilterableViewMixin,
     SearchableViewMixin,
     SortableViewMixin,
-    FilterableViewMixin,
 )
 from baserow.api.pagination import PageNumberPagination
 from baserow.api.schemas import get_error_schema

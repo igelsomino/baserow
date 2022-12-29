@@ -5,7 +5,6 @@ class EnterpriseAdminType extends AdminType {
   getDeactivatedText() {
     return this.app.i18n.t('enterprise.deactivated')
   }
-
 }
 
 export class AuthProvidersType extends EnterpriseAdminType {
@@ -35,30 +34,29 @@ export class AuthProvidersType extends EnterpriseAdminType {
   }
 }
 
-
 export class AuditLogType extends EnterpriseAdminType {
-static getType() {
-  return 'audit-log'
-}
+  static getType() {
+    return 'audit-log'
+  }
 
-getIconClass() {
-  return 'history'
-}
+  getIconClass() {
+    return 'history'
+  }
 
-getName() {
-  const { i18n } = this.app
-  return i18n.t('adminType.AuditLog')
-}
+  getName() {
+    const { i18n } = this.app
+    return i18n.t('adminType.AuditLog')
+  }
 
-getRouteName() {
-  return 'admin-audit-log'
-}
+  getRouteName() {
+    return 'admin-audit-log'
+  }
 
-getOrder() {
-  return 100
-}
+  getOrder() {
+    return 100
+  }
 
-isDeactivated() {
-  return false //!this.app.$hasFeature(EnterpriseFeatures.AUDIT_LOG)
-}
+  isDeactivated() {
+    return false //! this.app.$hasFeature(EnterpriseFeatures.AUDIT_LOG)
+  }
 }

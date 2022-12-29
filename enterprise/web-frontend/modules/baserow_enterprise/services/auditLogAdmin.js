@@ -15,7 +15,13 @@ export default (client) => {
     fetchActionTypes(page, search) {
       const actionTypesUrl = '/admin/audit-log/action-types/'
       const actionTypePaginatedService = baseService(client, actionTypesUrl)
-      return actionTypePaginatedService.fetch(actionTypesUrl, page, search, [], [])
+      return actionTypePaginatedService.fetch(
+        actionTypesUrl,
+        page,
+        search,
+        [],
+        []
+      )
     },
   })
 }

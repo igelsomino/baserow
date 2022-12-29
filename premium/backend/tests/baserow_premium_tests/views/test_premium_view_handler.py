@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch
 
 from baserow.core.exceptions import PermissionDenied
 from baserow.contrib.database.views.models import View

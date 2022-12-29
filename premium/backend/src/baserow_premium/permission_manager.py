@@ -77,7 +77,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         "database.table.view.update",
         "database.table.view.duplicate",
         "database.table.view.delete",
-        # "database.table.view.restore",
+        "database.table.view.restore",
 
         # field options
         "database.table.view.read_field_options",

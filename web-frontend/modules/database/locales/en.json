@@ -412,7 +412,9 @@
     },
     "viewsContext": {
         "searchView": "Search views",
-        "noViews": "No views found"
+        "noViews": "No views found",
+        "collaborative": "Collaborative",
+        "personal": "Personal"
     },
     "viewFilterTypeLinkRow": {
         "unnamed": "unnamed row {value}",

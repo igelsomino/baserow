@@ -1,5 +1,5 @@
 <template>
-  <Context ref="viewsContext" class="select" @shown="shown">
+  <Context ref="viewsContext" class="select views-context" @shown="shown">
     <div class="select__search">
       <i class="select__search-icon fas fa-search"></i>
       <input
@@ -12,6 +12,41 @@
     <div v-if="isLoading" class="context--loading">
       <div class="loading"></div>
     </div>
+    <div class="section-header" v-if="hasPremiumFeaturesEnabled">
+      {{ $t('viewsContext.personal') }}
+    </div>
+    <ul
+      v-if="!isLoading && views.length > 0 && hasPremiumFeaturesEnabled"
+      ref="dropdown"
+      v-auto-overflow-scroll
+      class="select__items"
+    >
+      <ViewsContextItem
+        v-for="view in personalViews(views)"
+        :ref="'view-' + view.id"
+        :key="view.id"
+        v-sortable="{
+          enabled:
+            !readOnly &&
+            $hasPermission(
+              'database.table.order_views',
+              table,
+              database.group.id
+            ),
+          id: view.id,
+          update: order,
+          marginTop: -1.5,
+        }"
+        :database="database"
+        :view="view"
+        :table="table"
+        :read-only="readOnly"
+        @selected="selectedView"
+      ></ViewsContextItem>
+    </ul>
+    <div class="section-header">
+      {{ $t('viewsContext.collaborative') }}
+    </div>
     <ul
       v-if="!isLoading && views.length > 0"
       ref="dropdown"
@@ -19,7 +54,7 @@
       class="select__items"
     >
       <ViewsContextItem
-        v-for="view in searchAndOrder(views)"
+        v-for="view in collaborativeViews(views)"
         :ref="'view-' + view.id"
         :key="view.id"
         v-sortable="{
@@ -74,6 +109,7 @@ import context from '@baserow/modules/core/mixins/context'
 import dropdownHelpers from '@baserow/modules/core/mixins/dropdownHelpers'
 import ViewsContextItem from '@baserow/modules/database/components/view/ViewsContextItem'
 import CreateViewLink from '@baserow/modules/database/components/view/CreateViewLink'
+import PremiumFeatures from '@baserow_premium/features'
 
 export default {
   name: 'ViewsContext',
@@ -118,6 +154,9 @@ export default {
       isLoading: (state) => state.view.loading,
       isLoaded: (state) => state.view.loaded,
     }),
+    hasPremiumFeaturesEnabled() {
+      return this.$hasFeature(PremiumFeatures.PREMIUM, this.database.group.id)
+    },
   },
   methods: {
     shown() {
@@ -200,6 +239,16 @@ export default {
           return view.name.match(regex)
         })
         .sort((a, b) => a.order - b.order)
+    },
+    collaborativeViews(views) {
+      return this.searchAndOrder(views).filter(
+        (view) => view.ownership_type === 'collaborative'
+      )
+    },
+    personalViews(views) {
+      return this.searchAndOrder(views).filter(
+        (view) => view.ownership_type === 'personal'
+      )
     },
     async order(order, oldOrder) {
       try {

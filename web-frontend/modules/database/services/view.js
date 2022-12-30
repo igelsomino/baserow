@@ -43,7 +43,11 @@ export default (client) => {
       return client.get(`/database/views/table/${tableId}/`, config)
     },
     create(tableId, values) {
-      return client.post(`/database/views/table/${tableId}/`, {name: values.name, ownership_type: values.ownershipType, type: values.type})
+      return client.post(`/database/views/table/${tableId}/`, {
+        name: values.name,
+        ownership_type: values.ownershipType,
+        type: values.type,
+      })
     },
     get(
       viewId,

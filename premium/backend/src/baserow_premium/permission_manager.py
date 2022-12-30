@@ -224,8 +224,11 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         :return: The queryset potentially filtered.
         """
 
+        if operation_name != "database.table.list_views":
+            return queryset
+
         if not group:
-            raise PermissionDenied()
+            return queryset
 
         premium = LicenseHandler.user_has_feature(PREMIUM, actor, group)
 

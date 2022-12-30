@@ -518,7 +518,10 @@
         "delete": "Delete view"
     },
     "viewForm": {
-        "name": "Name"
+        "name": "Name",
+        "whoCanEdit": "Who can edit",
+        "collaborative": "Collaborative",
+        "personal": "Personal"
     },
     "galleryViewHeader": {
         "customizeCards": "Customize cards"

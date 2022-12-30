@@ -19,6 +19,14 @@
           {{ $t('error.requiredField') }}
         </div>
       </div>
+      <label class="control__label">
+        {{ $t('viewForm.whoCanEdit') }}
+      </label>
+      <div class="control__elements view-ownership-select">
+        <Radio v-model="values.ownershipType" value="collaborative"><i class="fas fa-users"></i> {{ $t('viewForm.collaborative') }}</Radio>
+        <Radio v-model="values.ownershipType" value="personal" :disabled="!hasPremiumFeaturesEnabled"><i class="fas fa-user-tag"></i> {{ $t('viewForm.personal') }}</Radio>
+        <span v-if="!hasPremiumFeaturesEnabled"><i class="fas fa-lock"></i></span>
+      </div>
     </FormElement>
     <slot></slot>
   </form>
@@ -26,11 +34,13 @@
 
 <script>
 import { required } from 'vuelidate/lib/validators'
-
 import form from '@baserow/modules/core/mixins/form'
+import Radio from '@baserow/modules/core/components/Radio'
+import PremiumFeatures from '@baserow_premium/features'
 
 export default {
   name: 'ViewForm',
+  components: { Radio },
   mixins: [form],
   props: {
     defaultName: {
@@ -38,13 +48,23 @@ export default {
       required: false,
       default: '',
     },
+    database: {
+      type: Object,
+      required: true,
+    },
   },
   data() {
     return {
       values: {
         name: this.defaultName,
+        ownershipType: 'collaborative',
       },
     }
+  },
+  computed: {
+    hasPremiumFeaturesEnabled() {
+      return this.$hasFeature(PremiumFeatures.PREMIUM, this.database.group.id)
+    },
   },
   mounted() {
     this.$refs.name.focus()

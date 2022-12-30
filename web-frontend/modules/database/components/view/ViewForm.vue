@@ -2,7 +2,6 @@
   <form @submit.prevent="submit">
     <FormElement :error="fieldHasErrors('name')" class="control">
       <label class="control__label">
-        <i class="fas fa-font"></i>
         {{ $t('viewForm.name') }}
       </label>
       <div class="control__elements">
@@ -19,6 +18,8 @@
           {{ $t('error.requiredField') }}
         </div>
       </div>
+    </FormElement>
+    <FormElement class="control">
       <label class="control__label">
         {{ $t('viewForm.whoCanEdit') }}
       </label>

@@ -434,14 +434,13 @@ class ViewHandler:
             to the table.
         """
 
-        # TODO:
-
         group = table.database.group
         CoreHandler().check_permissions(
             user, OrderViewsOperationType.type, group=group, context=table
         )
 
         queryset = View.objects.filter(table_id=table.id)
+        queryset = CoreHandler().filter_queryset(user, "database.table.list_views", queryset, table.database.group)
         view_ids = queryset.values_list("id", flat=True)
 
         for view_id in order:
@@ -449,6 +448,8 @@ class ViewHandler:
                 raise ViewNotInTable(view_id)
 
         View.order_objects(queryset, order)
+
+        # TODO: realtime
         views_reordered.send(self, table=table, order=order, user=user)
 
     def get_views_order(self, user: AbstractUser, table: Table):

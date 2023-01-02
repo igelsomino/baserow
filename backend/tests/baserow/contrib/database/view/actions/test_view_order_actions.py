@@ -19,17 +19,17 @@ def test_can_undo_order_views(data_fixture):
     original_order = [view_1.id, view_2.id]
     new_order = [view_2.id, view_1.id]
 
-    ViewHandler().order_views(user, table, original_order)
+    ViewHandler().order_views(user, table, "collaborative", original_order)
 
-    assert ViewHandler().get_views_order(user, table) == original_order
+    assert ViewHandler().get_views_order(user, table, "collaborative") == original_order
 
     action_type_registry.get_by_type(OrderViewsActionType).do(user, table, new_order)
 
-    assert ViewHandler().get_views_order(user, table) == new_order
+    assert ViewHandler().get_views_order(user, table, "collaborative") == new_order
 
     ActionHandler.undo(user, [TableActionScopeType.value(table.id)], session_id)
 
-    assert ViewHandler().get_views_order(user, table) == original_order
+    assert ViewHandler().get_views_order(user, table, "collaborative") == original_order
 
 
 @pytest.mark.django_db
@@ -44,18 +44,18 @@ def test_can_undo_redo_order_views(data_fixture):
     original_order = [view_1.id, view_2.id]
     new_order = [view_2.id, view_1.id]
 
-    ViewHandler().order_views(user, table, original_order)
+    ViewHandler().order_views(user, table, "collaborative", original_order)
 
-    assert ViewHandler().get_views_order(user, table) == original_order
+    assert ViewHandler().get_views_order(user, table, "collaborative") == original_order
 
     action_type_registry.get_by_type(OrderViewsActionType).do(user, table, new_order)
 
-    assert ViewHandler().get_views_order(user, table) == new_order
+    assert ViewHandler().get_views_order(user, table, "collaborative") == new_order
 
     ActionHandler.undo(user, [TableActionScopeType.value(table.id)], session_id)
 
-    assert ViewHandler().get_views_order(user, table) == original_order
+    assert ViewHandler().get_views_order(user, table, "collaborative") == original_order
 
     ActionHandler.redo(user, [TableActionScopeType.value(table.id)], session_id)
 
-    assert ViewHandler().get_views_order(user, table) == new_order
+    assert ViewHandler().get_views_order(user, table, "collaborative") == new_order

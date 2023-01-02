@@ -64,7 +64,7 @@ def test_view_deleted(mock_broadcast_to_channel_group, data_fixture):
 def test_views_reordered(mock_broadcast_to_channel_group, data_fixture):
     user = data_fixture.create_user()
     view = data_fixture.create_grid_view(user=user)
-    ViewHandler().order_views(user=user, table=view.table, order=[view.id])
+    ViewHandler().order_views(user=user, table=view.table, ownership_type="collaborative", order=[view.id])
 
     mock_broadcast_to_channel_group.delay.assert_called_once()
     args = mock_broadcast_to_channel_group.delay.call_args

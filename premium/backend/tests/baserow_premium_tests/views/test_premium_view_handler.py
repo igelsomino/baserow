@@ -8,7 +8,7 @@ from baserow.contrib.database.views.models import (
     OWNERSHIP_TYPE_COLLABORATIVE,
 )
 from baserow_premium.views.handler import get_rows_grouped_by_single_select_field
-from baserow.contrib.database.views.exceptions import ViewDoesNotExist
+from baserow.contrib.database.views.exceptions import ViewDoesNotExist, ViewNotInTable
 
 
 @pytest.mark.django_db
@@ -729,7 +729,6 @@ def test_get_public_view_personal_ownership_type(data_fixture, premium_data_fixt
         name="Form",
         ownership_type="personal",
     )
-    view.ownership_type = "personal"
     view.public = False
     view.slug = "slug"
     view.save()
@@ -738,3 +737,41 @@ def test_get_public_view_personal_ownership_type(data_fixture, premium_data_fixt
 
     with pytest.raises(ViewDoesNotExist):
         handler.get_public_view_by_slug(user2, "slug")
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_order_views_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+    group = data_fixture.create_group(name="Group 1")
+    user = premium_data_fixture.create_user(group=group)
+    user2 = premium_data_fixture.create_user(group=group)
+    database = data_fixture.create_database_application(group=group)
+    table = data_fixture.create_database_table(user=user, database=database)
+    handler = ViewHandler()
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user, group.id
+    )
+    alternative_per_group_license_service.restrict_user_premium_to(
+        user2, group.id
+    )
+    grid_1 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=1, ownership_type="collaborative")
+    grid_2 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=2, ownership_type="collaborative")
+    grid_3 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=3, ownership_type="collaborative")
+    personal_grid = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=2, ownership_type="personal")
+    personal_grid_2 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=3, ownership_type="personal")
+
+    handler.order_views(user=user, table=table, ownership_type="personal", order=[personal_grid_2.id, personal_grid.id])
+    
+    grid_1.refresh_from_db()
+    grid_2.refresh_from_db()
+    grid_3.refresh_from_db()
+    personal_grid.refresh_from_db()
+    personal_grid_2.refresh_from_db()
+    assert personal_grid_2.order == 1
+    assert personal_grid.order == 2
+    assert grid_1.order == 1
+    assert grid_2.order == 2
+    assert grid_3.order == 3
+
+    with pytest.raises(ViewNotInTable):
+        handler.order_views(user=user2, table=table, ownership_type="personal", order=[personal_grid_2.id, personal_grid_2.id])

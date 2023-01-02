@@ -82,9 +82,10 @@ export default (client) => {
     duplicate(viewId) {
       return client.post(`/database/views/${viewId}/duplicate/`)
     },
-    order(tableId, order) {
+    order(tableId, ownershipType, order) {
       return client.post(`/database/views/table/${tableId}/order/`, {
         view_ids: order,
+        ownership_type: ownershipType,
       })
     },
     delete(viewId) {

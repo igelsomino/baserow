@@ -467,6 +467,7 @@ class OrderViewsActionType(ActionType):
     @dataclasses.dataclass
     class Params:
         table_id: int
+        ownership_type: Optional[str]
         original_order: List[int]
         new_order: List[int]
 
@@ -475,6 +476,7 @@ class OrderViewsActionType(ActionType):
         cls,
         user: AbstractUser,
         table: Table,
+        ownership_type: Optional[str],
         order: List[int],
     ):
         """
@@ -489,11 +491,11 @@ class OrderViewsActionType(ActionType):
         :param order: The new order of the views.
         """
 
-        original_order = ViewHandler().get_views_order(user, table)
+        original_order = ViewHandler().get_views_order(user, table, ownership_type)
 
-        ViewHandler().order_views(user, table, order)
+        ViewHandler().order_views(user, table, ownership_type, order)
 
-        params = cls.Params(table.id, original_order, order)
+        params = cls.Params(table.id, ownership_type, original_order, order)
         cls.register_action(user, params, cls.scope(table.id))
 
     @classmethod
@@ -503,12 +505,12 @@ class OrderViewsActionType(ActionType):
     @classmethod
     def undo(cls, user: AbstractUser, params: Params, action_to_undo: Action):
         table = TableHandler().get_table(params.table_id)
-        ViewHandler().order_views(user, table, params.original_order)
+        ViewHandler().order_views(user, table, params.ownership_type, params.original_order)
 
     @classmethod
     def redo(cls, user: AbstractUser, params: Params, action_to_redo: Action):
         table = TableHandler().get_table(params.table_id)
-        ViewHandler().order_views(user, table, params.new_order)
+        ViewHandler().order_views(user, table, params.ownership_type, params.new_order)
 
 
 class UpdateViewFieldOptionsActionType(ActionType):

@@ -376,7 +376,7 @@ def test_order_views(api_client, data_fixture):
 
     response = api_client.post(
         reverse("api:database:views:order", kwargs={"table_id": table_2.id}),
-        {"view_ids": []},
+        {"view_ids": [], "ownership_type": "collaborative"},
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
@@ -385,7 +385,7 @@ def test_order_views(api_client, data_fixture):
 
     response = api_client.post(
         reverse("api:database:views:order", kwargs={"table_id": 999999}),
-        {"view_ids": []},
+        {"view_ids": [], "ownership_type": "collaborative"},
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
@@ -394,7 +394,7 @@ def test_order_views(api_client, data_fixture):
 
     response = api_client.post(
         reverse("api:database:views:order", kwargs={"table_id": table_1.id}),
-        {"view_ids": [0]},
+        {"view_ids": [0], "ownership_type": "collaborative"},
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
@@ -403,7 +403,7 @@ def test_order_views(api_client, data_fixture):
 
     response = api_client.post(
         reverse("api:database:views:order", kwargs={"table_id": table_1.id}),
-        {"view_ids": ["test"]},
+        {"view_ids": ["test"], "ownership_type": "collaborative"},
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
@@ -412,7 +412,7 @@ def test_order_views(api_client, data_fixture):
 
     response = api_client.post(
         reverse("api:database:views:order", kwargs={"table_id": table_1.id}),
-        {"view_ids": [view_3.id, view_2.id, view_1.id]},
+        {"view_ids": [view_3.id, view_2.id, view_1.id], "ownership_type": "collaborative"},
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",
     )

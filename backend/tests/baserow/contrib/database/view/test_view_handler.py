@@ -476,16 +476,28 @@ def test_order_views(send_mock, data_fixture):
     grid_1 = data_fixture.create_grid_view(table=table, order=1)
     grid_2 = data_fixture.create_grid_view(table=table, order=2)
     grid_3 = data_fixture.create_grid_view(table=table, order=3)
+    grid_diff_ownership = data_fixture.create_grid_view(table=table, order=2)
+    grid_diff_ownership.ownership_type = "personal"
+    grid_diff_ownership.save()
+    grid_diff_ownership2 = data_fixture.create_grid_view(table=table, order=3)
+    grid_diff_ownership2.ownership_type = "personal"
+    grid_diff_ownership2.save()
 
     handler = ViewHandler()
 
     with pytest.raises(UserNotInGroup):
-        handler.order_views(user=user_2, table=table, order=[])
+        handler.order_views(user=user_2, table=table, ownership_type="collaborative", order=[])
 
     with pytest.raises(ViewNotInTable):
-        handler.order_views(user=user, table=table, order=[0])
+        handler.order_views(user=user, table=table, ownership_type="collaborative", order=[0])
 
-    handler.order_views(user=user, table=table, order=[grid_3.id, grid_2.id, grid_1.id])
+    with pytest.raises(ViewNotInTable):
+        handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_diff_ownership.id, grid_3.id, grid_2.id, grid_1.id])
+
+    with pytest.raises(ViewNotInTable):
+        handler.order_views(user=user, table=table, ownership_type="personal", order=[grid_diff_ownership.id, grid_diff_ownership2.id])
+
+    handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_3.id, grid_2.id, grid_1.id])
     grid_1.refresh_from_db()
     grid_2.refresh_from_db()
     grid_3.refresh_from_db()
@@ -498,7 +510,7 @@ def test_order_views(send_mock, data_fixture):
     assert send_mock.call_args[1]["user"].id == user.id
     assert send_mock.call_args[1]["order"] == [grid_3.id, grid_2.id, grid_1.id]
 
-    handler.order_views(user=user, table=table, order=[grid_1.id, grid_3.id, grid_2.id])
+    handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_1.id, grid_3.id, grid_2.id])
     grid_1.refresh_from_db()
     grid_2.refresh_from_db()
     grid_3.refresh_from_db()
@@ -506,7 +518,7 @@ def test_order_views(send_mock, data_fixture):
     assert grid_2.order == 3
     assert grid_3.order == 2
 
-    handler.order_views(user=user, table=table, order=[grid_1.id])
+    handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_1.id])
     grid_1.refresh_from_db()
     grid_2.refresh_from_db()
     grid_3.refresh_from_db()

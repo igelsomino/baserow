@@ -366,6 +366,7 @@ class UpdateViewSerializer(serializers.ModelSerializer):
 
 
 class OrderViewsSerializer(serializers.Serializer):
+    ownership_type = serializers.CharField(help_text="Type of views to order.", default=OWNERSHIP_TYPE_COLLABORATIVE)
     view_ids = serializers.ListField(
         child=serializers.IntegerField(), help_text="View ids in the desired order."
     )

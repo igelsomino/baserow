@@ -675,7 +675,7 @@ class OrderViewsView(APIView):
 
         table = TableHandler().get_table(table_id)
         action_type_registry.get_by_type(OrderViewsActionType).do(
-            request.user, table, data["view_ids"]
+            request.user, table, data["ownership_type"], data["view_ids"]
         )
         return Response(status=204)
 

@@ -12,7 +12,7 @@
     <div v-if="isLoading" class="context--loading">
       <div class="loading"></div>
     </div>
-    <div class="section-header" v-if="hasPremiumFeaturesEnabled">
+    <div v-if="hasPremiumFeaturesEnabled" class="section-header">
       {{ $t('viewsContext.personal') }}
     </div>
     <ul
@@ -34,7 +34,7 @@
               database.group.id
             ),
           id: view.id,
-          update: order,
+          update: orderPersonal,
           marginTop: -1.5,
         }"
         :database="database"
@@ -66,7 +66,7 @@
               database.group.id
             ),
           id: view.id,
-          update: order,
+          update: orderCollaborative,
           marginTop: -1.5,
         }"
         :database="database"
@@ -250,16 +250,23 @@ export default {
         (view) => view.ownership_type === 'personal'
       )
     },
-    async order(order, oldOrder) {
+    async order(ownershipType, order, oldOrder) {
       try {
         await this.$store.dispatch('view/order', {
           table: this.table,
+          ownershipType,
           order,
           oldOrder,
         })
       } catch (error) {
         notifyIf(error, 'view')
       }
+    },
+    async orderPersonal(order, oldOrder) {
+      await this.order('personal', order, oldOrder)
+    },
+    async orderCollaborative(order, oldOrder) {
+      await this.order('collaborative', order, oldOrder)
     },
   },
 }

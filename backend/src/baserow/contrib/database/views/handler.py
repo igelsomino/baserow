@@ -422,7 +422,7 @@ class ViewHandler:
 
         return view
 
-    def order_views(self, user: AbstractUser, table: Table, order: List[int]):
+    def order_views(self, user: AbstractUser, table: Table, ownership_type: str, order: List[int]):
         """
         Updates the order of the views in the given table. The order of the views
         that are not in the `order` parameter set to `0`.
@@ -430,16 +430,20 @@ class ViewHandler:
         :param user: The user on whose behalf the views are ordered.
         :param table: The table of which the views must be updated.
         :param order: A list containing the view ids in the desired order.
+        :param ownership_type: The type of views to order.
         :raises ViewNotInTable: If one of the view ids in the order does not belong
             to the table.
         """
+
+        if ownership_type is None:
+            ownership_type = OWNERSHIP_TYPE_COLLABORATIVE
 
         group = table.database.group
         CoreHandler().check_permissions(
             user, OrderViewsOperationType.type, group=group, context=table
         )
 
-        queryset = View.objects.filter(table_id=table.id)
+        queryset = View.objects.filter(table_id=table.id).filter(ownership_type=ownership_type)
         queryset = CoreHandler().filter_queryset(user, "database.table.list_views", queryset, table.database.group)
         view_ids = queryset.values_list("id", flat=True)
 
@@ -452,24 +456,27 @@ class ViewHandler:
         # TODO: realtime
         views_reordered.send(self, table=table, order=order, user=user)
 
-    def get_views_order(self, user: AbstractUser, table: Table):
+    def get_views_order(self, user: AbstractUser, table: Table, ownership_type: str):
         """
         Returns the order of the views in the given table.
 
         :param user: The user on whose behalf the views are ordered.
         :param table: The table of which the views must be updated.
+        :param ownership_type: The type of views for which to return the order.
         :raises ViewNotInTable: If one of the view ids in the order does not belong
             to the table.
         """
 
-        # TODO:
+        if ownership_type is None:
+            ownership_type = OWNERSHIP_TYPE_COLLABORATIVE
 
         group = table.database.group
         CoreHandler().check_permissions(
             user, ReadViewsOrderOperationType.type, group=group, context=table
         )
 
-        queryset = View.objects.filter(table_id=table.id)
+        queryset = View.objects.filter(table_id=table.id).filter(ownership_type=ownership_type)
+        queryset = CoreHandler().filter_queryset(user, "database.table.list_views", queryset, table.database.group)
 
         order = queryset.values_list("id", flat=True)
         order = list(order)

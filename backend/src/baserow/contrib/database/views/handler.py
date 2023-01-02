@@ -118,7 +118,6 @@ from .signals import (
     view_sort_updated,
     view_updated,
     views_reordered,
-    before_view_created,
 )
 from .validators import value_is_empty_for_required_form_field
 

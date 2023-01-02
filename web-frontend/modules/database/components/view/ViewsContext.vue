@@ -12,11 +12,11 @@
     <div v-if="isLoading" class="context--loading">
       <div class="loading"></div>
     </div>
-    <div v-if="hasPremiumFeaturesEnabled" class="section-header">
+    <div v-if="hasPremiumFeaturesEnabled && personalViews(views).length > 0" class="section-header">
       {{ $t('viewsContext.personal') }}
     </div>
     <ul
-      v-if="!isLoading && views.length > 0 && hasPremiumFeaturesEnabled"
+      v-if="!isLoading && personalViews(views).length > 0 && hasPremiumFeaturesEnabled"
       ref="dropdown"
       v-auto-overflow-scroll
       class="select__items"
@@ -44,11 +44,11 @@
         @selected="selectedView"
       ></ViewsContextItem>
     </ul>
-    <div class="section-header">
+    <div v-if="collaborativeViews(views).length > 0" class="section-header">
       {{ $t('viewsContext.collaborative') }}
     </div>
     <ul
-      v-if="!isLoading && views.length > 0"
+      v-if="!isLoading && collaborativeViews(views).length > 0"
       ref="dropdown"
       v-auto-overflow-scroll
       class="select__items"

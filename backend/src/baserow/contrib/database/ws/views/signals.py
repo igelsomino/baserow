@@ -9,11 +9,14 @@ from baserow.contrib.database.api.views.serializers import (
 )
 from baserow.contrib.database.views import signals as view_signals
 from baserow.contrib.database.views.registries import view_type_registry
+from baserow.contrib.database.views.models import OWNERSHIP_TYPE_COLLABORATIVE
 from baserow.ws.registries import page_registry
 
 
 @receiver(view_signals.view_created)
 def view_created(sender, view, user, **kwargs):
+    if view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -35,6 +38,8 @@ def view_created(sender, view, user, **kwargs):
 
 @receiver(view_signals.view_updated)
 def view_updated(sender, view, user, **kwargs):
+    if view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -61,6 +66,8 @@ def view_updated(sender, view, user, **kwargs):
 
 @receiver(view_signals.view_deleted)
 def view_deleted(sender, view_id, view, user, **kwargs):
+    if view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -70,6 +77,7 @@ def view_deleted(sender, view_id, view, user, **kwargs):
         )
     )
 
+# TODO:
 
 @receiver(view_signals.views_reordered)
 def views_reordered(sender, table, order, user, **kwargs):

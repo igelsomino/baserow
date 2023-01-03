@@ -12,11 +12,18 @@
     <div v-if="isLoading" class="context--loading">
       <div class="loading"></div>
     </div>
-    <div v-if="hasPremiumFeaturesEnabled && personalViews(views).length > 0" class="section-header">
+    <div
+      v-if="hasPremiumFeaturesEnabled && personalViews(views).length > 0"
+      class="section-header"
+    >
       {{ $t('viewsContext.personal') }}
     </div>
     <ul
-      v-if="!isLoading && personalViews(views).length > 0 && hasPremiumFeaturesEnabled"
+      v-if="
+        !isLoading &&
+        personalViews(views).length > 0 &&
+        hasPremiumFeaturesEnabled
+      "
       ref="dropdown"
       v-auto-overflow-scroll
       class="select__items"

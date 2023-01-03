@@ -77,10 +77,11 @@ def view_deleted(sender, view_id, view, user, **kwargs):
         )
     )
 
-# TODO:
 
 @receiver(view_signals.views_reordered)
-def views_reordered(sender, table, order, user, **kwargs):
+def views_reordered(sender, table, order, ownership_type, user, **kwargs):
+    if ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -93,6 +94,8 @@ def views_reordered(sender, table, order, user, **kwargs):
 
 @receiver(view_signals.view_filter_created)
 def view_filter_created(sender, view_filter, user, **kwargs):
+    if view_filter.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -108,6 +111,8 @@ def view_filter_created(sender, view_filter, user, **kwargs):
 
 @receiver(view_signals.view_filter_updated)
 def view_filter_updated(sender, view_filter, user, **kwargs):
+    if view_filter.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -124,6 +129,8 @@ def view_filter_updated(sender, view_filter, user, **kwargs):
 
 @receiver(view_signals.view_filter_deleted)
 def view_filter_deleted(sender, view_filter_id, view_filter, user, **kwargs):
+    if view_filter.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -140,6 +147,8 @@ def view_filter_deleted(sender, view_filter_id, view_filter, user, **kwargs):
 
 @receiver(view_signals.view_sort_created)
 def view_sort_created(sender, view_sort, user, **kwargs):
+    if view_sort.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -155,6 +164,8 @@ def view_sort_created(sender, view_sort, user, **kwargs):
 
 @receiver(view_signals.view_sort_updated)
 def view_sort_updated(sender, view_sort, user, **kwargs):
+    if view_sort.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -171,6 +182,8 @@ def view_sort_updated(sender, view_sort, user, **kwargs):
 
 @receiver(view_signals.view_sort_deleted)
 def view_sort_deleted(sender, view_sort_id, view_sort, user, **kwargs):
+    if view_sort.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -187,6 +200,8 @@ def view_sort_deleted(sender, view_sort_id, view_sort, user, **kwargs):
 
 @receiver(view_signals.view_decoration_created)
 def view_decoration_created(sender, view_decoration, user, **kwargs):
+    if view_decoration.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -202,6 +217,8 @@ def view_decoration_created(sender, view_decoration, user, **kwargs):
 
 @receiver(view_signals.view_decoration_updated)
 def view_decoration_updated(sender, view_decoration, user, **kwargs):
+    if view_decoration.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -220,6 +237,8 @@ def view_decoration_updated(sender, view_decoration, user, **kwargs):
 def view_decoration_deleted(
     sender, view_decoration_id, view_decoration, user, **kwargs
 ):
+    if view_decoration.view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     transaction.on_commit(
         lambda: table_page_type.broadcast(
@@ -236,6 +255,8 @@ def view_decoration_deleted(
 
 @receiver(view_signals.view_field_options_updated)
 def view_field_options_updated(sender, view, user, **kwargs):
+    if view.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
+        return
     table_page_type = page_registry.get("table")
     view_type = view_type_registry.get_by_model(view.specific_class)
     serializer_class = view_type.get_field_options_serializer_class(

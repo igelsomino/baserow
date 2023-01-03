@@ -374,7 +374,7 @@ class ViewHandler:
             self, view=duplicated_view, user=user, type_name=view_type.type
         )
         views_reordered.send(
-            self, table=original_view.table, order=ordered_ids, user=None
+            self, table=original_view.table, order=ordered_ids, ownership_type=original_view.ownership_type, user=None
         )
 
         return duplicated_view
@@ -452,8 +452,7 @@ class ViewHandler:
 
         View.order_objects(queryset, order)
 
-        # TODO: realtime
-        views_reordered.send(self, table=table, order=order, user=user)
+        views_reordered.send(self, table=table, order=order, ownership_type=ownership_type, user=user)
 
     def get_views_order(self, user: AbstractUser, table: Table, ownership_type: str):
         """

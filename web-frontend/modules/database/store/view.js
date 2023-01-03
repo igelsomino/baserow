@@ -94,8 +94,10 @@ export const mutations = {
       populateView(state.items[index], this.$registry)
     }
   },
-  ORDER_ITEMS(state, {ownershipType, order}) {
-    const items = state.items.filter((view) => view.ownership_type === ownershipType)
+  ORDER_ITEMS(state, { ownershipType, order }) {
+    const items = state.items.filter(
+      (view) => view.ownership_type === ownershipType
+    )
     items.forEach((view) => {
       const index = order.findIndex((value) => value === view.id)
       view.order = index === -1 ? 0 : index + 1
@@ -317,12 +319,12 @@ export const actions = {
    * Updates the order of all the views in a table.
    */
   async order({ commit, getters }, { table, ownershipType, order, oldOrder }) {
-    commit('ORDER_ITEMS', {ownershipType, order})
+    commit('ORDER_ITEMS', { ownershipType, order })
 
     try {
       await ViewService(this.$client).order(table.id, ownershipType, order)
     } catch (error) {
-      commit('ORDER_ITEMS', {ownershipType, oldOrder})
+      commit('ORDER_ITEMS', { ownershipType, oldOrder })
       throw error
     }
   },

@@ -136,3 +136,5 @@ class UpdateViewDecorationOperationType(ViewDecorationOperationType):
 
 class DeleteViewDecorationOperationType(ViewDecorationOperationType):
     type = "database.table.view.decoration.delete"
+
+

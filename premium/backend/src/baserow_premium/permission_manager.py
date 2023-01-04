@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 from xmlrpc.client import Boolean # TODO:
 from django.db.models import QuerySet, Q
+from django.contrib.auth import get_user_model
 
 from baserow.core.exceptions import (
     ApplicationTypeAlreadyRegistered,
@@ -48,12 +49,12 @@ from baserow_premium.license.handler import LicenseHandler
 from baserow_premium.license.features import PREMIUM
 
 
+User = get_user_model()
+
+
 if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractUser
     from .models import Group
-
-
-# TODO: bypass public views
 
 class ViewOwnershipPermissionManagerType(PermissionManagerType):
     # TODO: refactor from strings to types?
@@ -97,7 +98,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         "database.table.view.list_aggregations",
         # "database.table.field.read_aggregation", # TODO: ?
 
-        # ordering
+        # ordering TODO:
         # "database.table.read_view_order",
         # "database.table.order_views",
     ]
@@ -137,10 +138,8 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
             can't decide.
         """
 
-        # TODO: remove
-        print("*** View Ownership Permission Manager")
-        print(operation_name)
-        print(context)
+        if not isinstance(actor, User):
+            return
 
         operation_type = operation_type_registry.get(operation_name)
 
@@ -223,6 +222,9 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         :param context: An optional context object related to the current operation.
         :return: The queryset potentially filtered.
         """
+
+        if not isinstance(actor, User):
+            return queryset
 
         if operation_name != "database.table.list_views":
             return queryset

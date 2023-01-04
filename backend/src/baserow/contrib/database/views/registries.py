@@ -12,14 +12,14 @@ from typing import (
     Union,
 )
 from zipfile import ZipFile
-
+from collections import defaultdict
 from django.contrib.auth.models import AbstractUser
 from django.core.files.storage import Storage
 from django.db import models as django_models
 
 from rest_framework.fields import CharField
 from rest_framework.serializers import Serializer
-
+from baserow.core.models import GroupUser
 from baserow.contrib.database.fields.field_filters import OptionallyAnnotatedQ
 from baserow.core.registry import (
     APIUrlsInstanceMixin,
@@ -203,7 +203,7 @@ class ViewType(
             "name": view.name,
             "order": view.order,
             "ownership_type": view.ownership_type,
-            "created_by": view.created_by,
+            "created_by": view.created_by.email if view.created_by else None,
         }
 
         if self.can_filter:
@@ -251,7 +251,7 @@ class ViewType(
         id_mapping: Dict[str, Any],
         files_zip: Optional[ZipFile] = None,
         storage: Optional[Storage] = None,
-    ) -> "View":
+    ) -> Optional["View"]:
         """
         Imported an exported serialized view dict that was exported via the
         `export_serialized` method. Note that all the fields must be imported first
@@ -275,6 +275,20 @@ class ViewType(
             id_mapping["database_view_filters"] = {}
             id_mapping["database_view_sortings"] = {}
             id_mapping["database_view_decorations"] = {}
+
+        if "created_by" not in id_mapping:
+            id_mapping["created_by"] = {}
+            groupusers_from_group = GroupUser.objects.filter(
+                group_id=table.database.group.id
+            ).select_related("user")
+
+            for groupuser in groupusers_from_group:
+                id_mapping["created_by"][groupuser.user.email] = groupuser.user
+
+        email = serialized_values["created_by"]
+        if id_mapping["created_by"].get(email, None) is None and serialized_values["ownership_type"] == "personal":
+            return None
+        serialized_values["created_by"] = id_mapping["created_by"].get(email, None)
 
         serialized_copy = serialized_values.copy()
         view_id = serialized_copy.pop("id")

@@ -156,9 +156,7 @@ class GridViewType(ViewType):
         this view type.
         """
 
-        # TODO:
-        grid_view = ViewHandler().get_view(view.id, view_model=GridView)
-
+        grid_view = ViewHandler().get_view(None, view.id, view_model=GridView)
         ordered_visible_field_ids = self.get_visible_field_options_in_order(
             grid_view
         ).values_list("field__id", flat=True)

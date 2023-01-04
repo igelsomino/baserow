@@ -172,7 +172,7 @@ class ViewHandler:
 
     def get_view(
         self,
-        user: AbstractUser,
+        user: Optional[AbstractUser],
         view_id: int,
         view_model: Optional[Type[View]] = None,
         base_queryset: Optional[QuerySet] = None,
@@ -181,7 +181,7 @@ class ViewHandler:
         Selects a view and checks if the user has access to that view.
         If everything is fine the view is returned.
 
-        :param: User on whose behalf to get the view.
+        :param user: User on whose behalf to get the view.
         :param view_id: The identifier of the view that must be returned.
         :param view_model: If provided that models objects are used to select the
             view. This can for example be useful when you want to select a GridView or
@@ -204,9 +204,10 @@ class ViewHandler:
             view = base_queryset.select_related("table__database__group").get(
                 pk=view_id
             )
-            CoreHandler().check_permissions(
-                user, ReadViewOperationType.type, group=view.table.database.group, context=view
-            )
+            if user:
+                CoreHandler().check_permissions(
+                    user, ReadViewOperationType.type, group=view.table.database.group, context=view
+                )
         except View.DoesNotExist as exc:
             raise ViewDoesNotExist(
                 f"The view with id {view_id} does not exist."
@@ -1551,8 +1552,6 @@ class ViewHandler:
         :rtype: QuerySet
         """
 
-        # TODO:
-
         if model is None:
             model = view.table.get_model()
 
@@ -1905,8 +1904,6 @@ class ViewHandler:
         view_updated.send(self, view=view, user=user)
 
         return view
-
-    # TODO: Progress
 
     def get_public_view_by_slug(
         self,

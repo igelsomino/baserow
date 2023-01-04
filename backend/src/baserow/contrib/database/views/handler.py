@@ -308,8 +308,6 @@ class ViewHandler:
         :return: A new unique name to use.
         """
 
-        # TODO: can personal view names collide with collaborative views?
-
         existing_view_names = View.objects.filter(table_id=table_id).values_list(
             "name", flat=True
         )

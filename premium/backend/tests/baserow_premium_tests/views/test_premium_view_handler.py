@@ -1,14 +1,14 @@
 import pytest
+from baserow_premium.views.handler import get_rows_grouped_by_single_select_field
 
-from baserow.core.exceptions import PermissionDenied
-from baserow.contrib.database.views.models import View
+from baserow.contrib.database.views.exceptions import ViewDoesNotExist, ViewNotInTable
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.contrib.database.views.models import (
-    GridView,
     OWNERSHIP_TYPE_COLLABORATIVE,
+    GridView,
+    View,
 )
-from baserow_premium.views.handler import get_rows_grouped_by_single_select_field
-from baserow.contrib.database.views.exceptions import ViewDoesNotExist, ViewNotInTable
+from baserow.core.exceptions import PermissionDenied
 
 
 @pytest.mark.django_db
@@ -243,19 +243,17 @@ def test_get_rows_grouped_by_single_select_field_with_empty_table(
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_list_views_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_list_views_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -281,16 +279,16 @@ def test_list_views_personal_ownership_type(data_fixture, premium_data_fixture, 
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_get_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_get_view_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -307,15 +305,15 @@ def test_get_view_personal_ownership_type(data_fixture, premium_data_fixture, al
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_create_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_create_view_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
 
     view = handler.create_view(
         user=user,
@@ -332,19 +330,17 @@ def test_create_view_personal_ownership_type(data_fixture, premium_data_fixture,
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_update_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_update_view_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
 
     view = handler.create_view(
         user=user,
@@ -364,19 +360,17 @@ def test_update_view_personal_ownership_type(data_fixture, premium_data_fixture,
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_duplicate_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_duplicate_view_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
 
     view = handler.create_view(
         user=user,
@@ -399,19 +393,17 @@ def test_duplicate_view_personal_ownership_type(data_fixture, premium_data_fixtu
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_delete_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_delete_view_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -421,7 +413,7 @@ def test_delete_view_personal_ownership_type(data_fixture, premium_data_fixture,
     )
 
     handler.delete_view(user, view)
-    
+
     view = handler.create_view(
         user=user,
         table=table,
@@ -436,19 +428,17 @@ def test_delete_view_personal_ownership_type(data_fixture, premium_data_fixture,
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_field_options_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_field_options_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -470,19 +460,17 @@ def test_field_options_personal_ownership_type(data_fixture, premium_data_fixtur
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_filters_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_filters_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -491,7 +479,7 @@ def test_filters_personal_ownership_type(data_fixture, premium_data_fixture, alt
         ownership_type="personal",
     )
     field = data_fixture.create_text_field(table=view.table)
-    
+
     filter = handler.create_filter(user, view, field, "equal", "value")
 
     with pytest.raises(PermissionDenied):
@@ -521,19 +509,17 @@ def test_filters_personal_ownership_type(data_fixture, premium_data_fixture, alt
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_sorts_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_sorts_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -542,7 +528,7 @@ def test_sorts_personal_ownership_type(data_fixture, premium_data_fixture, alter
         ownership_type="personal",
     )
     field = data_fixture.create_text_field(table=view.table)
-    
+
     sort = handler.create_sort(user=user, view=view, field=field, order="ASC")
 
     with pytest.raises(PermissionDenied):
@@ -572,19 +558,17 @@ def test_sorts_personal_ownership_type(data_fixture, premium_data_fixture, alter
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_decorations_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_decorations_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -595,7 +579,7 @@ def test_decorations_personal_ownership_type(data_fixture, premium_data_fixture,
     decorator_type_name = "left_border_color"
     value_provider_type_name = ""
     value_provider_conf = {}
-    
+
     decoration = handler.create_decoration(
         view,
         decorator_type_name,
@@ -638,19 +622,17 @@ def test_decorations_personal_ownership_type(data_fixture, premium_data_fixture,
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_aggregations_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_aggregations_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     field = data_fixture.create_number_field(user=user, table=table)
     view = handler.create_view(
         user=user,
@@ -669,10 +651,10 @@ def test_aggregations_personal_ownership_type(data_fixture, premium_data_fixture
         },
     )
     aggr = [
-            (
-                field,
-                "max",
-            ),
+        (
+            field,
+            "max",
+        ),
     ]
 
     aggregations = handler.get_view_field_aggregations(user, view)
@@ -684,24 +666,22 @@ def test_aggregations_personal_ownership_type(data_fixture, premium_data_fixture
         handler.get_view_field_aggregations(user2, view)
 
     with pytest.raises(PermissionDenied):
-        handler.get_field_aggregations(user2, view, aggr)  
+        handler.get_field_aggregations(user2, view, aggr)
 
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_update_view_slug_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_update_view_slug_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -709,7 +689,7 @@ def test_update_view_slug_personal_ownership_type(data_fixture, premium_data_fix
         name="Form",
         ownership_type="personal",
     )
-    
+
     handler.update_view_slug(user, view, "new-slug")
     view.refresh_from_db()
     assert view.slug == "new-slug"
@@ -720,19 +700,17 @@ def test_update_view_slug_personal_ownership_type(data_fixture, premium_data_fix
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_get_public_view_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_get_public_view_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
-    )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
-    )
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
     view = handler.create_view(
         user=user,
         table=table,
@@ -743,7 +721,7 @@ def test_get_public_view_personal_ownership_type(data_fixture, premium_data_fixt
     view.public = False
     view.slug = "slug"
     view.save()
-    
+
     handler.get_public_view_by_slug(user, "slug")
 
     with pytest.raises(ViewDoesNotExist):
@@ -752,27 +730,40 @@ def test_get_public_view_personal_ownership_type(data_fixture, premium_data_fixt
 
 @pytest.mark.django_db
 @pytest.mark.view_ownership
-def test_order_views_personal_ownership_type(data_fixture, premium_data_fixture, alternative_per_group_license_service):
+def test_order_views_personal_ownership_type(
+    data_fixture, premium_data_fixture, alternative_per_group_license_service
+):
     group = data_fixture.create_group(name="Group 1")
     user = premium_data_fixture.create_user(group=group)
     user2 = premium_data_fixture.create_user(group=group)
     database = data_fixture.create_database_application(group=group)
     table = data_fixture.create_database_table(user=user, database=database)
     handler = ViewHandler()
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user, group.id
+    alternative_per_group_license_service.restrict_user_premium_to(user, group.id)
+    alternative_per_group_license_service.restrict_user_premium_to(user2, group.id)
+    grid_1 = data_fixture.create_grid_view(
+        table=table, user=user, created_by=user, order=1, ownership_type="collaborative"
     )
-    alternative_per_group_license_service.restrict_user_premium_to(
-        user2, group.id
+    grid_2 = data_fixture.create_grid_view(
+        table=table, user=user, created_by=user, order=2, ownership_type="collaborative"
     )
-    grid_1 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=1, ownership_type="collaborative")
-    grid_2 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=2, ownership_type="collaborative")
-    grid_3 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=3, ownership_type="collaborative")
-    personal_grid = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=2, ownership_type="personal")
-    personal_grid_2 = data_fixture.create_grid_view(table=table, user=user, created_by=user, order=3, ownership_type="personal")
+    grid_3 = data_fixture.create_grid_view(
+        table=table, user=user, created_by=user, order=3, ownership_type="collaborative"
+    )
+    personal_grid = data_fixture.create_grid_view(
+        table=table, user=user, created_by=user, order=2, ownership_type="personal"
+    )
+    personal_grid_2 = data_fixture.create_grid_view(
+        table=table, user=user, created_by=user, order=3, ownership_type="personal"
+    )
 
-    handler.order_views(user=user, table=table, ownership_type="personal", order=[personal_grid_2.id, personal_grid.id])
-    
+    handler.order_views(
+        user=user,
+        table=table,
+        ownership_type="personal",
+        order=[personal_grid_2.id, personal_grid.id],
+    )
+
     grid_1.refresh_from_db()
     grid_2.refresh_from_db()
     grid_3.refresh_from_db()
@@ -785,4 +776,9 @@ def test_order_views_personal_ownership_type(data_fixture, premium_data_fixture,
     assert grid_3.order == 3
 
     with pytest.raises(ViewNotInTable):
-        handler.order_views(user=user2, table=table, ownership_type="personal", order=[personal_grid_2.id, personal_grid_2.id])
+        handler.order_views(
+            user=user2,
+            table=table,
+            ownership_type="personal",
+            order=[personal_grid_2.id, personal_grid_2.id],
+        )

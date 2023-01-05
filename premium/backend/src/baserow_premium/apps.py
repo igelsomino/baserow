@@ -78,6 +78,7 @@ class BaserowPremiumConfig(AppConfig):
         import baserow_premium.ws.signals  # noqa: F403, F401
 
         from baserow.core.registries import permission_manager_type_registry
+
         from .permission_manager import ViewOwnershipPermissionManagerType
 
         permission_manager_type_registry.register(ViewOwnershipPermissionManagerType())

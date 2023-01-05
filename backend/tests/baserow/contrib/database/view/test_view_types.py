@@ -448,7 +448,7 @@ def test_import_export_view_ownership_type(data_fixture):
         row_identifier_type="count",
     )
     grid_view.ownership_type = "personal"
-    grid_view.created_by=user2
+    grid_view.created_by = user2
     grid_view.save()
     grid_view_type = view_type_registry.get("grid")
 
@@ -472,7 +472,7 @@ def test_import_export_view_ownership_type(data_fixture):
     assert imported_grid_view is None
 
     # created by is not set
-    grid_view.created_by=None
+    grid_view.created_by = None
     grid_view.ownership_type = "collaborative"
     grid_view.save()
 
@@ -484,5 +484,3 @@ def test_import_export_view_ownership_type(data_fixture):
     assert grid_view.id != imported_grid_view.id
     assert imported_grid_view.ownership_type == "collaborative"
     assert imported_grid_view.created_by == None
-
-

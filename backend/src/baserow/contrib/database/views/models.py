@@ -1,11 +1,11 @@
 import secrets
 
 from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils.functional import lazy
-from django.contrib.auth.models import User
 
 from baserow.contrib.database.fields.field_filters import (
     FILTER_TYPE_AND,

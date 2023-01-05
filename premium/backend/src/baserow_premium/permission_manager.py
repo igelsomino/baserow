@@ -1,17 +1,20 @@
 from typing import TYPE_CHECKING, Any, Optional
-from xmlrpc.client import Boolean # TODO:
-from django.db.models import QuerySet, Q
-from django.contrib.auth import get_user_model
 
-from baserow.core.exceptions import (
-    PermissionDenied,
+from django.contrib.auth import get_user_model
+from django.db.models import Q, QuerySet
+
+from baserow_premium.license.features import PREMIUM
+from baserow_premium.license.handler import LicenseHandler
+
+from baserow.contrib.database.views.models import (
+    OWNERSHIP_TYPE_COLLABORATIVE,
+    View,
+    ViewDecoration,
+    ViewFilter,
+    ViewSort,
 )
-from baserow.core.registries import (
-    PermissionManagerType,
-)
-from baserow.contrib.database.table.models import Table
-from baserow.contrib.database.views.models import ViewFilter
 from baserow.contrib.database.views.operations import (
+    CreateViewDecorationOperationType,
     CreateViewFilterOperationType,
     CreateViewSortOperationType,
     DeleteViewDecorationOperationType,
@@ -19,47 +22,45 @@ from baserow.contrib.database.views.operations import (
     DeleteViewOperationType,
     DeleteViewSortOperationType,
     DuplicateViewOperationType,
+    ListAggregationViewOperationType,
+    ListViewDecorationOperationType,
+    ListViewFilterOperationType,
+    ListViewsOperationType,
+    ListViewSortOperationType,
     OrderViewsOperationType,
+    ReadAggregationViewOperationType,
+    ReadViewDecorationOperationType,
+    ReadViewFieldOptionsOperationType,
     ReadViewFilterOperationType,
     ReadViewOperationType,
     ReadViewsOrderOperationType,
     ReadViewSortOperationType,
+    RestoreViewOperationType,
+    UpdateViewDecorationOperationType,
     UpdateViewFieldOptionsOperationType,
     UpdateViewFilterOperationType,
     UpdateViewOperationType,
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
-    ListViewsOperationType,
-    RestoreViewOperationType,
-    ReadViewFieldOptionsOperationType,
-    ListViewFilterOperationType,
-    ListViewSortOperationType,
-    CreateViewDecorationOperationType,
-    ListViewDecorationOperationType,
-    UpdateViewDecorationOperationType,
-    ReadViewDecorationOperationType,
-    ListAggregationViewOperationType,
-    ReadAggregationViewOperationType,
 )
-from baserow.contrib.database.fields.models import Field
-from baserow.contrib.database.views.models import View, ViewSort, ViewDecoration, OWNERSHIP_TYPE_COLLABORATIVE
-from baserow_premium.license.handler import LicenseHandler
-from baserow_premium.license.features import PREMIUM
-
+from baserow.core.exceptions import PermissionDenied
+from baserow.core.registries import PermissionManagerType
 
 User = get_user_model()
 
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractUser
+
     from .models import Group
+
 
 class ViewOwnershipPermissionManagerType(PermissionManagerType):
     type = "view_ownership"
     operations = [
         # views
         # CreateViewOperationType.type is implemented via view_created signal
-        #   due to current technical limitations regarding insufficient 
+        #   due to current technical limitations regarding insufficient
         #   context object being passed
         ReadViewOperationType.type,
         UpdateViewOperationType.type,
@@ -67,36 +68,30 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         DuplicateViewOperationType.type,
         DeleteViewOperationType.type,
         RestoreViewOperationType.type,
-
         # field options
         ReadViewFieldOptionsOperationType.type,
         UpdateViewFieldOptionsOperationType.type,
-
         # view filters
         CreateViewFilterOperationType.type,
         ListViewFilterOperationType.type,
         ReadViewFilterOperationType.type,
         UpdateViewFilterOperationType.type,
         DeleteViewFilterOperationType.type,
-
         # sorts
         CreateViewSortOperationType.type,
         ListViewSortOperationType.type,
         ReadViewSortOperationType.type,
         UpdateViewSortOperationType.type,
         DeleteViewSortOperationType.type,
-
         # decorations
         CreateViewDecorationOperationType.type,
         ListViewDecorationOperationType.type,
         DeleteViewDecorationOperationType.type,
         UpdateViewDecorationOperationType.type,
         ReadViewDecorationOperationType.type,
-
         # aggregations
         ListAggregationViewOperationType.type,
         ReadAggregationViewOperationType.type,
-
         # ordering TODO:
         # "database.table.read_view_order",
         # OrderViewsOperationType.type,
@@ -108,8 +103,8 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         operation_name: str,
         group: Optional["Group"] = None,
         context: Optional[Any] = None,
-        include_trash: Boolean = False,
-    ) -> Optional[Boolean]:
+        include_trash: bool = False,
+    ) -> Optional[bool]:
         """
         check_permissions() impl for view ownership checks.
 
@@ -135,7 +130,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
 
         if not group:
             return
-        
+
         if not context:
             return
 
@@ -194,6 +189,9 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         premium = LicenseHandler.user_has_feature(PREMIUM, actor, group)
 
         if premium:
-            return queryset.filter(Q(ownership_type=OWNERSHIP_TYPE_COLLABORATIVE) | (Q(ownership_type="personal") & Q(created_by=actor)))
+            return queryset.filter(
+                Q(ownership_type=OWNERSHIP_TYPE_COLLABORATIVE)
+                | (Q(ownership_type="personal") & Q(created_by=actor))
+            )
         else:
             return queryset.filter(ownership_type=OWNERSHIP_TYPE_COLLABORATIVE)

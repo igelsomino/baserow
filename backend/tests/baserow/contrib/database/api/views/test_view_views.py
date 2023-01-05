@@ -99,14 +99,18 @@ def test_list_views_ownership_type(api_client, data_fixture):
     """
     By default only collaborative views should be returned.
     """
-    
+
     user, token = data_fixture.create_user_and_token(
         email="test@test.nl", password="password", first_name="Test1"
     )
     table_1 = data_fixture.create_database_table(user=user)
-    view_1 = data_fixture.create_grid_view(table=table_1, order=1, ownership_type="collaborative")
-    view_2 = data_fixture.create_grid_view(table=table_1, order=3, ownership_type="another_type")
-    
+    view_1 = data_fixture.create_grid_view(
+        table=table_1, order=1, ownership_type="collaborative"
+    )
+    view_2 = data_fixture.create_grid_view(
+        table=table_1, order=3, ownership_type="another_type"
+    )
+
     response = api_client.get(
         reverse("api:database:views:list", kwargs={"table_id": table_1.id}),
         **{"HTTP_AUTHORIZATION": f"JWT {token}"},
@@ -412,7 +416,10 @@ def test_order_views(api_client, data_fixture):
 
     response = api_client.post(
         reverse("api:database:views:order", kwargs={"table_id": table_1.id}),
-        {"view_ids": [view_3.id, view_2.id, view_1.id], "ownership_type": "collaborative"},
+        {
+            "view_ids": [view_3.id, view_2.id, view_1.id],
+            "ownership_type": "collaborative",
+        },
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",
     )

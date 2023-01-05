@@ -57,12 +57,13 @@ from baserow.contrib.database.views.operations import (
     DeleteViewOperationType,
     DeleteViewSortOperationType,
     DuplicateViewOperationType,
+    ListAggregationViewOperationType,
     ListViewDecorationOperationType,
     ListViewFilterOperationType,
     ListViewsOperationType,
     ListViewSortOperationType,
-    ListAggregationViewOperationType,
     OrderViewsOperationType,
+    ReadAggregationViewOperationType,
     ReadViewDecorationOperationType,
     ReadViewFieldOptionsOperationType,
     ReadViewFilterOperationType,
@@ -76,7 +77,6 @@ from baserow.contrib.database.views.operations import (
     UpdateViewOperationType,
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
-    ReadAggregationViewOperationType,
 )
 from baserow.contrib.database.webhooks.operations import (
     CreateWebhookOperationType,

@@ -6,18 +6,16 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import models as django_models
 from django.db.models import Count, F
 from django.db.models.query import QuerySet
-from django.contrib.contenttypes.models import ContentType
 
 import jwt
 from redis.exceptions import LockNotOwnedError
 
-from baserow.core.db import specific_iterator
-from baserow.core.models import Group, User
 from baserow.contrib.database.api.utils import get_include_exclude_field_ids
 from baserow.contrib.database.fields.exceptions import FieldNotInTable
 from baserow.contrib.database.fields.field_filters import FILTER_TYPE_AND, FilterBuilder
@@ -29,8 +27,8 @@ from baserow.contrib.database.rows.handler import RowHandler
 from baserow.contrib.database.rows.signals import rows_created
 from baserow.contrib.database.table.models import GeneratedTableModel, Table
 from baserow.contrib.database.views.operations import (
+    CreateViewDecorationOperationType,
     CreateViewFilterOperationType,
-    ListViewFilterOperationType,
     CreateViewOperationType,
     CreateViewSortOperationType,
     DeleteViewDecorationOperationType,
@@ -38,26 +36,28 @@ from baserow.contrib.database.views.operations import (
     DeleteViewOperationType,
     DeleteViewSortOperationType,
     DuplicateViewOperationType,
-    OrderViewsOperationType,
+    ListAggregationViewOperationType,
+    ListViewDecorationOperationType,
+    ListViewFilterOperationType,
     ListViewSortOperationType,
+    OrderViewsOperationType,
+    ReadAggregationViewOperationType,
+    ReadViewDecorationOperationType,
+    ReadViewFieldOptionsOperationType,
     ReadViewFilterOperationType,
     ReadViewOperationType,
     ReadViewsOrderOperationType,
-    ReadViewDecorationOperationType,
     ReadViewSortOperationType,
-    ListAggregationViewOperationType,
+    UpdateViewDecorationOperationType,
     UpdateViewFieldOptionsOperationType,
     UpdateViewFilterOperationType,
-    ListViewDecorationOperationType,
-    CreateViewDecorationOperationType,
-    UpdateViewDecorationOperationType,
     UpdateViewOperationType,
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
-    ReadViewFieldOptionsOperationType,
-    ReadAggregationViewOperationType,
 )
+from baserow.core.db import specific_iterator
 from baserow.core.handler import CoreHandler
+from baserow.core.models import Group, User
 from baserow.core.trash.handler import TrashHandler
 from baserow.core.utils import (
     MirrorDict,
@@ -87,11 +87,11 @@ from .exceptions import (
     ViewSortNotSupported,
 )
 from .models import (
+    OWNERSHIP_TYPE_COLLABORATIVE,
     View,
     ViewDecoration,
     ViewFilter,
     ViewSort,
-    OWNERSHIP_TYPE_COLLABORATIVE,
 )
 from .registries import (
     decorator_type_registry,
@@ -127,12 +127,23 @@ ending_number_regex = re.compile(r"(.+) (\d+)$")
 class ViewHandler:
     PUBLIC_VIEW_TOKEN_ALGORITHM = "HS256"  # nosec
 
-    def list_views(self, user: User, table: Table, _type: str, filters: bool, sortings: bool, decorations: bool, limit: int) -> Iterable[View]:
+    def list_views(
+        self,
+        user: User,
+        table: Table,
+        _type: str,
+        filters: bool,
+        sortings: bool,
+        decorations: bool,
+        limit: int,
+    ) -> Iterable[View]:
         # TODO: docs
 
         views = View.objects.filter(table=table)
 
-        views = CoreHandler().filter_queryset(user, "database.table.list_views", views, table.database.group)
+        views = CoreHandler().filter_queryset(
+            user, "database.table.list_views", views, table.database.group
+        )
         views = views.select_related("content_type", "table")
 
         if _type:
@@ -150,7 +161,7 @@ class ViewHandler:
             views = views.prefetch_related("viewdecoration_set")
 
         if limit:
-            views = views[: limit]
+            views = views[:limit]
 
         views = specific_iterator(views)
         return views
@@ -191,7 +202,10 @@ class ViewHandler:
             )
             if user:
                 CoreHandler().check_permissions(
-                    user, ReadViewOperationType.type, group=view.table.database.group, context=view
+                    user,
+                    ReadViewOperationType.type,
+                    group=view.table.database.group,
+                    context=view,
                 )
         except View.DoesNotExist as exc:
             raise ViewDoesNotExist(
@@ -356,7 +370,11 @@ class ViewHandler:
             self, view=duplicated_view, user=user, type_name=view_type.type
         )
         views_reordered.send(
-            self, table=original_view.table, order=ordered_ids, ownership_type=original_view.ownership_type, user=None
+            self,
+            table=original_view.table,
+            order=ordered_ids,
+            ownership_type=original_view.ownership_type,
+            user=None,
         )
 
         return duplicated_view
@@ -403,7 +421,9 @@ class ViewHandler:
 
         return view
 
-    def order_views(self, user: AbstractUser, table: Table, ownership_type: str, order: List[int]):
+    def order_views(
+        self, user: AbstractUser, table: Table, ownership_type: str, order: List[int]
+    ):
         """
         Updates the order of the views in the given table. The order of the views
         that are not in the `order` parameter set to `0`.
@@ -424,8 +444,12 @@ class ViewHandler:
             user, OrderViewsOperationType.type, group=group, context=table
         )
 
-        queryset = View.objects.filter(table_id=table.id).filter(ownership_type=ownership_type)
-        queryset = CoreHandler().filter_queryset(user, "database.table.list_views", queryset, table.database.group)
+        queryset = View.objects.filter(table_id=table.id).filter(
+            ownership_type=ownership_type
+        )
+        queryset = CoreHandler().filter_queryset(
+            user, "database.table.list_views", queryset, table.database.group
+        )
         view_ids = queryset.values_list("id", flat=True)
 
         for view_id in order:
@@ -434,7 +458,9 @@ class ViewHandler:
 
         View.order_objects(queryset, order)
 
-        views_reordered.send(self, table=table, order=order, ownership_type=ownership_type, user=user)
+        views_reordered.send(
+            self, table=table, order=order, ownership_type=ownership_type, user=user
+        )
 
     def get_views_order(self, user: AbstractUser, table: Table, ownership_type: str):
         """
@@ -455,8 +481,12 @@ class ViewHandler:
             user, ReadViewsOrderOperationType.type, group=group, context=table
         )
 
-        queryset = View.objects.filter(table_id=table.id).filter(ownership_type=ownership_type)
-        queryset = CoreHandler().filter_queryset(user, "database.table.list_views", queryset, table.database.group)
+        queryset = View.objects.filter(table_id=table.id).filter(
+            ownership_type=ownership_type
+        )
+        queryset = CoreHandler().filter_queryset(
+            user, "database.table.list_views", queryset, table.database.group
+        )
 
         order = queryset.values_list("id", flat=True)
         order = list(order)
@@ -1061,7 +1091,7 @@ class ViewHandler:
 
     def list_sorts(self, user: AbstractUser, view_id: int) -> QuerySet[ViewSort]:
         # TODO: docs
-        
+
         view = ViewHandler().get_view(user, view_id)
         CoreHandler().check_permissions(
             user,
@@ -1341,7 +1371,9 @@ class ViewHandler:
 
         return view_decoration
 
-    def list_decorations(self, user: AbstractUser, view_id: int) -> QuerySet[ViewDecoration]:
+    def list_decorations(
+        self, user: AbstractUser, view_id: int
+    ) -> QuerySet[ViewDecoration]:
         # TODO: docs
 
         view = ViewHandler().get_view(user, view_id)
@@ -1370,7 +1402,7 @@ class ViewHandler:
             exists.
         :return: The requested view decoration instance.
         """
-        
+
         # TODO: add docs on user
 
         if base_queryset is None:
@@ -1502,7 +1534,6 @@ class ViewHandler:
             view_filter=view_decoration,
             user=user,
         )
-
 
     def get_queryset(
         self,
@@ -1822,7 +1853,7 @@ class ViewHandler:
                 context=view,
                 allow_if_template=True,
             )
-            
+
             field_name = field_instance.db_column
 
             # Check whether the field belongs to the table.
@@ -1858,7 +1889,6 @@ class ViewHandler:
 
         new_slug = View.create_new_slug()
         return self.update_view_slug(user, view, new_slug)
-
 
     def update_view_slug(self, user: AbstractUser, view: View, slug: str) -> View:
         """

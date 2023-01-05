@@ -515,12 +515,13 @@ class DatabaseConfig(AppConfig):
             DeleteViewOperationType,
             DeleteViewSortOperationType,
             DuplicateViewOperationType,
+            ListAggregationViewOperationType,
             ListViewDecorationOperationType,
             ListViewFilterOperationType,
             ListViewsOperationType,
             ListViewSortOperationType,
-            ListAggregationViewOperationType,
             OrderViewsOperationType,
+            ReadAggregationViewOperationType,
             ReadViewDecorationOperationType,
             ReadViewFieldOptionsOperationType,
             ReadViewFilterOperationType,
@@ -533,7 +534,6 @@ class DatabaseConfig(AppConfig):
             UpdateViewOperationType,
             UpdateViewSlugOperationType,
             UpdateViewSortOperationType,
-            ReadAggregationViewOperationType,
         )
         from .webhooks.operations import (
             CreateWebhookOperationType,

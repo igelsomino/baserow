@@ -35,4 +35,3 @@ class RestoreFieldOperationType(FieldOperationType):
 
 class DuplicateFieldOperationType(FieldOperationType):
     type = "database.table.field.duplicate"
-

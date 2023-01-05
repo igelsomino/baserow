@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -12,15 +13,16 @@ from typing import (
     Union,
 )
 from zipfile import ZipFile
-from collections import defaultdict
+
 from django.contrib.auth.models import AbstractUser
 from django.core.files.storage import Storage
 from django.db import models as django_models
 
 from rest_framework.fields import CharField
 from rest_framework.serializers import Serializer
-from baserow.core.models import GroupUser
+
 from baserow.contrib.database.fields.field_filters import OptionallyAnnotatedQ
+from baserow.core.models import GroupUser
 from baserow.core.registry import (
     APIUrlsInstanceMixin,
     APIUrlsRegistryMixin,
@@ -286,7 +288,10 @@ class ViewType(
                 id_mapping["created_by"][groupuser.user.email] = groupuser.user
 
         email = serialized_values["created_by"]
-        if id_mapping["created_by"].get(email, None) is None and serialized_values["ownership_type"] == "personal":
+        if (
+            id_mapping["created_by"].get(email, None) is None
+            and serialized_values["ownership_type"] == "personal"
+        ):
             return None
         serialized_values["created_by"] = id_mapping["created_by"].get(email, None)
 

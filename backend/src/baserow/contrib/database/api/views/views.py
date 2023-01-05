@@ -13,7 +13,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from baserow.core.exceptions import PermissionDenied
 from baserow.api.decorators import (
     allowed_includes,
     map_exceptions,
@@ -82,11 +81,11 @@ from baserow.contrib.database.views.exceptions import (
     ViewFilterNotSupported,
     ViewFilterTypeNotAllowedForField,
     ViewNotInTable,
+    ViewOwnershipTypeNotSupported,
     ViewSortDoesNotExist,
     ViewSortFieldAlreadyExist,
     ViewSortFieldNotSupported,
     ViewSortNotSupported,
-    ViewOwnershipTypeNotSupported,
 )
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.contrib.database.views.models import (
@@ -112,7 +111,7 @@ from baserow.contrib.database.views.registries import (
 )
 from baserow.core.action.registries import action_type_registry
 from baserow.core.db import specific_iterator
-from baserow.core.exceptions import UserNotInGroup
+from baserow.core.exceptions import PermissionDenied, UserNotInGroup
 from baserow.core.handler import CoreHandler
 
 from .errors import (
@@ -128,11 +127,11 @@ from .errors import (
     ERROR_VIEW_FILTER_NOT_SUPPORTED,
     ERROR_VIEW_FILTER_TYPE_UNSUPPORTED_FIELD,
     ERROR_VIEW_NOT_IN_TABLE,
+    ERROR_VIEW_OWNERSHIP_TYPE_NOT_SUPPORTED,
     ERROR_VIEW_SORT_DOES_NOT_EXIST,
     ERROR_VIEW_SORT_FIELD_ALREADY_EXISTS,
     ERROR_VIEW_SORT_FIELD_NOT_SUPPORTED,
     ERROR_VIEW_SORT_NOT_SUPPORTED,
-    ERROR_VIEW_OWNERSHIP_TYPE_NOT_SUPPORTED,
 )
 from .serializers import (
     CreateViewDecorationSerializer,
@@ -265,7 +264,15 @@ class ViewsView(APIView):
             allow_if_template=True,
         )
 
-        views = ViewHandler().list_views(request.user, table, query_params["type"], filters, sortings, decorations, query_params["limit"])
+        views = ViewHandler().list_views(
+            request.user,
+            table,
+            query_params["type"],
+            filters,
+            sortings,
+            decorations,
+            query_params["limit"],
+        )
 
         data = [
             view_type_registry.get_serializer(
@@ -1520,7 +1527,7 @@ class ViewFieldOptionsView(APIView):
         """Returns the field options of the view."""
 
         view = ViewHandler().get_view(request.user, view_id).specific
-        view_type = ViewHandler().get_field_options(request.user, view)        
+        view_type = ViewHandler().get_field_options(request.user, view)
 
         try:
             serializer_class = view_type.get_field_options_serializer_class(
@@ -1639,7 +1646,8 @@ class RotateViewSlugView(APIView):
         """Rotates the slug of a view."""
 
         view = action_type_registry.get_by_type(RotateViewSlugActionType).do(
-            request.user, ViewHandler().get_view_for_update(request.user, view_id).specific
+            request.user,
+            ViewHandler().get_view_for_update(request.user, view_id).specific,
         )
 
         serializer = view_type_registry.get_serializer(view, ViewSerializer)

@@ -8,8 +8,8 @@ from baserow.contrib.database.api.views.serializers import (
     ViewSortSerializer,
 )
 from baserow.contrib.database.views import signals as view_signals
-from baserow.contrib.database.views.registries import view_type_registry
 from baserow.contrib.database.views.models import OWNERSHIP_TYPE_COLLABORATIVE
+from baserow.contrib.database.views.registries import view_type_registry
 from baserow.ws.registries import page_registry
 
 

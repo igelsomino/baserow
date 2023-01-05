@@ -505,7 +505,9 @@ class OrderViewsActionType(ActionType):
     @classmethod
     def undo(cls, user: AbstractUser, params: Params, action_to_undo: Action):
         table = TableHandler().get_table(params.table_id)
-        ViewHandler().order_views(user, table, params.ownership_type, params.original_order)
+        ViewHandler().order_views(
+            user, table, params.ownership_type, params.original_order
+        )
 
     @classmethod
     def redo(cls, user: AbstractUser, params: Params, action_to_redo: Action):

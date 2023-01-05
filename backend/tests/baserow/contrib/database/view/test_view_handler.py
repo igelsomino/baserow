@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 
 import pytest
 
-from baserow.core.exceptions import PermissionDenied
 from baserow.contrib.database.fields.exceptions import FieldNotInTable
 from baserow.contrib.database.fields.handler import FieldHandler
 from baserow.contrib.database.fields.models import Field
@@ -22,21 +21,21 @@ from baserow.contrib.database.views.exceptions import (
     ViewFilterTypeDoesNotExist,
     ViewFilterTypeNotAllowedForField,
     ViewNotInTable,
+    ViewOwnershipTypeNotSupported,
     ViewSortDoesNotExist,
     ViewSortFieldAlreadyExist,
     ViewSortFieldNotSupported,
     ViewSortNotSupported,
     ViewTypeDoesNotExist,
-    ViewOwnershipTypeNotSupported,
 )
 from baserow.contrib.database.views.handler import PublicViewRows, ViewHandler
 from baserow.contrib.database.views.models import (
+    OWNERSHIP_TYPE_COLLABORATIVE,
     FormView,
     GridView,
     View,
     ViewFilter,
     ViewSort,
-    OWNERSHIP_TYPE_COLLABORATIVE,
 )
 from baserow.contrib.database.views.registries import (
     view_aggregation_type_registry,
@@ -44,7 +43,7 @@ from baserow.contrib.database.views.registries import (
     view_type_registry,
 )
 from baserow.contrib.database.views.view_types import GridViewType
-from baserow.core.exceptions import UserNotInGroup
+from baserow.core.exceptions import PermissionDenied, UserNotInGroup
 from baserow.core.trash.handler import TrashHandler
 
 
@@ -78,7 +77,9 @@ def test_get_view(data_fixture):
     # If the error is raised we know for sure that the query has resolved.
     with pytest.raises(AttributeError):
         handler.get_view(
-            user, view_id=grid.id, base_queryset=View.objects.prefetch_related("UNKNOWN")
+            user,
+            view_id=grid.id,
+            base_queryset=View.objects.prefetch_related("UNKNOWN"),
         )
 
     # If the table is trashed the view should not be available.
@@ -486,18 +487,37 @@ def test_order_views(send_mock, data_fixture):
     handler = ViewHandler()
 
     with pytest.raises(UserNotInGroup):
-        handler.order_views(user=user_2, table=table, ownership_type="collaborative", order=[])
+        handler.order_views(
+            user=user_2, table=table, ownership_type="collaborative", order=[]
+        )
 
     with pytest.raises(ViewNotInTable):
-        handler.order_views(user=user, table=table, ownership_type="collaborative", order=[0])
+        handler.order_views(
+            user=user, table=table, ownership_type="collaborative", order=[0]
+        )
 
     with pytest.raises(ViewNotInTable):
-        handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_diff_ownership.id, grid_3.id, grid_2.id, grid_1.id])
+        handler.order_views(
+            user=user,
+            table=table,
+            ownership_type="collaborative",
+            order=[grid_diff_ownership.id, grid_3.id, grid_2.id, grid_1.id],
+        )
 
     with pytest.raises(ViewNotInTable):
-        handler.order_views(user=user, table=table, ownership_type="personal", order=[grid_diff_ownership.id, grid_diff_ownership2.id])
+        handler.order_views(
+            user=user,
+            table=table,
+            ownership_type="personal",
+            order=[grid_diff_ownership.id, grid_diff_ownership2.id],
+        )
 
-    handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_3.id, grid_2.id, grid_1.id])
+    handler.order_views(
+        user=user,
+        table=table,
+        ownership_type="collaborative",
+        order=[grid_3.id, grid_2.id, grid_1.id],
+    )
     grid_1.refresh_from_db()
     grid_2.refresh_from_db()
     grid_3.refresh_from_db()
@@ -510,7 +530,12 @@ def test_order_views(send_mock, data_fixture):
     assert send_mock.call_args[1]["user"].id == user.id
     assert send_mock.call_args[1]["order"] == [grid_3.id, grid_2.id, grid_1.id]
 
-    handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_1.id, grid_3.id, grid_2.id])
+    handler.order_views(
+        user=user,
+        table=table,
+        ownership_type="collaborative",
+        order=[grid_1.id, grid_3.id, grid_2.id],
+    )
     grid_1.refresh_from_db()
     grid_2.refresh_from_db()
     grid_3.refresh_from_db()
@@ -518,7 +543,9 @@ def test_order_views(send_mock, data_fixture):
     assert grid_2.order == 3
     assert grid_3.order == 2
 
-    handler.order_views(user=user, table=table, ownership_type="collaborative", order=[grid_1.id])
+    handler.order_views(
+        user=user, table=table, ownership_type="collaborative", order=[grid_1.id]
+    )
     grid_1.refresh_from_db()
     grid_2.refresh_from_db()
     grid_3.refresh_from_db()
@@ -2313,11 +2340,7 @@ def test_update_view_ownership_type(data_fixture):
     form = data_fixture.create_form_view(table=table)
     handler = ViewHandler()
 
-    handler.update_view(
-        user=user,
-        view=form,
-        ownership_type="new_ownership_type"
-    )
+    handler.update_view(user=user, view=form, ownership_type="new_ownership_type")
 
     form.refresh_from_db()
     assert form.ownership_type == OWNERSHIP_TYPE_COLLABORATIVE
@@ -2340,7 +2363,7 @@ def test_duplicate_view_ownership_type(data_fixture):
         name="Test grid",
         ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
     )
-    
+
     duplicated = handler.duplicate_view(user2, view)
     assert duplicated.ownership_type == OWNERSHIP_TYPE_COLLABORATIVE
 
@@ -2459,7 +2482,7 @@ def test_filters_view_ownership_type(data_fixture):
 
     with pytest.raises(PermissionDenied):
         handler.update_filter(user2, filter, field, "equal", "another value")
-    
+
     with pytest.raises(PermissionDenied):
         handler.delete_filter(user, filter)
 
@@ -2511,7 +2534,7 @@ def test_sorts_view_ownership_type(data_fixture):
 
     with pytest.raises(PermissionDenied):
         handler.update_sort(user2, equal_sort, field)
-    
+
     with pytest.raises(PermissionDenied):
         handler.delete_sort(user, equal_sort)
 
@@ -2577,7 +2600,7 @@ def test_decorations_view_ownership_type(data_fixture):
 
     with pytest.raises(PermissionDenied):
         handler.update_decoration(decoration, user2)
-    
+
     with pytest.raises(PermissionDenied):
         handler.delete_decoration(decoration, user)
 
@@ -2612,12 +2635,12 @@ def test_aggregations_view_ownership_type(data_fixture):
         },
     )
     aggr = [
-            (
-                field,
-                "max",
-            ),
+        (
+            field,
+            "max",
+        ),
     ]
-    
+
     handler.get_view_field_aggregations(user, view)
     handler.get_field_aggregations(user, view, aggr)
 
@@ -2634,7 +2657,7 @@ def test_aggregations_view_ownership_type(data_fixture):
         handler.get_field_aggregations(user, view, aggr)
 
     with pytest.raises(PermissionDenied):
-        handler.get_field_aggregations(user2, view, aggr)   
+        handler.get_field_aggregations(user2, view, aggr)
 
 
 @pytest.mark.django_db

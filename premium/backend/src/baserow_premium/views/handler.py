@@ -3,10 +3,10 @@ from typing import Dict, Optional, Union
 
 from django.db.models import Count, Q, QuerySet
 
-from baserow.contrib.database.views.models import View
 from baserow.contrib.database.fields.models import SingleSelectField
 from baserow.contrib.database.table.models import GeneratedTableModel
 from baserow.contrib.database.views.handler import ViewHandler
+from baserow.contrib.database.views.models import View
 
 
 def get_rows_grouped_by_single_select_field(
@@ -126,5 +126,3 @@ def get_rows_grouped_by_single_select_field(
         rows[key]["count"] = value
 
     return rows
-
-

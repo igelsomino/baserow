@@ -9,11 +9,11 @@ from baserow.contrib.database.api.fields.serializers import FieldSerializer
 from baserow.contrib.database.api.serializers import TableSerializer
 from baserow.contrib.database.fields.registries import field_type_registry
 from baserow.contrib.database.views.models import (
+    OWNERSHIP_TYPE_COLLABORATIVE,
     View,
     ViewDecoration,
     ViewFilter,
     ViewSort,
-    OWNERSHIP_TYPE_COLLABORATIVE,
 )
 from baserow.contrib.database.views.registries import (
     decorator_type_registry,
@@ -366,7 +366,9 @@ class UpdateViewSerializer(serializers.ModelSerializer):
 
 
 class OrderViewsSerializer(serializers.Serializer):
-    ownership_type = serializers.CharField(help_text="Type of views to order.", default=OWNERSHIP_TYPE_COLLABORATIVE)
+    ownership_type = serializers.CharField(
+        help_text="Type of views to order.", default=OWNERSHIP_TYPE_COLLABORATIVE
+    )
     view_ids = serializers.ListField(
         child=serializers.IntegerField(), help_text="View ids in the desired order."
     )

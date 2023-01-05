@@ -22,6 +22,7 @@ from baserow.contrib.database.table.cache import invalidate_table_in_model_cache
 from baserow.contrib.database.table.models import Table
 from baserow.contrib.database.trash.models import TrashedRows
 from baserow.contrib.database.views.handler import ViewHandler
+from baserow.core.exceptions import PermissionDenied
 from baserow.core.models import TrashEntry
 from baserow.core.trash.exceptions import (
     CannotRestoreChildBeforeParent,
@@ -30,7 +31,6 @@ from baserow.core.trash.exceptions import (
     RelatedTableTrashedException,
 )
 from baserow.core.trash.handler import TrashHandler
-from baserow.core.exceptions import PermissionDenied
 
 
 @pytest.mark.django_db

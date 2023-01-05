@@ -40,6 +40,7 @@ class ListRowNamesDatabaseTableOperationType(DatabaseTableOperationType):
     type = "database.table.list_row_names"
     object_scope_name = "database_row"
 
+
 class CreateRowDatabaseTableOperationType(DatabaseTableOperationType):
     type = "database.table.create_row"
 

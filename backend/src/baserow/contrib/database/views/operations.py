@@ -106,6 +106,7 @@ class ListAggregationViewOperationType(ViewOperationType):
 class ReadAggregationViewOperationType(ViewOperationType):
     type = "database.table.view.read_aggregation"
 
+
 class ReadViewFilterOperationType(ViewFilterOperationType):
     type = "database.table.view.filter.read"
 
@@ -140,6 +141,3 @@ class UpdateViewDecorationOperationType(ViewDecorationOperationType):
 
 class DeleteViewDecorationOperationType(ViewDecorationOperationType):
     type = "database.table.view.decoration.delete"
-
-
-

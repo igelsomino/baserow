@@ -49,10 +49,7 @@ from baserow.contrib.database.fields.field_filters import (
 )
 from baserow.contrib.database.fields.handler import FieldHandler
 from baserow.contrib.database.rows.registries import row_metadata_registry
-from baserow.contrib.database.table.operations import (
-    ListRowsDatabaseTableOperationType,
-)
-from baserow.contrib.database.views.operations import ReadAggregationViewOperationType
+from baserow.contrib.database.table.operations import ListRowsDatabaseTableOperationType
 from baserow.contrib.database.views.exceptions import (
     AggregationTypeDoesNotExist,
     NoAuthorizationToPubliclySharedView,
@@ -62,6 +59,7 @@ from baserow.contrib.database.views.exceptions import (
 )
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.contrib.database.views.models import GridView
+from baserow.contrib.database.views.operations import ReadAggregationViewOperationType
 from baserow.contrib.database.views.registries import (
     view_aggregation_type_registry,
     view_filter_type_registry,

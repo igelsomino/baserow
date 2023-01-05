@@ -1527,17 +1527,7 @@ class ViewFieldOptionsView(APIView):
         """Returns the field options of the view."""
 
         view = ViewHandler().get_view(request.user, view_id).specific
-        view_type = ViewHandler().get_field_options(request.user, view)
-
-        try:
-            serializer_class = view_type.get_field_options_serializer_class(
-                create_if_missing=True
-            )
-        except ValueError as exc:
-            raise ViewDoesNotSupportFieldOptions(
-                "The view type does not have a `field_options_serializer_class`"
-            ) from exc
-
+        serializer_class = ViewHandler().get_field_options(request.user, view)
         return Response(serializer_class(view).data)
 
     @extend_schema(

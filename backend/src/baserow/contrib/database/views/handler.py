@@ -137,7 +137,18 @@ class ViewHandler:
         decorations: bool,
         limit: int,
     ) -> Iterable[View]:
-        # TODO: docs
+        """
+        Lists available views for a user/table combination.
+
+        :user: The user on whose behalf we want to return views.
+        :table: The table for which the views should be returned.
+        :_type: The view type to get.
+        :filters: If filters should be prefetched.
+        :sortings: If sorts should be prefetched.
+        :decorations: If view decorations should be prefetched.
+        :limit: To limit the number of returned views.
+        :return: Iterator over returned views.
+        """
 
         views = View.objects.filter(table=table)
 
@@ -528,7 +539,13 @@ class ViewHandler:
         view_deleted.send(self, view_id=view_id, view=view, user=user)
 
     def get_field_options(self, user: AbstractUser, view: View):
-        # TODO: return type, docs
+        """
+        Returns a serializer class to get field options stored for the view.
+
+        :param user: The user on whose behalf the options are requested.
+        :param view: The view for which the options should be returned.
+        :returns: A serializer class to the view field options.
+        """
 
         group = view.table.database.group
         CoreHandler().check_permissions(
@@ -539,7 +556,15 @@ class ViewHandler:
             allow_if_template=True,
         )
         view_type = view_type_registry.get_by_model(view)
-        return view_type
+        try:
+            serializer_class = view_type.get_field_options_serializer_class(
+                create_if_missing=True
+            )
+        except ValueError as exc:
+            raise ViewDoesNotSupportFieldOptions(
+                "The view type does not have a `field_options_serializer_class`"
+            ) from exc
+        return serializer_class
 
     def update_field_options(
         self,
@@ -787,7 +812,14 @@ class ViewHandler:
         return filter_builder.apply_to_queryset(queryset)
 
     def list_filters(self, user: AbstractUser, view_id: int) -> QuerySet[ViewFilter]:
-        # TODO: document
+        """
+        Returns the ViewFilter queryset for the provided view_id.
+
+        :param user: The user on whose behalf the filters are requested.
+        :param view_id: The id of the view for which we want to return filters.
+        :returns: ViewFilter queryset for the view_id.
+        """
+
         view = self.get_view(user, view_id)
         group = view.table.database.group
         CoreHandler().check_permissions(
@@ -1090,7 +1122,13 @@ class ViewHandler:
         return queryset
 
     def list_sorts(self, user: AbstractUser, view_id: int) -> QuerySet[ViewSort]:
-        # TODO: docs
+        """
+        Returns the ViewSort queryset for provided view_id.
+
+        :param user: The user on whose behalf the sorts are requested.
+        :param view_id: The id of the view for which to return sorts.
+        :return: ViewSort queryset of the view's sorts.
+        """
 
         view = ViewHandler().get_view(user, view_id)
         CoreHandler().check_permissions(
@@ -1374,7 +1412,13 @@ class ViewHandler:
     def list_decorations(
         self, user: AbstractUser, view_id: int
     ) -> QuerySet[ViewDecoration]:
-        # TODO: docs
+        """
+        Lists view's decorations.
+
+        :param user: The user on whose behalf are the decorations requested.
+        :param view_id: The id of the view for which to list decorations.
+        :return: ViewDecoration queryset for the particular view.
+        """
 
         view = ViewHandler().get_view(user, view_id)
         CoreHandler().check_permissions(
@@ -1395,6 +1439,7 @@ class ViewHandler:
         """
         Returns an existing view decoration with the given id.
 
+        :param user: The user on whose behalf is the decoration requested.
         :param view_decoration_id: The id of the view decoration.
         :param base_queryset: The base queryset from where to select the view decoration
             object from. This can for example be used to do a `select_related`.
@@ -1402,8 +1447,6 @@ class ViewHandler:
             exists.
         :return: The requested view decoration instance.
         """
-
-        # TODO: add docs on user
 
         if base_queryset is None:
             base_queryset = ViewDecoration.objects

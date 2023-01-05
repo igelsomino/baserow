@@ -8,7 +8,6 @@ from baserow_premium.license.handler import LicenseHandler
 
 from baserow.contrib.database.views.models import (
     OWNERSHIP_TYPE_COLLABORATIVE,
-    View,
     ViewDecoration,
     ViewFilter,
     ViewSort,

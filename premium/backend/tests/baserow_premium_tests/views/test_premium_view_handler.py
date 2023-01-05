@@ -710,12 +710,12 @@ def test_update_view_slug_personal_ownership_type(data_fixture, premium_data_fix
         ownership_type="personal",
     )
     
-    handler.update_form_slug(user, view, "new-slug")
+    handler.update_view_slug(user, view, "new-slug")
     view.refresh_from_db()
     assert view.slug == "new-slug"
 
     with pytest.raises(PermissionDenied):
-        handler.update_form_slug(user2, view, "new-slug")
+        handler.update_view_slug(user2, view, "new-slug")
 
 
 @pytest.mark.django_db

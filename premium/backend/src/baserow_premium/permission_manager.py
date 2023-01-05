@@ -1,31 +1,18 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from xmlrpc.client import Boolean # TODO:
 from django.db.models import QuerySet, Q
 from django.contrib.auth import get_user_model
 
 from baserow.core.exceptions import (
-    ApplicationTypeAlreadyRegistered,
-    ApplicationTypeDoesNotExist,
-    AuthenticationProviderTypeAlreadyRegistered,
-    AuthenticationProviderTypeDoesNotExist,
-    ObjectScopeTypeAlreadyRegistered,
-    ObjectScopeTypeDoesNotExist,
-    OperationTypeAlreadyRegistered,
-    OperationTypeDoesNotExist,
     PermissionDenied,
-    PermissionManagerTypeAlreadyRegistered,
-    PermissionManagerTypeDoesNotExist,
 )
 from baserow.core.registries import (
-    OperationType,
     PermissionManagerType,
-    operation_type_registry,
 )
 from baserow.contrib.database.table.models import Table
 from baserow.contrib.database.views.models import ViewFilter
 from baserow.contrib.database.views.operations import (
     CreateViewFilterOperationType,
-    CreateViewOperationType,
     CreateViewSortOperationType,
     DeleteViewDecorationOperationType,
     DeleteViewFilterOperationType,
@@ -42,6 +29,17 @@ from baserow.contrib.database.views.operations import (
     UpdateViewOperationType,
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
+    ListViewsOperationType,
+    RestoreViewOperationType,
+    ReadViewFieldOptionsOperationType,
+    ListViewFilterOperationType,
+    ListViewSortOperationType,
+    CreateViewDecorationOperationType,
+    ListViewDecorationOperationType,
+    UpdateViewDecorationOperationType,
+    ReadViewDecorationOperationType,
+    ListAggregationViewOperationType,
+    ReadAggregationViewOperationType,
 )
 from baserow.contrib.database.fields.models import Field
 from baserow.contrib.database.views.models import View, ViewSort, ViewDecoration, OWNERSHIP_TYPE_COLLABORATIVE
@@ -57,50 +55,51 @@ if TYPE_CHECKING:
     from .models import Group
 
 class ViewOwnershipPermissionManagerType(PermissionManagerType):
-    # TODO: refactor from strings to types?
     type = "view_ownership"
     operations = [
         # views
-        # "database.table.create_view", # TODO: ?
-        "database.table.view.read",
-        "database.table.view.update",
-        "database.table.view.update_slug",
-        "database.table.view.duplicate",
-        "database.table.view.delete",
-        "database.table.view.restore",
+        # CreateViewOperationType.type is implemented via view_created signal
+        #   due to current technical limitations regarding insufficient 
+        #   context object being passed
+        ReadViewOperationType.type,
+        UpdateViewOperationType.type,
+        UpdateViewSlugOperationType.type,
+        DuplicateViewOperationType.type,
+        DeleteViewOperationType.type,
+        RestoreViewOperationType.type,
 
         # field options
-        "database.table.view.read_field_options",
-        "database.table.view.update_field_options",
+        ReadViewFieldOptionsOperationType.type,
+        UpdateViewFieldOptionsOperationType.type,
 
         # view filters
-        "database.table.view.create_filter",
-        "database.table.view.list_filter",
-        "database.table.view.filter.read",
-        "database.table.view.filter.update",
-        "database.table.view.filter.delete",
+        CreateViewFilterOperationType.type,
+        ListViewFilterOperationType.type,
+        ReadViewFilterOperationType.type,
+        UpdateViewFilterOperationType.type,
+        DeleteViewFilterOperationType.type,
 
         # sorts
-        "database.table.view.create_sort",
-        "database.table.view.list_sort",
-        "database.table.view.sort.read",
-        "database.table.view.sort.update",
-        "database.table.view.sort.delete",
+        CreateViewSortOperationType.type,
+        ListViewSortOperationType.type,
+        ReadViewSortOperationType.type,
+        UpdateViewSortOperationType.type,
+        DeleteViewSortOperationType.type,
 
         # decorations
-        "database.table.view.create_decoration",
-        "database.table.view.list_decoration",
-        "database.table.view.decoration.delete",
-        "database.table.view.decoration.update",
-        "database.table.view.decoration.read",
+        CreateViewDecorationOperationType.type,
+        ListViewDecorationOperationType.type,
+        DeleteViewDecorationOperationType.type,
+        UpdateViewDecorationOperationType.type,
+        ReadViewDecorationOperationType.type,
 
         # aggregations
-        "database.table.view.list_aggregations",
-        "database.table.view.read_aggregation"
+        ListAggregationViewOperationType.type,
+        ReadAggregationViewOperationType.type,
 
         # ordering TODO:
         # "database.table.read_view_order",
-        # "database.table.order_views",
+        # OrderViewsOperationType.type,
     ]
 
     def check_permissions(
@@ -112,17 +111,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         include_trash: Boolean = False,
     ) -> Optional[Boolean]:
         """
-        This method is called each time a permission on an operation is checked by the
-        `CoreHandler().check_permissions()` method if the current permission manager is
-        listed in the `settings.PERMISSION_MANAGERS` list.
-
-        It should:
-            - return `True` if the operation is permitted given the other parameters
-            - raise a `PermissionDenied` exception if the operation is disallowed
-            - return `None` if the condition required by the permission manager are not
-              met.
-
-        By default, this method raises a PermissionDenied exception.
+        check_permissions() impl for view ownership checks.
 
         :param actor: The actor who wants to execute the operation. Generally a `User`,
             but can be a `Token`.
@@ -140,8 +129,6 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
 
         if not isinstance(actor, User):
             return
-
-        operation_type = operation_type_registry.get(operation_name)
 
         if operation_name not in self.operations:
             return
@@ -175,31 +162,6 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
 
         return
 
-    # def get_permissions_object(
-    #     self, actor: "AbstractUser", group: Optional["Group"] = None
-    # ) -> Any:
-    #     """
-    #     This method should return the data necessary to easily check a permission from
-    #     a client. This object can be used for instance from the frontend to hide or
-    #     show UI element accordingly to the user permissions.
-    #     The data set returned must contain all the necessary information to prevent and
-    #     the client shouldn't have to get more data to decide.
-
-    #     This method is called when the `CoreHandler().get_permissions()` is called,
-    #     if the permission manager is listed in the `settings.PERMISSION_MANAGERS`.
-    #     It can return `None` if this permission manager is not relevant for the given
-    #     actor/group for some reason.
-
-    #     By default this method returns None.
-
-    #     :param actor: The actor whom we want to compute the permission object for.
-    #     :param group: The optional group into which we want to compute the permission
-    #         object.
-    #     :return: The permission object or None.
-    #     """
-
-    #     return None
-
     def filter_queryset(
         self,
         actor: "AbstractUser",
@@ -209,10 +171,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         context: Optional[Any] = None,
     ) -> QuerySet:
         """
-        This method allows a permission manager to filter a given queryset accordingly
-        to the actor permissions in the specified context. The
-        `CoreHandler().filter_queryset()` method calls each permission manager listed in
-        `settings.PERMISSION_MANAGERS` to successively filter the given queryset.
+        filter_queryset() impl for view ownership filtering.
 
         :param actor: The actor whom we want to filter the queryset for.
             Generally a `User` but can be a Token.
@@ -226,7 +185,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         if not isinstance(actor, User):
             return queryset
 
-        if operation_name != "database.table.list_views":
+        if operation_name != ListViewsOperationType.type:
             return queryset
 
         if not group:

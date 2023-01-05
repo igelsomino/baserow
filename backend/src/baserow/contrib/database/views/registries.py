@@ -287,10 +287,10 @@ class ViewType(
             for groupuser in groupusers_from_group:
                 id_mapping["created_by"][groupuser.user.email] = groupuser.user
 
-        email = serialized_values["created_by"]
+        email = serialized_values.get("created_by", None)
         if (
             id_mapping["created_by"].get(email, None) is None
-            and serialized_values["ownership_type"] == "personal"
+            and serialized_values.get("ownership_type", "collaborative") == "personal"
         ):
             return None
         serialized_values["created_by"] = id_mapping["created_by"].get(email, None)

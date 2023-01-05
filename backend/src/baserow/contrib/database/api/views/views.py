@@ -1213,7 +1213,7 @@ class ViewDecorationView(APIView):
     def delete(self, request, view_decoration_id):
         """Deletes an existing decoration if the user belongs to the group."""
 
-        view_decoration = ViewHandler().get_decoration(view_decoration_id)
+        view_decoration = ViewHandler().get_decoration(request.user, view_decoration_id)
 
         group = view_decoration.view.table.database.group
         CoreHandler().check_permissions(

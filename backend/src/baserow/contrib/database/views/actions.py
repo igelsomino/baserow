@@ -907,7 +907,7 @@ class CreateDecorationActionType(ActionType):
 
     @classmethod
     def undo(cls, user: AbstractUser, params: Params, action_to_undo: Action):
-        view_decoration = ViewHandler().get_decoration(params.decorator_id)
+        view_decoration = ViewHandler().get_decoration(user, params.decorator_id)
         ViewHandler().delete_decoration(view_decoration, user=user)
 
     @classmethod
@@ -1006,7 +1006,7 @@ class UpdateDecorationActionType(ActionType):
 
     @classmethod
     def undo(cls, user: AbstractUser, params: Params, action_being_undone: Action):
-        view_decoration = ViewHandler().get_decoration(params.decorator_id)
+        view_decoration = ViewHandler().get_decoration(user, params.decorator_id)
         ViewHandler().update_decoration(
             view_decoration,
             user=user,
@@ -1018,7 +1018,7 @@ class UpdateDecorationActionType(ActionType):
 
     @classmethod
     def redo(cls, user: AbstractUser, params: Params, action_being_redone: Action):
-        view_decoration = ViewHandler().get_decoration(params.decorator_id)
+        view_decoration = ViewHandler().get_decoration(user, params.decorator_id)
         ViewHandler().update_decoration(
             view_decoration,
             user=user,
@@ -1090,5 +1090,7 @@ class DeleteDecorationActionType(ActionType):
 
     @classmethod
     def redo(cls, user: AbstractUser, params: Any, action_being_redone: Action):
-        view_decoration = ViewHandler().get_decoration(params.original_decorator_id)
+        view_decoration = ViewHandler().get_decoration(
+            user, params.original_decorator_id
+        )
         ViewHandler().delete_decoration(view_decoration, user=user)

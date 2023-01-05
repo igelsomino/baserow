@@ -28,9 +28,6 @@ from baserow.contrib.database.fields.registries import field_type_registry
 from baserow.contrib.database.rows.handler import RowHandler
 from baserow.contrib.database.rows.signals import rows_created
 from baserow.contrib.database.table.models import GeneratedTableModel, Table
-from baserow.contrib.database.fields.operations import (
-    ReadAggregationDatabaseTableOperationType,
-)
 from baserow.contrib.database.views.operations import (
     CreateViewFilterOperationType,
     ListViewFilterOperationType,
@@ -58,6 +55,7 @@ from baserow.contrib.database.views.operations import (
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
     ReadViewFieldOptionsOperationType,
+    ReadAggregationViewOperationType,
 )
 from baserow.core.handler import CoreHandler
 from baserow.core.trash.handler import TrashHandler
@@ -1685,6 +1683,7 @@ class ViewHandler:
         The dict keys are field names and value are aggregation values. The total is
         included in result if the with_total is specified.
 
+        :param user: The user on whose behalf we are requesting the aggregations.
         :param view: The view to get the field aggregation for.
         :param model: The model for this view table to generate the aggregation
             query from, if not specified then the model will be generated
@@ -1697,7 +1696,6 @@ class ViewHandler:
             field aggregation.
         :return: A dict of aggregation value
         """
-        # TODO: docs: user
 
         CoreHandler().check_permissions(
             user,
@@ -1794,6 +1792,7 @@ class ViewHandler:
         The dict keys are field names and value are aggregation values. The total is
         included in result if the with_total is specified.
 
+        :param user: The user on whose behalf we are requesting the aggregations.
         :param view: The view to get the field aggregation for.
         :param aggregations: A list of (field_instance, aggregation_type).
         :param model: The model for this view table to generate the aggregation
@@ -1808,7 +1807,6 @@ class ViewHandler:
             view.
         :return: A dict of aggregation values
         """
-        # TODO: docs: user
 
         if model is None:
             model = view.table.get_model()
@@ -1834,9 +1832,9 @@ class ViewHandler:
         for (field_instance, aggregation_type_name) in aggregations:
             CoreHandler().check_permissions(
                 user,
-                ReadAggregationDatabaseTableOperationType.type,
+                ReadAggregationViewOperationType.type,
                 group=view.table.database.group,
-                context=field_instance,
+                context=view,
                 allow_if_template=True,
             )
             

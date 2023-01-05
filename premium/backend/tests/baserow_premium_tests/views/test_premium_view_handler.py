@@ -668,12 +668,23 @@ def test_aggregations_personal_ownership_type(data_fixture, premium_data_fixture
             }
         },
     )
+    aggr = [
+            (
+                field,
+                "max",
+            ),
+    ]
 
     aggregations = handler.get_view_field_aggregations(user, view)
     assert field.db_column in aggregations
 
+    handler.get_field_aggregations(user, view, aggr)
+
     with pytest.raises(PermissionDenied):
         handler.get_view_field_aggregations(user2, view)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_field_aggregations(user2, view, aggr)  
 
 
 @pytest.mark.django_db

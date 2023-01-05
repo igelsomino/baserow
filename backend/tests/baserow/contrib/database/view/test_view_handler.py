@@ -2611,9 +2611,16 @@ def test_aggregations_view_ownership_type(data_fixture):
             }
         },
     )
+    aggr = [
+            (
+                field,
+                "max",
+            ),
+    ]
     
     handler.get_view_field_aggregations(user, view)
-    
+    handler.get_field_aggregations(user, view, aggr)
+
     view.ownership_type = "personal"
     view.save()
 
@@ -2622,6 +2629,12 @@ def test_aggregations_view_ownership_type(data_fixture):
 
     with pytest.raises(PermissionDenied):
         handler.get_view_field_aggregations(user2, view)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_field_aggregations(user, view, aggr)
+
+    with pytest.raises(PermissionDenied):
+        handler.get_field_aggregations(user2, view, aggr)   
 
 
 @pytest.mark.django_db

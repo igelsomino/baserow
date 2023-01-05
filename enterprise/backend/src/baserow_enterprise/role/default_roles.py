@@ -12,7 +12,6 @@ from baserow.contrib.database.fields.operations import (
     DeleteFieldOperationType,
     DuplicateFieldOperationType,
     ListFieldsOperationType,
-    ReadAggregationDatabaseTableOperationType,
     ReadFieldOperationType,
     RestoreFieldOperationType,
     UpdateFieldOperationType,
@@ -77,6 +76,7 @@ from baserow.contrib.database.views.operations import (
     UpdateViewOperationType,
     UpdateViewSlugOperationType,
     UpdateViewSortOperationType,
+    ReadAggregationViewOperationType,
 )
 from baserow.contrib.database.webhooks.operations import (
     CreateWebhookOperationType,
@@ -160,7 +160,7 @@ VIEWER_OPS = NO_ACCESS_OPS + [
     ListViewsOperationType,
     ListFieldsOperationType,
     ListAggregationViewOperationType,
-    ReadAggregationDatabaseTableOperationType,
+    ReadAggregationViewOperationType,
     ReadAdjacentRowDatabaseRowOperationType,
     ListRowNamesDatabaseTableOperationType,
     ReadViewFilterOperationType,

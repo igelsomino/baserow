@@ -471,7 +471,6 @@ class DatabaseConfig(AppConfig):
             DeleteFieldOperationType,
             DuplicateFieldOperationType,
             ListFieldsOperationType,
-            ReadAggregationDatabaseTableOperationType,
             ReadFieldOperationType,
             RestoreFieldOperationType,
             UpdateFieldOperationType,
@@ -534,6 +533,7 @@ class DatabaseConfig(AppConfig):
             UpdateViewOperationType,
             UpdateViewSlugOperationType,
             UpdateViewSortOperationType,
+            ReadAggregationViewOperationType,
         )
         from .webhooks.operations import (
             CreateWebhookOperationType,
@@ -594,7 +594,7 @@ class DatabaseConfig(AppConfig):
         operation_type_registry.register(TypeFormulaOperationType())
         operation_type_registry.register(ListRowNamesDatabaseTableOperationType())
         operation_type_registry.register(ReadAdjacentRowDatabaseRowOperationType())
-        operation_type_registry.register(ReadAggregationDatabaseTableOperationType())
+        operation_type_registry.register(ReadAggregationViewOperationType())
         operation_type_registry.register(ListAggregationViewOperationType())
         operation_type_registry.register(ExportTableOperationType())
         operation_type_registry.register(ListFieldsOperationType())

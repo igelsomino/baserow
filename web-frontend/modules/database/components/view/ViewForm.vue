@@ -32,10 +32,10 @@
           v-model="values.ownershipType"
           value="personal"
           :disabled="!hasPremiumFeaturesEnabled"
-          ><i class="fas fa-user-tag"></i> {{ $t('viewForm.personal') }}<div v-if="!hasPremiumFeaturesEnabled" class="deactivated-label"
-          ><i class="fas fa-lock"></i
-        ></div></Radio
-        >
+          ><i class="fas fa-user-tag"></i> {{ $t('viewForm.personal') }}
+          <div v-if="!hasPremiumFeaturesEnabled" class="deactivated-label">
+            <i class="fas fa-lock"></i></div
+        ></Radio>
       </div>
     </FormElement>
     <slot></slot>

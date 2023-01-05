@@ -36,6 +36,3 @@ class RestoreFieldOperationType(FieldOperationType):
 class DuplicateFieldOperationType(FieldOperationType):
     type = "database.table.field.duplicate"
 
-
-class ReadAggregationDatabaseTableOperationType(FieldOperationType):
-    type = "database.table.field.read_aggregation"

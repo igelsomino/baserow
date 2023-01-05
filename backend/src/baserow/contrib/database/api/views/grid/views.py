@@ -48,14 +48,11 @@ from baserow.contrib.database.fields.field_filters import (
     FILTER_TYPE_OR,
 )
 from baserow.contrib.database.fields.handler import FieldHandler
-from baserow.contrib.database.fields.operations import (
-    ReadAggregationDatabaseTableOperationType,
-)
 from baserow.contrib.database.rows.registries import row_metadata_registry
 from baserow.contrib.database.table.operations import (
     ListRowsDatabaseTableOperationType,
 )
-from baserow.contrib.database.views.operations import ListAggregationViewOperationType
+from baserow.contrib.database.views.operations import ReadAggregationViewOperationType
 from baserow.contrib.database.views.exceptions import (
     AggregationTypeDoesNotExist,
     NoAuthorizationToPubliclySharedView,

@@ -96,7 +96,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
 
         # aggregations
         "database.table.view.list_aggregations",
-        # "database.table.field.read_aggregation", # TODO: ?
+        "database.table.view.read_aggregation"
 
         # ordering TODO:
         # "database.table.read_view_order",

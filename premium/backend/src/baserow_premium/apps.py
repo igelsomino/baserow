@@ -77,11 +77,6 @@ class BaserowPremiumConfig(AppConfig):
         import baserow_premium.views.signals  # noqa: F403, F401
         import baserow_premium.ws.signals  # noqa: F403, F401
 
-        from baserow.contrib.database.views.handler import ViewHandler
-        from baserow_premium.views.handler import premium_check_ownership_type
-
-        ViewHandler._check_ownership_type = premium_check_ownership_type
-
         from baserow.core.registries import permission_manager_type_registry
         from .permission_manager import ViewOwnershipPermissionManagerType
 

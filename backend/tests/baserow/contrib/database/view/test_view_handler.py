@@ -2658,10 +2658,10 @@ def test_update_view_slug_ownership_type(data_fixture):
     view.save()
 
     with pytest.raises(PermissionDenied):
-        handler.update_form_slug(user, view, "new-slug")
+        handler.update_view_slug(user, view, "new-slug")
 
     with pytest.raises(PermissionDenied):
-        handler.update_form_slug(user2, view, "new-slug")
+        handler.update_view_slug(user2, view, "new-slug")
 
 
 @pytest.mark.django_db

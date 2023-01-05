@@ -85,7 +85,6 @@ from .exceptions import (
     ViewSortFieldAlreadyExist,
     ViewSortFieldNotSupported,
     ViewSortNotSupported,
-    ViewOwnershipTypeNotSupported,
 )
 from .models import (
     View,
@@ -127,18 +126,6 @@ ending_number_regex = re.compile(r"(.+) (\d+)$")
 
 class ViewHandler:
     PUBLIC_VIEW_TOKEN_ALGORITHM = "HS256"  # nosec
-
-    def _check_ownership_type(self, user: AbstractUser, group: Group, ownership_type: str) -> None:
-        """
-        Checks whether the provided ownership type is supported for the user.
-
-        :param user: The user on whose behalf the operation is performed.
-        :param ownership_type: View's ownership type.
-        :raises ViewOwnershipTypeNotSupported: When not allowed.
-        """
-
-        if ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:
-            raise ViewOwnershipTypeNotSupported()
 
     def list_views(self, user: User, table: Table, _type: str, filters: bool, sortings: bool, decorations: bool, limit: int) -> Iterable[View]:
         # TODO: docs
@@ -270,8 +257,6 @@ class ViewHandler:
         CoreHandler().check_permissions(
             user, CreateViewOperationType.type, group=group, context=table
         )
-        # TODO: can be refactored out?
-        self._check_ownership_type(user, group, kwargs.get("ownership_type", OWNERSHIP_TYPE_COLLABORATIVE))
 
         # Figure out which model to use for the given view type.
         view_type = view_type_registry.get(type_name)

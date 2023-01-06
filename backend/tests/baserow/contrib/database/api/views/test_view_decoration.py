@@ -69,8 +69,8 @@ def test_list_view_decorations(api_client, data_fixture):
         reverse("api:database:views:list_decorations", kwargs={"view_id": view_1.id}),
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
-    assert response.status_code == HTTP_404_NOT_FOUND
-    assert response.json()["error"] == "ERROR_VIEW_DOES_NOT_EXIST"
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
 
 
 @pytest.mark.django_db
@@ -306,8 +306,8 @@ def test_get_view_decoration(api_client, data_fixture):
         ),
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
-    assert response.status_code == HTTP_404_NOT_FOUND
-    assert response.json()["error"] == "ERROR_VIEW_DECORATION_DOES_NOT_EXIST"
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
 
 
 @pytest.mark.django_db

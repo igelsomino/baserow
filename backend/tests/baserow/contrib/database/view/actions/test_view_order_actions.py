@@ -23,7 +23,9 @@ def test_can_undo_order_views(data_fixture):
 
     assert ViewHandler().get_views_order(user, table, "collaborative") == original_order
 
-    action_type_registry.get_by_type(OrderViewsActionType).do(user, table, new_order)
+    action_type_registry.get_by_type(OrderViewsActionType).do(
+        user, table, "collaborative", new_order
+    )
 
     assert ViewHandler().get_views_order(user, table, "collaborative") == new_order
 
@@ -48,7 +50,9 @@ def test_can_undo_redo_order_views(data_fixture):
 
     assert ViewHandler().get_views_order(user, table, "collaborative") == original_order
 
-    action_type_registry.get_by_type(OrderViewsActionType).do(user, table, new_order)
+    action_type_registry.get_by_type(OrderViewsActionType).do(
+        user, table, "collaborative", new_order
+    )
 
     assert ViewHandler().get_views_order(user, table, "collaborative") == new_order
 

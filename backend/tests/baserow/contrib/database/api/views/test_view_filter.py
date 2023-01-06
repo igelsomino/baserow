@@ -71,8 +71,8 @@ def test_list_view_filters(api_client, data_fixture):
         reverse("api:database:views:list_filters", kwargs={"view_id": view_1.id}),
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
-    assert response.status_code == HTTP_404_NOT_FOUND
-    assert response.json()["error"] == "ERROR_VIEW_DOES_NOT_EXIST"
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
 
 
 @pytest.mark.django_db

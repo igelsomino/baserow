@@ -272,8 +272,8 @@ def test_get_view(api_client, data_fixture):
         url,
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
-    assert response.status_code == HTTP_404_NOT_FOUND
-    assert response.json()["error"] == "ERROR_VIEW_DOES_NOT_EXIST"
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
 
 
 @pytest.mark.django_db

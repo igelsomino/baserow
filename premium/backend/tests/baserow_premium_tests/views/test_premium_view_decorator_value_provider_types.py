@@ -242,8 +242,13 @@ def test_create_single_select_color_with_premium_license(premium_data_fixture):
 @pytest.mark.django_db
 @override_settings(DEBUG=True)
 def test_create_single_select_color_without_premium_license(premium_data_fixture):
-    user = premium_data_fixture.create_user(has_active_premium_license=False)
-    grid_view = premium_data_fixture.create_grid_view(user=user)
+    group = premium_data_fixture.create_group()
+    database = premium_data_fixture.create_database_application(group=group)
+    table = premium_data_fixture.create_database_table(database=database)
+    user = premium_data_fixture.create_user(
+        has_active_premium_license=False, group=group
+    )
+    grid_view = premium_data_fixture.create_grid_view(user=user, table=table)
 
     handler = ViewHandler()
 

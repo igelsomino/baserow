@@ -146,9 +146,9 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
 
         if premium:
             if context.ownership_type == OWNERSHIP_TYPE_COLLABORATIVE:
-                return True
+                return
             if context.ownership_type == "personal" and context.created_by == actor:
-                return True
+                return
             raise PermissionDenied()
         else:
             if context.ownership_type != OWNERSHIP_TYPE_COLLABORATIVE:

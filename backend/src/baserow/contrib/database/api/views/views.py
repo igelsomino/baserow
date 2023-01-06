@@ -1138,6 +1138,7 @@ class ViewDecorationView(APIView):
 
         handler = ViewHandler()
         view_decoration = handler.get_decoration(
+            request.user,
             view_decoration_id,
             base_queryset=ViewDecoration.objects.select_for_update(of=("self",)),
         )

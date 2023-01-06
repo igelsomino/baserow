@@ -217,6 +217,7 @@ class ViewHandler:
                     ReadViewOperationType.type,
                     group=view.table.database.group,
                     context=view,
+                    allow_if_template=True,
                 )
         except View.DoesNotExist as exc:
             raise ViewDoesNotExist(
@@ -1358,18 +1359,19 @@ class ViewHandler:
         :param value_provider_conf: The configuration used by the value provider to
             compute the values for the decorator.
         :param order: The order of the decoration.
-        :param user: Optional user who have created the decoration.
+        :param user: Optional user who is creating the decoration.
         :param primary_key: An optional primary key to give to the new view sort.
         :return: The created view decoration instance.
         """
 
-        group = view.table.database.group
-        CoreHandler().check_permissions(
-            user,
-            CreateViewDecorationOperationType.type,
-            group=group,
-            context=view,
-        )
+        if user:
+            group = view.table.database.group
+            CoreHandler().check_permissions(
+                user,
+                CreateViewDecorationOperationType.type,
+                group=group,
+                context=view,
+            )
 
         # Check if view supports decoration
         view_type = view_type_registry.get_by_model(view.specific_class)
@@ -1489,7 +1491,7 @@ class ViewHandler:
         Updates the values of an existing view decoration.
 
         :param view_decoration: The view decoration that needs to be updated.
-        :param user: Optional user who have created the decoration..
+        :param user: Optionally a user on whose behalf the decoration is updated.
         :param decorator_type_name: The type of the decorator.
         :param value_provider_type_name: The value provider that provides the value
             to the decorator.
@@ -1503,13 +1505,14 @@ class ViewHandler:
         :return: The updated view decoration instance.
         """
 
-        group = view_decoration.view.table.database.group
-        CoreHandler().check_permissions(
-            user,
-            UpdateViewDecorationOperationType.type,
-            group=group,
-            context=view_decoration,
-        )
+        if user:
+            group = view_decoration.view.table.database.group
+            CoreHandler().check_permissions(
+                user,
+                UpdateViewDecorationOperationType.type,
+                group=group,
+                context=view_decoration,
+            )
 
         if decorator_type_name is None:
             decorator_type_name = view_decoration.type

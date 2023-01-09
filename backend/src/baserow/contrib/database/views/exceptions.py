@@ -173,4 +173,3 @@ class NoAuthorizationToPubliclySharedView(Exception):
     Raised when someone tries to access a view without a valid authorization
     token.
     """
-

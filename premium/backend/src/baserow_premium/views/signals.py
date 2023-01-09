@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.dispatch import receiver
-from baserow.core.exceptions import PermissionDenied
 
 from baserow_premium.license.features import PREMIUM
 from baserow_premium.license.handler import LicenseHandler
@@ -9,6 +8,7 @@ from baserow.contrib.database.fields import signals as field_signals
 from baserow.contrib.database.fields.models import FileField
 from baserow.contrib.database.views import signals as view_signals
 from baserow.contrib.database.views.models import OWNERSHIP_TYPE_COLLABORATIVE
+from baserow.core.exceptions import PermissionDenied
 from baserow.core.models import Group
 
 from .models import KanbanView

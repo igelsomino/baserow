@@ -67,20 +67,7 @@ from baserow.core.utils import (
     get_model_reference_field_name,
     set_allowed_attrs,
 )
-from .signals import (
-    view_created,
-    view_decoration_created,
-    view_decoration_deleted,
-    view_decoration_updated,
-    view_deleted,
-    view_sort_updated,
-    view_updated,
-    views_reordered,
-    view_filter_updated,
-    view_sort_created,
-    view_sort_deleted,
-    view_field_options_updated,
-)
+
 from .exceptions import (
     CannotShareViewTypeError,
     DecoratorValueProviderTypeNotCompatible,
@@ -114,7 +101,22 @@ from .registries import (
     view_filter_type_registry,
     view_type_registry,
 )
-
+from .signals import (
+    view_created,
+    view_decoration_created,
+    view_decoration_deleted,
+    view_decoration_updated,
+    view_deleted,
+    view_field_options_updated,
+    view_filter_created,
+    view_filter_deleted,
+    view_filter_updated,
+    view_sort_created,
+    view_sort_deleted,
+    view_sort_updated,
+    view_updated,
+    views_reordered,
+)
 from .validators import value_is_empty_for_required_form_field
 
 FieldOptionsDict = Dict[int, Dict[str, Any]]

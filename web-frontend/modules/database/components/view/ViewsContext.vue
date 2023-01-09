@@ -161,7 +161,7 @@ export default {
       isLoaded: (state) => state.view.loaded,
     }),
     hasPremiumFeaturesEnabled() {
-      return this.$hasFeature('premium', this.database.group.id)
+      return this.$hasFeature('PREMIUM', this.database.group.id)
     },
   },
   methods: {

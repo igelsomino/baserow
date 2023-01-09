@@ -72,7 +72,7 @@ export default {
   },
   computed: {
     hasPremiumFeaturesEnabled() {
-      return this.$hasFeature('premium', this.database.group.id)
+      return this.$hasFeature('PREMIUM', this.database.group.id)
     },
   },
   mounted() {

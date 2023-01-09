@@ -108,7 +108,6 @@ from .signals import (
     view_decoration_updated,
     view_deleted,
     view_field_options_updated,
-        If the context passed is the table instead of the view or view's child,
     view_filter_deleted,
     view_filter_updated,
     view_sort_created,

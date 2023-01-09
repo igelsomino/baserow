@@ -21,7 +21,6 @@ from baserow.contrib.database.views.exceptions import (
     ViewFilterTypeDoesNotExist,
     ViewFilterTypeNotAllowedForField,
     ViewNotInTable,
-    ViewOwnershipTypeNotSupported,
     ViewSortDoesNotExist,
     ViewSortFieldAlreadyExist,
     ViewSortFieldNotSupported,
@@ -2318,7 +2317,7 @@ def test_create_view_ownership_type(data_fixture):
     grid = GridView.objects.first()
     assert grid.ownership_type == OWNERSHIP_TYPE_COLLABORATIVE
 
-    with pytest.raises(ViewOwnershipTypeNotSupported):
+    with pytest.raises(PermissionDenied):
         handler.create_view(
             user=user,
             table=table,
@@ -2718,3 +2717,32 @@ def test_get_public_view_ownership_type(data_fixture):
     view.save()
 
     handler.get_public_view_by_slug(user, "slug")
+
+
+@pytest.mark.django_db
+@pytest.mark.view_ownership
+def test_order_views_ownership_type(data_fixture):
+    user = data_fixture.create_user()
+    table = data_fixture.create_database_table(user=user)
+    handler = ViewHandler()
+    view = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
+    )
+    view2 = handler.create_view(
+        user=user,
+        table=table,
+        type_name="grid",
+        name="Test grid",
+        ownership_type=OWNERSHIP_TYPE_COLLABORATIVE,
+    )
+    view2.ownership_type = "personal"
+    view2.save()
+
+    handler.order_views(user, table, "collaborative", [view.id])
+
+    with pytest.raises(ViewNotInTable):
+        handler.order_views(user, table, "personal", [view2.id])

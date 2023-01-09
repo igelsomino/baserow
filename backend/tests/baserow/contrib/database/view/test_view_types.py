@@ -483,4 +483,4 @@ def test_import_export_view_ownership_type(data_fixture):
 
     assert grid_view.id != imported_grid_view.id
     assert imported_grid_view.ownership_type == "collaborative"
-    assert imported_grid_view.created_by == None
+    assert imported_grid_view.created_by is None

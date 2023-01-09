@@ -39,6 +39,7 @@ from baserow.contrib.database.views.operations import (
     ListAggregationViewOperationType,
     ListViewDecorationOperationType,
     ListViewFilterOperationType,
+    ListViewsOperationType,
     ListViewSortOperationType,
     OrderViewsOperationType,
     ReadAggregationViewOperationType,
@@ -57,7 +58,7 @@ from baserow.contrib.database.views.operations import (
 )
 from baserow.core.db import specific_iterator
 from baserow.core.handler import CoreHandler
-from baserow.core.models import Group, User
+from baserow.core.models import User
 from baserow.core.trash.handler import TrashHandler
 from baserow.core.utils import (
     MirrorDict,
@@ -107,7 +108,7 @@ from .signals import (
     view_decoration_updated,
     view_deleted,
     view_field_options_updated,
-    view_filter_created,
+        If the context passed is the table instead of the view or view's child,
     view_filter_deleted,
     view_filter_updated,
     view_sort_created,
@@ -153,7 +154,7 @@ class ViewHandler:
         views = View.objects.filter(table=table)
 
         views = CoreHandler().filter_queryset(
-            user, "database.table.list_views", views, table.database.group
+            user, ListViewsOperationType.type, views, table.database.group
         )
         views = views.select_related("content_type", "table")
 
@@ -459,9 +460,11 @@ class ViewHandler:
         queryset = View.objects.filter(table_id=table.id).filter(
             ownership_type=ownership_type
         )
+        print(queryset)
         queryset = CoreHandler().filter_queryset(
-            user, "database.table.list_views", queryset, table.database.group
+            user, ListViewsOperationType.type, queryset, table.database.group
         )
+        print(queryset)
         view_ids = queryset.values_list("id", flat=True)
 
         for view_id in order:
@@ -497,7 +500,7 @@ class ViewHandler:
             ownership_type=ownership_type
         )
         queryset = CoreHandler().filter_queryset(
-            user, "database.table.list_views", queryset, table.database.group
+            user, ListViewsOperationType.type, queryset, table.database.group
         )
 
         order = queryset.values_list("id", flat=True)

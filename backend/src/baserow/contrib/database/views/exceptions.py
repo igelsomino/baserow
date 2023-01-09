@@ -174,6 +174,3 @@ class NoAuthorizationToPubliclySharedView(Exception):
     token.
     """
 
-
-class ViewOwnershipTypeNotSupported(Exception):
-    """Raised when the view ownership type is not supported."""

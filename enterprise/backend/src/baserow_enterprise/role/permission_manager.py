@@ -269,7 +269,9 @@ class RolePermissionManagerType(PermissionManagerType):
 
             if default or exceptions:
                 result[operation_type.type]["default"] = default
-                result[operation_type.type]["exceptions"] = [e.id for e in exceptions]
+                result[operation_type.type]["exceptions"] = sorted(
+                    [e.id for e in exceptions]
+                )
 
         return result
 

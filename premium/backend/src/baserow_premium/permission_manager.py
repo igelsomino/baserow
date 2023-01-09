@@ -6,6 +6,7 @@ from django.db.models import Q, QuerySet
 from baserow_premium.license.features import PREMIUM
 from baserow_premium.license.handler import LicenseHandler
 
+from baserow.contrib.database.table.models import Table
 from baserow.contrib.database.views.models import (
     OWNERSHIP_TYPE_COLLABORATIVE,
     ViewDecoration,
@@ -15,6 +16,7 @@ from baserow.contrib.database.views.models import (
 from baserow.contrib.database.views.operations import (
     CreateViewDecorationOperationType,
     CreateViewFilterOperationType,
+    CreateViewOperationType,
     CreateViewSortOperationType,
     DeleteViewDecorationOperationType,
     DeleteViewFilterOperationType,
@@ -58,9 +60,8 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
     type = "view_ownership"
     operations = [
         # views
-        # CreateViewOperationType.type is implemented via view_created signal
-        #   due to current technical limitations regarding insufficient
-        #   context object being passed
+        ListViewsOperationType.type,
+        CreateViewOperationType.type,
         ReadViewOperationType.type,
         UpdateViewOperationType.type,
         UpdateViewSlugOperationType.type,
@@ -91,9 +92,9 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         # aggregations
         ListAggregationViewOperationType.type,
         ReadAggregationViewOperationType.type,
-        # ordering TODO:
-        # "database.table.read_view_order",
-        # OrderViewsOperationType.type,
+        # ordering
+        ReadViewsOrderOperationType.type,
+        OrderViewsOperationType.type,
     ]
 
     def check_permissions(
@@ -106,6 +107,17 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
     ) -> Optional[bool]:
         """
         check_permissions() impl for view ownership checks.
+
+        If the context passed is the table instead of the view or view's child, 
+        there are limitation that prevent making the check here.
+
+        Instead, the workarounds are:
+        - CreateViewDecorationOperationType is currently implemented via view_created
+          signal since the permission system doesn't allow to pass richer context.
+        - OrderViewsOperationType is currently implemented via views_reorderd signal
+          since the permission system doesn't allow to pass richer context.
+        - ListViewsOperationType and ReadViewsOrderOperationType operations invoke
+          filter_queryset() method and hence don't need to be checked.
 
         :param actor: The actor who wants to execute the operation. Generally a `User`,
             but can be a `Token`.
@@ -134,6 +146,9 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
             return
 
         premium = LicenseHandler.user_has_feature(PREMIUM, actor, group)
+
+        if isinstance(context, Table):
+            return
 
         if isinstance(context, ViewFilter):
             context = context.view

@@ -59,7 +59,6 @@ from baserow.contrib.database.views.exceptions import (
 )
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.contrib.database.views.models import GridView
-from baserow.contrib.database.views.operations import ReadAggregationViewOperationType
 from baserow.contrib.database.views.registries import (
     view_aggregation_type_registry,
     view_filter_type_registry,

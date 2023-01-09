@@ -88,22 +88,11 @@ from baserow.contrib.database.views.exceptions import (
     ViewSortNotSupported,
 )
 from baserow.contrib.database.views.handler import ViewHandler
-from baserow.contrib.database.views.models import (
-    View,
-    ViewDecoration,
-    ViewFilter,
-    ViewSort,
-)
+from baserow.contrib.database.views.models import ViewDecoration, ViewFilter, ViewSort
 from baserow.contrib.database.views.operations import (
-    CreateViewDecorationOperationType,
     DeleteViewDecorationOperationType,
-    ListViewDecorationOperationType,
     ListViewsOperationType,
-    ListViewSortOperationType,
-    ReadViewDecorationOperationType,
-    ReadViewFieldOptionsOperationType,
     ReadViewOperationType,
-    UpdateViewDecorationOperationType,
 )
 from baserow.contrib.database.views.registries import (
     decorator_value_provider_type_registry,
@@ -111,7 +100,7 @@ from baserow.contrib.database.views.registries import (
 )
 from baserow.core.action.registries import action_type_registry
 from baserow.core.db import specific_iterator
-from baserow.core.exceptions import PermissionDenied, UserNotInGroup
+from baserow.core.exceptions import UserNotInGroup
 from baserow.core.handler import CoreHandler
 
 from .errors import (

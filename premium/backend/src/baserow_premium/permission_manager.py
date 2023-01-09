@@ -108,7 +108,7 @@ class ViewOwnershipPermissionManagerType(PermissionManagerType):
         """
         check_permissions() impl for view ownership checks.
 
-        If the context passed is the table instead of the view or view's child, 
+        If the context passed is the table instead of the view or view's child,
         there are limitation that prevent making the check here.
 
         Instead, the workarounds are:

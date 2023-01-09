@@ -81,7 +81,6 @@ from baserow.contrib.database.views.exceptions import (
     ViewFilterNotSupported,
     ViewFilterTypeNotAllowedForField,
     ViewNotInTable,
-    ViewOwnershipTypeNotSupported,
     ViewSortDoesNotExist,
     ViewSortFieldAlreadyExist,
     ViewSortFieldNotSupported,
@@ -333,7 +332,6 @@ class ViewsView(APIView):
         {
             TableDoesNotExist: ERROR_TABLE_DOES_NOT_EXIST,
             UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
-            ViewOwnershipTypeNotSupported: ERROR_VIEW_OWNERSHIP_TYPE_NOT_SUPPORTED,
         }
     )
     @allowed_includes("filters", "sortings", "decorations")

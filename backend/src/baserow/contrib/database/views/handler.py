@@ -196,7 +196,7 @@ class ViewHandler:
             object. This can for example be used to do a `select_related`. Note that
             if this is used the `view_model` parameter doesn't work anymore.
         :raises ViewDoesNotExist: When the view with the provided id does not exist.
-        :raises ViewOwnershipTypeNotSupported: When not allowed.
+        :raises PermissionDenied: When not allowed.
         :return: the view instance.
         """
 
@@ -274,7 +274,7 @@ class ViewHandler:
         :param table: The table that the view instance belongs to.
         :param type_name: The type name of the view.
         :param kwargs: The fields that need to be set upon creation.
-        :raises ViewOwnershipTypeNotSupported: When not allowed.
+        :raises PermissionDenied: When not allowed.
         :return: The created view instance.
         """
 

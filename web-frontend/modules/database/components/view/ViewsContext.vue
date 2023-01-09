@@ -116,7 +116,6 @@ import context from '@baserow/modules/core/mixins/context'
 import dropdownHelpers from '@baserow/modules/core/mixins/dropdownHelpers'
 import ViewsContextItem from '@baserow/modules/database/components/view/ViewsContextItem'
 import CreateViewLink from '@baserow/modules/database/components/view/CreateViewLink'
-import PremiumFeatures from '@baserow_premium/features'
 
 export default {
   name: 'ViewsContext',
@@ -162,7 +161,7 @@ export default {
       isLoaded: (state) => state.view.loaded,
     }),
     hasPremiumFeaturesEnabled() {
-      return this.$hasFeature(PremiumFeatures.PREMIUM, this.database.group.id)
+      return this.$hasFeature('premium', this.database.group.id)
     },
   },
   methods: {

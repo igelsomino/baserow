@@ -46,7 +46,6 @@
 import { required } from 'vuelidate/lib/validators'
 import form from '@baserow/modules/core/mixins/form'
 import Radio from '@baserow/modules/core/components/Radio'
-import PremiumFeatures from '@baserow_premium/features'
 
 export default {
   name: 'ViewForm',
@@ -73,7 +72,7 @@ export default {
   },
   computed: {
     hasPremiumFeaturesEnabled() {
-      return this.$hasFeature(PremiumFeatures.PREMIUM, this.database.group.id)
+      return this.$hasFeature('premium', this.database.group.id)
     },
   },
   mounted() {

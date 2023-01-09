@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.dispatch import receiver
+from django.db import transaction
+from baserow.core import signals as core_signals
 
 from baserow_premium.license.features import PREMIUM
 from baserow_premium.license.handler import LicenseHandler
@@ -12,6 +14,7 @@ from baserow.core.exceptions import PermissionDenied
 from baserow.core.models import Group
 
 from .models import KanbanView
+from .handler import delete_personal_views
 
 
 @receiver(field_signals.field_deleted)
@@ -59,7 +62,14 @@ def views_reordered(sender, table, order, ownership_type, user, **kwargs):
     premium_check_ownership_type(user, group, ownership_type)
 
 
+@receiver(core_signals.before_user_permanently_deleted)
+def before_user_permanently_deleted(sender, user_id, group_ids, **kwargs):
+    transaction.on_commit(lambda: delete_personal_views(user_id))
+
+
 __all__ = [
     "field_deleted",
     "view_created",
+    "views_reordered",
+    "before_user_permanently_deleted",
 ]

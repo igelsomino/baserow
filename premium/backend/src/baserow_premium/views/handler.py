@@ -126,3 +126,15 @@ def get_rows_grouped_by_single_select_field(
         rows[key]["count"] = value
 
     return rows
+
+
+def delete_personal_views(user_id: int):
+    """
+    Deletes all personal views associated with the provided user.
+
+    :param user_id: The id of the user for whom to delete personal views.
+    """
+
+    View.objects.filter(ownership_type="personal").filter(
+        created_by__id=user_id
+    ).delete()

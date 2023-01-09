@@ -27,6 +27,7 @@ from baserow.core.signals import (
     before_user_deleted,
     user_deleted,
     user_permanently_deleted,
+    before_user_permanently_deleted,
     user_restored,
     user_updated,
 )
@@ -472,6 +473,9 @@ class UserHandler:
             group_ids = [gu.group_id for gu in group_users if gu.user_id == u.id]
             deleted_user_info.append(
                 (u.id, u.username, u.email, u.profile.language, group_ids)
+            )
+            before_user_permanently_deleted.send(
+                self, user_id=u.id, group_ids=group_ids
             )
 
         # A group need to be deleted if there was an admin before and there is no

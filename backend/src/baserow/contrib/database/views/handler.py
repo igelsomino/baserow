@@ -387,7 +387,7 @@ class ViewHandler:
             table=original_view.table,
             order=ordered_ids,
             ownership_type=original_view.ownership_type,
-            user=None,
+            user=user,
         )
 
         return duplicated_view

@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
-from django.dispatch import receiver
 from django.db import transaction
-from baserow.core import signals as core_signals
+from django.dispatch import receiver
 
 from baserow_premium.license.features import PREMIUM
 from baserow_premium.license.handler import LicenseHandler
@@ -10,11 +9,12 @@ from baserow.contrib.database.fields import signals as field_signals
 from baserow.contrib.database.fields.models import FileField
 from baserow.contrib.database.views import signals as view_signals
 from baserow.contrib.database.views.models import OWNERSHIP_TYPE_COLLABORATIVE
+from baserow.core import signals as core_signals
 from baserow.core.exceptions import PermissionDenied
 from baserow.core.models import Group
 
-from .models import KanbanView
 from .handler import delete_personal_views
+from .models import KanbanView
 
 
 @receiver(field_signals.field_deleted)

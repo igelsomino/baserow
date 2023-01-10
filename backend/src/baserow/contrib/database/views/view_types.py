@@ -131,22 +131,22 @@ class GridViewType(ViewType):
         grid_view = super().import_serialized(
             table, serialized_copy, id_mapping, files_zip, storage
         )
+        if grid_view:
+            if "database_grid_view_field_options" not in id_mapping:
+                id_mapping["database_grid_view_field_options"] = {}
 
-        if "database_grid_view_field_options" not in id_mapping:
-            id_mapping["database_grid_view_field_options"] = {}
-
-        for field_option in field_options:
-            field_option_copy = field_option.copy()
-            field_option_id = field_option_copy.pop("id")
-            field_option_copy["field_id"] = id_mapping["database_fields"][
-                field_option["field_id"]
-            ]
-            field_option_object = GridViewFieldOptions.objects.create(
-                grid_view=grid_view, **field_option_copy
-            )
-            id_mapping["database_grid_view_field_options"][
-                field_option_id
-            ] = field_option_object.id
+            for field_option in field_options:
+                field_option_copy = field_option.copy()
+                field_option_id = field_option_copy.pop("id")
+                field_option_copy["field_id"] = id_mapping["database_fields"][
+                    field_option["field_id"]
+                ]
+                field_option_object = GridViewFieldOptions.objects.create(
+                    grid_view=grid_view, **field_option_copy
+                )
+                id_mapping["database_grid_view_field_options"][
+                    field_option_id
+                ] = field_option_object.id
 
         return grid_view
 

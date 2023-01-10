@@ -1,9 +1,12 @@
 from datetime import timedelta
-import pytest
+
 from django.utils import timezone
-from baserow.core.user.handler import UserHandler
+
+import pytest
+
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.contrib.database.views.models import View
+from baserow.core.user.handler import UserHandler
 
 
 @pytest.mark.django_db(transaction=True)

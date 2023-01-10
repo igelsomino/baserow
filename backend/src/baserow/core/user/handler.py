@@ -25,9 +25,9 @@ from baserow.core.models import Group, GroupUser, Template, UserLogEntry, UserPr
 from baserow.core.registries import plugin_registry
 from baserow.core.signals import (
     before_user_deleted,
+    before_user_permanently_deleted,
     user_deleted,
     user_permanently_deleted,
-    before_user_permanently_deleted,
     user_restored,
     user_updated,
 )

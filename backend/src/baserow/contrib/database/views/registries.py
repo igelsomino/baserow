@@ -279,12 +279,14 @@ class ViewType(
 
         if "created_by" not in id_mapping:
             id_mapping["created_by"] = {}
-            groupusers_from_group = GroupUser.objects.filter(
-                group_id=table.database.group.id
-            ).select_related("user")
 
-            for groupuser in groupusers_from_group:
-                id_mapping["created_by"][groupuser.user.email] = groupuser.user
+            if table.database.group:
+                groupusers_from_group = GroupUser.objects.filter(
+                    group_id=table.database.group.id
+                ).select_related("user")
+
+                for groupuser in groupusers_from_group:
+                    id_mapping["created_by"][groupuser.user.email] = groupuser.user
 
         email = serialized_values.get("created_by", None)
         if (

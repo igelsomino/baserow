@@ -21,7 +21,7 @@ from rest_framework.fields import CharField
 from rest_framework.serializers import Serializer
 
 from baserow.contrib.database.fields.field_filters import OptionallyAnnotatedQ
-from baserow.core.models import GroupUser
+from baserow.core.models import Group, GroupUser
 from baserow.core.registry import (
     APIUrlsInstanceMixin,
     APIUrlsRegistryMixin,
@@ -280,9 +280,17 @@ class ViewType(
         if "created_by" not in id_mapping:
             id_mapping["created_by"] = {}
 
-            if table.database.group:
+            created_by_group = table.database.group
+
+            if (
+                id_mapping.get("import_group_id", None) is not None
+                and created_by_group is None
+            ):
+                created_by_group = Group.objects.get(id=id_mapping["import_group_id"])
+
+            if created_by_group is not None:
                 groupusers_from_group = GroupUser.objects.filter(
-                    group_id=table.database.group.id
+                    group_id=created_by_group.id
                 ).select_related("user")
 
                 for groupuser in groupusers_from_group:

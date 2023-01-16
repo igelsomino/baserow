@@ -12,10 +12,8 @@ For example:
 ### New Features
 * Introduced a new command, `permanently_empty_database`, which will empty a database of all its tables. [#1090](https://gitlab.com/bramw/baserow/-/issues/1090)
 * Users can now create their own personal views. [#1448](https://gitlab.com/bramw/baserow/-/issues/1448)
-
 * Link row field can now be imported. [#1312](https://gitlab.com/bramw/baserow/-/issues/1312)
 * Can add a row with textual values for single select, multiple select and link row field. [#1312](https://gitlab.com/bramw/baserow/-/issues/1312)
-
 * Add e2e tests. [#820](https://gitlab.com/bramw/baserow/-/issues/820)
 
 ### Bug Fixes
@@ -29,6 +27,7 @@ For example:
 * Improved the handling of taking a snapshot of, or duplicating, a database with many thousands of tables. [#1090](https://gitlab.com/bramw/baserow/-/issues/1090)
 * Stop backend from failing hard during csv export if a character can't be encoded [#697](https://gitlab.com/bramw/baserow/-/issues/697)
 * Single scrollbar for the personal and collaborative views. [#1531](https://gitlab.com/bramw/baserow/-/issues/1531)
+* Stop overriding all row values when it's created or updated. [#1405](https://gitlab.com/bramw/baserow/-/issues/1405)
 
 ### Refactors
 
@@ -132,7 +131,6 @@ For example:
 ### Refactors
 * Refresh the JWT token when needed instead of periodically. [#1294](https://gitlab.com/bramw/baserow/-/issues/1294)
 * Remove "// Baserow" from title on a publicly shared view if `show_logo` is set to false. [#1378](https://gitlab.com/bramw/baserow/-/issues/1378)
-* Stop overriding all row values when it's created or updated. [#1405](https://gitlab.com/bramw/baserow/-/issues/1405)
 
 ## Released (2022-11-22 1.13.1)
 

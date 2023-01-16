@@ -16,7 +16,10 @@ import {
   getOrderBy,
 } from '@baserow/modules/database/utils/view'
 import { RefreshCancelledError } from '@baserow/modules/core/errors'
-import { prepareRowForRequest } from '@baserow/modules/database/utils/row'
+import {
+  prepareRowForRequest,
+  getReadOnlyValuesUpdated,
+} from '@baserow/modules/database/utils/row'
 
 export function populateRow(row, metadata = {}) {
   row._ = {
@@ -1597,18 +1600,13 @@ export const actions = {
         values,
         updateCellControllers[reqId].signal
       )
-      // update read only fields that changed in the backend and were not
-      // part of the optimistic update
-      const readonlyFieldIds = fields
-        .filter((field) => field.read_only)
-        .map((field) => `field_${field.id}`)
-      const readOnlyValuesToUpdate = Object.fromEntries(
-        Object.entries(updatedValues).filter(
-          ([key, updatedValue]) =>
-            readonlyFieldIds.includes(key) && !_.isEqual(updatedValue, row[key])
-        )
+      // update only the readonly fields since they're not part of the optimistic update
+      const readOnlyValuesToUpdate = getReadOnlyValuesUpdated(
+        fields,
+        row,
+        updatedValues
       )
-      if (!_.isEmpty(readOnlyValuesToUpdate)) {
+      if (updatedValues !== null) {
         commit('UPDATE_ROW_IN_BUFFER', { row, values: readOnlyValuesToUpdate })
       }
       dispatch('onRowChange', { view, row, fields })

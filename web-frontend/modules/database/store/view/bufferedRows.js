@@ -10,7 +10,12 @@ import {
   matchSearchFilters,
 } from '@baserow/modules/database/utils/view'
 import RowService from '@baserow/modules/database/services/row'
-import { prepareRowForRequest } from '@baserow/modules/database/utils/row'
+import {
+  prepareRowForRequest,
+  getReadOnlyValuesUpdated,
+} from '@baserow/modules/database/utils/row'
+
+const updateCellControllers = {}
 
 /**
  * This view store mixin can be used to efficiently keep and maintain the rows of a
@@ -640,7 +645,7 @@ export default ({ service, customPopulateRow }) => {
      */
     async updateRowValue(
       { commit, dispatch },
-      { table, view, row, field, fields, value, oldValue }
+      { table, view, row, field, fields, value, oldValue, signal = null }
     ) {
       const fieldType = this.$registry.get('field', field._.type.type)
       const newValues = {}
@@ -677,14 +682,31 @@ export default ({ service, customPopulateRow }) => {
         values: newValues,
       })
 
+      const reqId = `${row.id}:${field.id}`
+      if (updateCellControllers[reqId]) {
+        updateCellControllers[reqId].abort()
+      }
+      updateCellControllers[reqId] = new AbortController()
+
       try {
-        const { data } = await RowService(this.$client).update(
+        const { data: updatedValues } = await RowService(this.$client).update(
           table.id,
           row.id,
-          newValuesForUpdate
+          newValuesForUpdate,
+          updateCellControllers[reqId].signal
         )
-        commit('UPDATE_ROW', { row, values: data })
+        // update only the read-only fields since they're not part of the optimistic update
+        const readOnlyValuesUpdated = getReadOnlyValuesUpdated(
+          fields,
+          row,
+          updatedValues
+        )
+        if (readOnlyValuesUpdated !== null) {
+          commit('UPDATE_ROW', { row, values: readOnlyValuesUpdated })
+        }
       } catch (error) {
+        if (axios.isCancel(error)) return
+
         dispatch('afterExistingRowUpdated', {
           view,
           fields,
@@ -693,6 +715,8 @@ export default ({ service, customPopulateRow }) => {
         })
         dispatch('fetchAllFieldAggregationData', { view })
         throw error
+      } finally {
+        delete updateCellControllers[reqId]
       }
     },
     /**

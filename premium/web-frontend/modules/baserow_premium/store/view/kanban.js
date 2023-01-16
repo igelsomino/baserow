@@ -11,7 +11,8 @@ import {
 import RowService from '@baserow/modules/database/services/row'
 import FieldService from '@baserow/modules/database/services/field'
 import { SingleSelectFieldType } from '@baserow/modules/database/fieldTypes'
-import { prepareRowForRequest } from '@baserow/modules/database/utils/row'
+import { prepareRowForRequest, getReadOnlyValuesUpdated } from '@baserow/modules/database/utils/row'
+import axios from "axios";
 
 export function populateRow(row) {
   row._ = {
@@ -29,6 +30,8 @@ export function populateStack(stack) {
   })
   return stack
 }
+
+const updateCellControllers = {}
 
 export const state = () => ({
   lastKanbanId: -1,
@@ -742,7 +745,7 @@ export const actions = {
    */
   async updateRowValue(
     { commit, dispatch },
-    { view, table, row, field, fields, value, oldValue }
+    { view, table, row, field, fields, value, oldValue, signal = null }
   ) {
     const fieldType = this.$registry.get('field', field._.type.type)
     const newValues = {}
@@ -779,14 +782,27 @@ export const actions = {
       fields,
     })
 
+    const reqId = `${row.id}:${field.id}`
+    if (updateCellControllers[reqId]) {
+      updateCellControllers[reqId].abort()
+    }
+    updateCellControllers[reqId] = new AbortController()
+
     try {
-      const { data } = await RowService(this.$client).update(
+      const { data: updatedValues } = await RowService(this.$client).update(
         table.id,
         row.id,
-        newValuesForUpdate
+        newValuesForUpdate, 
+        updateCellControllers[reqId].signal
       )
-      commit('UPDATE_ROW', { row, values: data })
+      // only update readonly fields since they're not part of the optimistic update
+      const readOnlyUpdatedValues = getReadOnlyValuesUpdated(fields, row, updatedValues)
+      if (readOnlyUpdatedValues !== null) {
+        commit('UPDATE_ROW', { row, values: readOnlyUpdatedValues })
+      }
     } catch (error) {
+      if (axios.isCancel(error)) return
+
       dispatch('updatedExistingRow', {
         view,
         row,
@@ -794,6 +810,8 @@ export const actions = {
         fields,
       })
       throw error
+    } finally {
+      delete updateCellControllers[reqId]
     }
   },
   /**

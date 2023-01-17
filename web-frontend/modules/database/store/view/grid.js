@@ -18,7 +18,7 @@ import {
 import { RefreshCancelledError } from '@baserow/modules/core/errors'
 import {
   prepareRowForRequest,
-  getReadOnlyValuesUpdated,
+  getReadOnlyValuesToUpdate,
 } from '@baserow/modules/database/utils/row'
 
 export function populateRow(row, metadata = {}) {
@@ -457,7 +457,6 @@ let lastRequestLimit = null
 let lastRefreshRequest = null
 let lastRefreshRequestController = null
 let lastQueryController = null
-const updateCellControllers = {}
 
 // We want to cancel previous aggregation request before creating a new one.
 const lastAggregationRequest = { request: null, controller: null }
@@ -1587,21 +1586,14 @@ export const actions = {
     const values = {}
     values[`field_${field.id}`] = newValue
 
-    const reqId = `${row.id}:${field.id}`
-    if (updateCellControllers[reqId]) {
-      updateCellControllers[reqId].abort()
-    }
-    updateCellControllers[reqId] = new AbortController()
-
     try {
       const { data: updatedValues } = await RowService(this.$client).update(
         table.id,
         row.id,
-        values,
-        updateCellControllers[reqId].signal
+        values
       )
       // update only the readonly fields since they're not part of the optimistic update
-      const readOnlyValuesToUpdate = getReadOnlyValuesUpdated(
+      const readOnlyValuesToUpdate = getReadOnlyValuesToUpdate(
         fields,
         row,
         updatedValues
@@ -1620,10 +1612,9 @@ export const actions = {
         row,
         values: { ...valuesBeforeOptimisticUpdate },
       })
+
       dispatch('onRowChange', { view, row, fields })
       throw error
-    } finally {
-      delete updateCellControllers[reqId]
     }
   },
   /**

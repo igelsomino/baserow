@@ -12,10 +12,8 @@ import {
 import RowService from '@baserow/modules/database/services/row'
 import {
   prepareRowForRequest,
-  getReadOnlyValuesUpdated,
+  getReadOnlyValuesToUpdate,
 } from '@baserow/modules/database/utils/row'
-
-const updateCellControllers = {}
 
 /**
  * This view store mixin can be used to efficiently keep and maintain the rows of a
@@ -645,7 +643,7 @@ export default ({ service, customPopulateRow }) => {
      */
     async updateRowValue(
       { commit, dispatch },
-      { table, view, row, field, fields, value, oldValue, signal = null }
+      { table, view, row, field, fields, value, oldValue }
     ) {
       const fieldType = this.$registry.get('field', field._.type.type)
       const newValues = {}
@@ -682,21 +680,14 @@ export default ({ service, customPopulateRow }) => {
         values: newValues,
       })
 
-      const reqId = `${row.id}:${field.id}`
-      if (updateCellControllers[reqId]) {
-        updateCellControllers[reqId].abort()
-      }
-      updateCellControllers[reqId] = new AbortController()
-
       try {
         const { data: updatedValues } = await RowService(this.$client).update(
           table.id,
           row.id,
-          newValuesForUpdate,
-          updateCellControllers[reqId].signal
+          newValuesForUpdate
         )
         // update only the read-only fields since they're not part of the optimistic update
-        const readOnlyValuesUpdated = getReadOnlyValuesUpdated(
+        const readOnlyValuesUpdated = getReadOnlyValuesToUpdate(
           fields,
           row,
           updatedValues
@@ -715,8 +706,6 @@ export default ({ service, customPopulateRow }) => {
         })
         dispatch('fetchAllFieldAggregationData', { view })
         throw error
-      } finally {
-        delete updateCellControllers[reqId]
       }
     },
     /**

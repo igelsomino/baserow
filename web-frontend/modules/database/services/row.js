@@ -5,6 +5,11 @@ const GRACE_DELAY = 50 // ms before querying the backend with a get query
 
 const groupGetNameCalls = callGrouper(GRACE_DELAY)
 
+// This object is used to keep track of which requests are currently being
+// executed. This is used to prevent multiple requests for the same cell
+// controller to be executed at the same time.
+const updateCellControllers = {}
+
 export default (client) => {
   return {
     get(tableId, rowId) {
@@ -63,17 +68,27 @@ export default (client) => {
 
       return client.post(`/database/rows/table/${tableId}/`, values, config)
     },
-    update(tableId, rowId, values, signal = null) {
-      const config = {}
-      if (signal !== null) {
-        config.signal = signal
-      }
+    async update(tableId, rowId, values) {
+      const fieldId = Object.keys(values)[0]
+      const reqId = `row_${rowId}:${fieldId}`
 
-      return client.patch(
-        `/database/rows/table/${tableId}/${rowId}/`,
-        values,
-        config
-      )
+      if (updateCellControllers[reqId]) {
+        updateCellControllers[reqId].abort()
+      }
+      const abortController = new AbortController()
+      updateCellControllers[reqId] = abortController
+
+      const config = { signal: abortController.signal }
+
+      try {
+        return await client.patch(
+          `/database/rows/table/${tableId}/${rowId}/`,
+          values,
+          config
+        )
+      } finally {
+        delete updateCellControllers[reqId]
+      }
     },
     batchUpdate(tableId, items) {
       return client.patch(`/database/rows/table/${tableId}/batch/`, { items })

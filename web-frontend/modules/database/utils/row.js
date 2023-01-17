@@ -31,7 +31,7 @@ export function prepareRowForRequest(row, fields, registry) {
  * @param {*} updatedValues
  * @returns an object with the readonly values that have been updated or null.
  */
-export function getReadOnlyValuesUpdated(fields, row, updatedValues) {
+export function getReadOnlyValuesToUpdate(fields, row, updatedValues) {
   const readonlyFieldIds = fields
     .filter((field) => field.read_only)
     .map((field) => `field_${field.id}`)

@@ -87,6 +87,8 @@ x-backend-variables: &backend-variables
   BASEROW_BACKEND_DEBUG:
   BASEROW_BACKEND_LOG_LEVEL:
   FEATURE_FLAGS:
+  BASEROW_ENABLE_OTEL:
+  BASEROW_DEPLOYMENT_ENV:
 
   PRIVATE_BACKEND_URL: http://backend:8000
   PUBLIC_BACKEND_URL:
@@ -181,6 +183,8 @@ services:
       ADDITIONAL_MODULES:
       BASEROW_MAX_IMPORT_FILE_SIZE_MB:
       BASEROW_MAX_SNAPSHOTS_PER_GROUP:
+      BASEROW_ENABLE_OTEL:
+      BASEROW_DEPLOYMENT_ENV:
     depends_on:
       - backend
     networks:

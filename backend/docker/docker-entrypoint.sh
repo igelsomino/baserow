@@ -6,6 +6,8 @@ set -euo pipefail
 # ENVIRONMENT VARIABLES USED DIRECTLY BY THIS ENTRYPOINT
 # ======================================================
 
+export BASEROW_VERSION="1.14.0"
+
 # Used by docker-entrypoint.sh to start the dev server
 # If not configured you'll receive this: CommandError: "0.0.0.0:" is not a valid port number or address:port pair.
 BASEROW_BACKEND_PORT="${BASEROW_BACKEND_PORT:-8000}"
@@ -212,8 +214,26 @@ run_backend_server(){
     "${EXTRA_GUNICORN_ARGS[@]}" \
     -b "${BASEROW_BACKEND_BIND_ADDRESS:-0.0.0.0}":"${BASEROW_BACKEND_PORT}" \
     --log-level="${BASEROW_BACKEND_LOG_LEVEL}" \
+    -c "../src/gunicorn.config.py" \
     "${STARTUP_ARGS[@]}" \
     "${@:2}"
+}
+
+setup_per_service_env_vars(){
+  export OTEL_SERVICE_NAME=$1
+  export BASEROW_SERVICE_NAME=$1
+
+  EXTRA_OTEL_RESOURCE_ATTRIBUTES="service.namespace=Baserow,"
+  EXTRA_OTEL_RESOURCE_ATTRIBUTES+="service.version=${BASEROW_VERSION},"
+  EXTRA_OTEL_RESOURCE_ATTRIBUTES+="deployment.environment=${BASEROW_DEPLOYMENT_ENV:-unknown}"
+
+  if [[ -n "${OTEL_RESOURCE_ATTRIBUTES:-}" ]]; then
+    OTEL_RESOURCE_ATTRIBUTES="${EXTRA_OTEL_RESOURCE_ATTRIBUTES},${OTEL_RESOURCE_ATTRIBUTES}"
+  else
+    OTEL_RESOURCE_ATTRIBUTES="$EXTRA_OTEL_RESOURCE_ATTRIBUTES"
+  fi
+  export OTEL_RESOURCE_ATTRIBUTES
+  echo "OTEL_RESOURCE_ATTRIBUTES=$OTEL_RESOURCE_ATTRIBUTES"
 }
 
 # ======================================================
@@ -231,6 +251,7 @@ source /baserow/plugins/utils.sh
 
 case "$1" in
     django-dev)
+        setup_per_service_env_vars "backend-dev"
         wait_for_postgres
         run_setup_commands_if_configured
         echo "Running Development Server on 0.0.0.0:${BASEROW_BACKEND_PORT}"
@@ -238,15 +259,18 @@ case "$1" in
         attachable_exec python /baserow/backend/src/baserow/manage.py runserver "${BASEROW_BACKEND_BIND_ADDRESS:-0.0.0.0}:${BASEROW_BACKEND_PORT}"
     ;;
     django-dev-no-attach)
+        setup_per_service_env_vars "backend-dev"
         wait_for_postgres
         run_setup_commands_if_configured
         echo "Running Development Server on 0.0.0.0:${BASEROW_BACKEND_PORT}"
         python /baserow/backend/src/baserow/manage.py runserver "${BASEROW_BACKEND_BIND_ADDRESS:-0.0.0.0}:${BASEROW_BACKEND_PORT}"
     ;;
     gunicorn)
+      setup_per_service_env_vars "backend-asgi"
       run_backend_server asgi "${@:2}"
     ;;
     gunicorn-wsgi)
+      setup_per_service_env_vars "backend-wsgi"
       run_backend_server wsgi "${@:2}"
     ;;
     backend-healthcheck)
@@ -292,9 +316,11 @@ case "$1" in
     ;;
     celery-worker)
       if [[ -n "${BASEROW_RUN_MINIMAL}" && $BASEROW_AMOUNT_OF_WORKERS == "1" ]]; then
+      setup_per_service_env_vars "celery-worker-combined"
         echo "Starting combined celery and export worker..."
         start_celery_worker -Q celery,export -n default-worker@%h "${@:2}"
       else
+      setup_per_service_env_vars "celery-worker"
         start_celery_worker -Q celery -n default-worker@%h "${@:2}"
       fi
     ;;
@@ -308,6 +334,7 @@ case "$1" in
              "to reduce memory usage"
         while true; do sleep 2073600; done
       else
+        setup_per_service_env_vars "celery-exportworker"
         start_celery_worker -Q export -n export-worker@%h "${@:2}"
       fi
     ;;
@@ -322,6 +349,7 @@ case "$1" in
       echo "Sleeping for $BASEROW_CELERY_BEAT_STARTUP_DELAY before starting beat to prevent "\
            "startup errors."
       sleep "$BASEROW_CELERY_BEAT_STARTUP_DELAY"
+      setup_per_service_env_vars "celery-beat"
       exec celery -A baserow beat -l "${BASEROW_CELERY_BEAT_DEBUG_LEVEL}" -S redbeat.RedBeatScheduler "${@:2}"
     ;;
     watch-py)

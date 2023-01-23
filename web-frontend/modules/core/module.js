@@ -141,6 +141,12 @@ export default function CoreModule(options) {
   this.nuxt.hook('i18n:extend-messages', function (additionalMessages) {
     additionalMessages.push({ en, fr, nl, de, es, it, pl })
   })
+  // this.nuxt.hook('render:routeDone', (url, result, { tracer }) => {
+  //   if (process.server && process.env.BASEROW_ENABLE_OTEL) {
+  //     const currentSpan = api.trace.getSpan(api.context.active())
+  //     currentSpan.end()
+  //   }
+  // })
 
   // Serve the static directory
   // @TODO we might need to change some things here for production. (See:

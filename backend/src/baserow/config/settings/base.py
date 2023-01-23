@@ -783,6 +783,7 @@ for plugin in [*BASEROW_BUILT_IN_PLUGINS, *BASEROW_BACKEND_PLUGIN_NAMES]:
         # This settings object is an AttrDict shadowing our local variables so the
         # plugin can access the Django settings and modify them prior to startup.
         result = mod.setup(AttrDict(vars()))
-    except ImportError:
+    except ImportError as e:
         logger = logging.getLogger(__name__)
         logger.warning("Could not import %s", plugin)
+        logger.warning(e)

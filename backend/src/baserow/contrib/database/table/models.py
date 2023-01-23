@@ -6,6 +6,8 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F, JSONField, Q, QuerySet
 
+from opentelemetry import trace
+
 from baserow.contrib.database.fields.exceptions import (
     FilterFieldNotFound,
     OrderByFieldNotFound,
@@ -43,6 +45,8 @@ from baserow.core.utils import split_comma_separated_string
 deconstruct_filter_key_regex = re.compile(
     r"filter__field_([0-9]+|created_on|updated_on)__([a-zA-Z0-9_]*)$"
 )
+
+tracer = trace.get_tracer(__name__)
 
 
 class TableModelQuerySet(models.QuerySet):
@@ -433,6 +437,7 @@ class Table(
     def get_database_table_name(self):
         return f"{self.USER_TABLE_DATABASE_NAME_PREFIX}{self.id}"
 
+    @tracer.start_as_current_span("database.Table.get_model")
     def get_model(
         self,
         fields=None,

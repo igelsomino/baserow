@@ -15,6 +15,7 @@ For example:
 
 * Add missing `procps` system package to all-in-one docker image fixing `/baserow/supervisor/docker-postgres-setup.sh run` (#1512)[https://gitlab.com/bramw/baserow/-/issues/1512]
 * Fixed API docs for creating and updating rows are missing for Multiple Select and Multiple Collaborator fields. [#1196](https://gitlab.com/bramw/baserow/-/issues/1196)
+* Fix active user counts in the admin dashboard. [#1324](https://gitlab.com/bramw/baserow/-/issues/1324)
 
 ### Refactors
 
@@ -115,7 +116,6 @@ For example:
 * Fixed bug where only one condition per field was working in form's views. [#1400](https://gitlab.com/bramw/baserow/-/issues/1400)
 * Fix "ERR_REDIRECT" for authenticated users redirected to the dashboard from the signup page. [1125](https://gitlab.com/bramw/baserow/-/issues/1125)
 * Fixed a problem of some specific error messages not being recognized by the web front-end.
-* Fix active user counts in the admin dashboard.
 
 * Fixed failing webhook call log creation when a table has more than one webhooks. [#1100](https://gitlab.com/bramw/baserow/-/merge_requests/1100)
 

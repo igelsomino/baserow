@@ -380,7 +380,9 @@ class UserHandler:
             self.cancel_user_deletion(user)
 
         update_last_login(None, user)
-        UserLogEntry.objects.create(actor=user, action="SIGNED_IN")
+        UserLogEntry.objects.create(
+            actor=user, action=UserLogEntry.ActionChoices.SIGNED_IN
+        )
 
         # Call the user_signed_in method for each plugin that is in the registry to
         # notify all plugins that a user has signed in.
@@ -391,26 +393,22 @@ class UserHandler:
 
     def user_refreshed_session_token(self, user: AbstractUser):
         """
-        Adds a UserLogEntry for statistics.
+        Adds a UserLogEntry for statistics. This function ensures that there is
+        only one entry per hour, to not spam the database with entries.
 
         :param user: The user that has just refreshed his session.
         """
 
-        action = "REFRESHED_TOKEN"
-        now = timezone.now()
-        refreshed_token_entry = (
-            UserLogEntry.objects.filter(actor=user, action=action)
-            .extra(
-                {"date": "date_trunc('hour', timestamp at time zone %s)"},
-                select_params=(str(now.tzinfo),),
+        try:
+            UserLogEntry.objects.get_or_create(
+                actor=user,
+                action=UserLogEntry.ActionChoices.REFRESHED_TOKEN,
+                timestamp__gte=timezone.now().replace(
+                    minute=0, second=0, microsecond=0
+                ),
             )
-            .first()
-        )
-        if refreshed_token_entry is None:
-            UserLogEntry.objects.create(actor=user, action=action)
-        else:
-            refreshed_token_entry.timestamp = now
-            refreshed_token_entry.save()
+        except UserLogEntry.MultipleObjectsReturned:
+            pass
 
     def schedule_user_deletion(self, user: AbstractUser):
         """

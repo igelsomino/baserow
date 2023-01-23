@@ -4,6 +4,7 @@ from django.test.utils import override_settings
 
 import pytest
 from baserow_premium.admin.dashboard.handler import AdminDashboardHandler
+from freezegun import freeze_time
 from pytz import timezone
 
 from baserow.core.models import UserLogEntry
@@ -84,13 +85,8 @@ def test_get_active_user_counts(premium_data_fixture, action):
 
     def create_entries(user, dates):
         for d in dates:
-            entry = UserLogEntry()
-            entry.actor = user
-            entry.action = action
-            entry.save()
-            # To override the auto_now_add.
-            entry.timestamp = d
-            entry.save()
+            with freeze_time(d):
+                UserLogEntry.objects.create(actor=user, action=action)
 
     create_entries(
         user_1,
@@ -167,28 +163,28 @@ def test_get_active_user_counts(premium_data_fixture, action):
         "last_10_days": 2,
     }
 
-    assert handler.get_active_user_count(
-        {
-            "last_24_hours": timedelta(hours=24),
-            "last_7_days": timedelta(days=7),
-            "last_30_days": timedelta(days=30),
-            "last_40_days": timedelta(days=40),
-            "last_10_days": timedelta(days=10),
-        },
-        now=now,
-        include_previous=True,
-    ) == {
-        "last_24_hours": 0,
-        "last_7_days": 2,
-        "last_30_days": 2,
-        "last_40_days": 3,
-        "last_10_days": 2,
-        "previous_last_24_hours": 1,
-        "previous_last_7_days": 2,
-        "previous_last_30_days": 3,
-        "previous_last_40_days": 2,
-        "previous_last_10_days": 2,
-    }
+    with freeze_time(now):
+        assert handler.get_active_user_count(
+            {
+                "last_24_hours": timedelta(hours=24),
+                "last_7_days": timedelta(days=7),
+                "last_30_days": timedelta(days=30),
+                "last_40_days": timedelta(days=40),
+                "last_10_days": timedelta(days=10),
+            },
+            include_previous=True,
+        ) == {
+            "last_24_hours": 0,
+            "last_7_days": 2,
+            "last_30_days": 2,
+            "last_40_days": 3,
+            "last_10_days": 2,
+            "previous_last_24_hours": 1,
+            "previous_last_7_days": 2,
+            "previous_last_30_days": 3,
+            "previous_last_40_days": 2,
+            "previous_last_10_days": 2,
+        }
 
 
 @pytest.mark.django_db

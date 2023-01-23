@@ -110,14 +110,31 @@ class AdminDashboardHandler:
         )
 
     def get_active_user_count(self, delta_mapping, now=None, include_previous=False):
+        # The max_timedelta is used to calculate the range for the query.
+        # This speed up the query because it can use the index on the timestamp field
+        # and subsequent filters just use this subset.
+        max_timedelta = max(delta_mapping.values())
+        if include_previous:
+            max_timedelta *= 2
+
+        if now is None:
+            now = timezone.now()
+
         return self.get_counts_from_delta_range(
-            queryset=UserLogEntry.objects,
+            queryset=UserLogEntry.objects.filter(
+                action__in=[
+                    UserLogEntry.ActionChoices.SIGNED_IN,
+                    UserLogEntry.ActionChoices.REFRESHED_TOKEN,
+                ],
+                timestamp__gt=now - max_timedelta,
+                timestamp__lte=now,
+            ),
             date_field_name="timestamp",
             delta_mapping=delta_mapping,
             expression="actor_id",
             now=now,
             distinct=True,
-            additional_filters={"action__in": ["SIGNED_IN", "REFRESHED_TOKEN"]},
+            additional_filters=None,
             include_previous=include_previous,
         )
 
@@ -172,12 +189,17 @@ class AdminDashboardHandler:
         :rtype: list
         """
 
-        if not now:
+        if now is None:
             now = timezone.now()
 
         return (
             UserLogEntry.objects.filter(
-                action="SIGNED_IN", timestamp__gt=now - delta, timestamp__lte=now
+                action__in=[
+                    UserLogEntry.ActionChoices.SIGNED_IN,
+                    UserLogEntry.ActionChoices.REFRESHED_TOKEN,
+                ],
+                timestamp__gt=now - delta,
+                timestamp__lte=now,
             )
             .extra(
                 {"date": "date(timestamp at time zone %s)"},

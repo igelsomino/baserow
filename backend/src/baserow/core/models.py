@@ -382,14 +382,24 @@ class Template(models.Model):
 
 
 class UserLogEntry(models.Model):
+    class ActionChoices(models.TextChoices):
+        SIGNED_IN = "SIGNED_IN", "Signed in"
+        REFRESHED_TOKEN = "REFRESHED_TOKEN", "Refreshed token"
+
     actor = models.ForeignKey(User, on_delete=models.CASCADE)
-    action = models.CharField(max_length=20, choices=(("SIGNED_IN", "Signed in"),))
+    action = models.CharField(max_length=20, choices=ActionChoices.choices)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         get_latest_by = "timestamp"
         ordering = ["-timestamp"]
-        indexes = [models.Index(fields=["-timestamp", "action", "actor"])]
+        indexes = [
+            models.Index(
+                fields=["timestamp", "action", "actor"],
+                include=["id"],
+                name="user_log_entry_tstamp_act_idx",
+            )
+        ]
 
 
 class TrashEntry(models.Model):

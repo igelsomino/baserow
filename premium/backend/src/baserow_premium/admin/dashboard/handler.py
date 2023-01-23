@@ -72,6 +72,14 @@ class AdminDashboardHandler:
         if not now:
             now = timezone.now()
 
+        # The max_timedelta is used to calculate the range for the query.
+        # This speed up the query because the subsequent aggregations are done
+        # only for the range that is needed.
+        max_timedelta = max(delta_mapping.values())
+        if include_previous:
+            max_timedelta *= 2
+        after_max_timedelta = Q(**{f"{date_field_name}__gt": now - max_timedelta})
+
         if not additional_filters:
             additional_filters = {}
 
@@ -98,7 +106,7 @@ class AdminDashboardHandler:
                     now - delta - delta, now - delta
                 )
 
-        return queryset.aggregate(**aggregations)
+        return queryset.filter(after_max_timedelta).aggregate(**aggregations)
 
     def get_new_user_counts(self, delta_mapping, now=None, include_previous=False):
         return self.get_counts_from_delta_range(
@@ -110,24 +118,12 @@ class AdminDashboardHandler:
         )
 
     def get_active_user_count(self, delta_mapping, now=None, include_previous=False):
-        # The max_timedelta is used to calculate the range for the query.
-        # This speed up the query because it can use the index on the timestamp field
-        # and subsequent filters just use this subset.
-        max_timedelta = max(delta_mapping.values())
-        if include_previous:
-            max_timedelta *= 2
-
-        if now is None:
-            now = timezone.now()
-
         return self.get_counts_from_delta_range(
             queryset=UserLogEntry.objects.filter(
                 action__in=[
                     UserLogEntry.ActionChoices.SIGNED_IN,
                     UserLogEntry.ActionChoices.REFRESHED_TOKEN,
                 ],
-                timestamp__gt=now - max_timedelta,
-                timestamp__lte=now,
             ),
             date_field_name="timestamp",
             delta_mapping=delta_mapping,

@@ -238,6 +238,34 @@ def test_token_password_auth_disabled_superadmin(api_client, data_fixture):
 
 
 @pytest.mark.django_db
+def test_token_refresh_add_at_most_one_user_log_entry_per_hour(
+    api_client, data_fixture
+):
+    user = data_fixture.create_user()
+    token = str(RefreshToken.for_user(user))
+
+    def refresh_token():
+        return api_client.post(
+            reverse("api:user:token_refresh"), {"token": token}, format="json"
+        )
+
+    with freeze_time("2023-01-01 12:00"):
+        response = refresh_token()
+    assert response.status_code == HTTP_200_OK
+    assert UserLogEntry.objects.count() == 1
+
+    with freeze_time("2023-01-01 12:55"):
+        response = refresh_token()
+    assert response.status_code == HTTP_200_OK
+    assert UserLogEntry.objects.count() == 1
+
+    with freeze_time("2023-01-01 13:00"):
+        response = refresh_token()
+    assert response.status_code == HTTP_200_OK
+    assert UserLogEntry.objects.count() == 2
+
+
+@pytest.mark.django_db
 def test_token_refresh(api_client, data_fixture):
     class TmpPlugin(Plugin):
         type = "tmp_plugin"

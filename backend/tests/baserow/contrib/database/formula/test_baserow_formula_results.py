@@ -85,6 +85,7 @@ VALID_FORMULA_TESTS = [
     ("tonumber('a')", "NaN"),
     ("tonumber('-12.12345')", "-12.1234500000"),
     ("1.2 * 2", "2.4"),
+    ("isblank(0)", True),
     ("isblank(1)", False),
     ("isblank('')", True),
     ("isblank(' ')", False),

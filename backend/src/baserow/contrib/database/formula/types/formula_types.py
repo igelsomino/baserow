@@ -80,6 +80,11 @@ class BaserowFormulaTextType(BaserowFormulaValidType):
     def placeholder_empty_value(self):
         return Value("", output_field=models.TextField())
 
+    def placeholder_empty_baserow_expression(
+        self,
+    ) -> "BaserowExpression[BaserowFormulaValidType]":
+        return literal("")
+
 
 class BaserowFormulaCharType(BaserowFormulaTextType):
     type = "char"
@@ -181,6 +186,11 @@ class BaserowFormulaLinkType(BaserowFormulaTextType):
     def placeholder_empty_value(self):
         return Value({}, output_field=JSONField())
 
+    def placeholder_empty_baserow_expression(
+        self,
+    ) -> "BaserowExpression[BaserowFormulaValidType]":
+        return formula_function_registry.get("link")(literal(""))
+
 
 class BaserowFormulaNumberType(BaserowFormulaValidType):
     type = "number"
@@ -188,7 +198,8 @@ class BaserowFormulaNumberType(BaserowFormulaValidType):
     user_overridable_formatting_option_fields = ["number_decimal_places"]
     MAX_DIGITS = 50
 
-    def __init__(self, number_decimal_places: int):
+    def __init__(self, number_decimal_places: int, **kwargs):
+        super().__init__(**kwargs)
         self.number_decimal_places = number_decimal_places
 
     @property
@@ -247,6 +258,11 @@ class BaserowFormulaNumberType(BaserowFormulaValidType):
             0, output_field=models.DecimalField(max_digits=50, decimal_places=0)
         )
 
+    def placeholder_empty_baserow_expression(
+        self,
+    ) -> "BaserowExpression[BaserowFormulaValidType]":
+        return literal(0)
+
     def __str__(self) -> str:
         return f"number({self.number_decimal_places})"
 
@@ -269,6 +285,11 @@ class BaserowFormulaBooleanType(BaserowFormulaValidType):
 
     def placeholder_empty_value(self):
         return Value(False, output_field=models.BooleanField())
+
+    def placeholder_empty_baserow_expression(
+        self,
+    ) -> "BaserowExpression[BaserowFormulaValidType]":
+        return literal(False)
 
 
 def _calculate_addition_interval_type(
@@ -298,9 +319,7 @@ class BaserowFormulaDateIntervalType(BaserowFormulaValidType):
 
     @property
     def comparable_types(self) -> List[Type["BaserowFormulaValidType"]]:
-        return [
-            type(self),
-        ]
+        return [type(self)]
 
     @property
     def limit_comparable_types(self) -> List[Type["BaserowFormulaValidType"]]:
@@ -330,7 +349,9 @@ class BaserowFormulaDateIntervalType(BaserowFormulaValidType):
         arg1: "BaserowExpression[BaserowFormulaValidType]",
         arg2: "BaserowExpression[BaserowFormulaValidType]",
     ):
-        return minus_func_call.with_valid_type(BaserowFormulaDateIntervalType())
+        return minus_func_call.with_valid_type(
+            BaserowFormulaDateIntervalType(nullable=True)
+        )
 
     def get_baserow_field_instance_and_type(self):
         # Until Baserow has a duration field type implement the required methods below
@@ -378,7 +399,12 @@ class BaserowFormulaDateIntervalType(BaserowFormulaValidType):
             return str(human_readable_value)
 
     def placeholder_empty_value(self):
-        return Value(datetime.timedelta(hours=1), output_field=models.DurationField())
+        return Value(datetime.timedelta(hours=0), output_field=models.DurationField())
+
+    def placeholder_empty_baserow_expression(
+        self,
+    ) -> "BaserowExpression[BaserowFormulaValidType]":
+        return literal(datetime.timedelta(hours=0))
 
 
 class BaserowFormulaDateType(BaserowFormulaValidType):
@@ -391,8 +417,9 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
     ]
 
     def __init__(
-        self, date_format: str, date_include_time: bool, date_time_format: str
+        self, date_format: str, date_include_time: bool, date_time_format: str, **kwargs
     ):
+        super().__init__(**kwargs)
         self.date_format = date_format
         self.date_include_time = date_include_time
         self.date_time_format = date_time_format
@@ -436,7 +463,7 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
         arg2_type = arg2.expression_type
         if isinstance(arg2_type, BaserowFormulaDateType):
             # date - date = interval
-            resulting_type = BaserowFormulaDateIntervalType()
+            resulting_type = BaserowFormulaDateIntervalType(nullable=True)
         else:
             # date - interval = date
             resulting_type = arg1_type
@@ -480,6 +507,14 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
 
         return Value(timezone.now(), output_field=field)
 
+    def is_blank(
+        self,
+        func_call: "BaserowFunctionCall[UnTyped]",
+        arg: "BaserowExpression[BaserowFormulaValidType]",
+    ) -> "BaserowExpression[BaserowFormulaBooleanType]":
+
+        return formula_function_registry.get("isnull")(arg)
+
     def __str__(self) -> str:
         date_or_datetime = "datetime" if self.date_include_time else "date"
         optional_time_format = (
@@ -495,7 +530,8 @@ class BaserowFormulaArrayType(BaserowFormulaValidType):
     ]
     can_order_by = False
 
-    def __init__(self, sub_type: BaserowFormulaValidType):
+    def __init__(self, sub_type: BaserowFormulaValidType, **kwargs):
+        super().__init__(**kwargs)
         self.array_formula_type = sub_type.type
         self.sub_type = sub_type
 
@@ -769,9 +805,7 @@ def calculate_number_type(
             max_number_decimal_places, a.number_decimal_places
         )
 
-    return BaserowFormulaNumberType(
-        number_decimal_places=max_number_decimal_places,
-    )
+    return BaserowFormulaNumberType(number_decimal_places=max_number_decimal_places)
 
 
 def _lookup_formula_type_from_string(formula_type_string):
@@ -782,7 +816,7 @@ def _lookup_formula_type_from_string(formula_type_string):
 
 
 def literal(
-    arg: Union[str, int, bool, Decimal]
+    arg: Union[str, int, bool, Decimal, datetime.timedelta]
 ) -> BaserowExpression[BaserowFormulaValidType]:
     """
     A helper function for building BaserowExpressions with literals
@@ -804,3 +838,7 @@ def literal(
         return decimal_literal_expr.with_valid_type(
             BaserowFormulaNumberType(decimal_literal_expr.num_decimal_places())
         )
+    elif isinstance(arg, datetime.timedelta):
+        return formula_function_registry.get("date_interval")(literal("0 hours"))
+
+    raise TypeError(f"Unknown literal type {type(arg)}")

@@ -298,6 +298,7 @@ class BaserowT(OneArgumentBaserowFunction):
 class BaserowConcat(BaserowFunctionDefinition):
     type = "concat"
     num_args = NumOfArgsGreaterThan(1)
+    try_coerce_nullable_args_to_not_null = False
 
     @property
     def arg_types(self) -> BaserowArgumentTypeChecker:
@@ -1048,19 +1049,10 @@ class BaserowIsBlank(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_args([BaserowToText()(arg)]).with_valid_type(
-            BaserowFormulaBooleanType()
-        )
+        return arg.expression_type.is_blank(func_call, arg)
 
     def to_django_expression(self, arg: Expression) -> Expression:
-        return EqualsExpr(
-            Coalesce(
-                arg,
-                Value(""),
-            ),
-            Value(""),
-            output_field=fields.BooleanField(),
-        )
+        return arg
 
 
 class BaserowNot(OneArgumentBaserowFunction):
@@ -1091,7 +1083,6 @@ class BaserowNotEqual(BaserowEqual):
 
 
 class BaseLimitComparableFunction(TwoArgumentBaserowFunction, ABC):
-
     # Overridden by the arg_types property below
     arg1_type = [BaserowFormulaValidType]
     arg2_type = [BaserowFormulaValidType]
@@ -1238,7 +1229,7 @@ class BaserowDateDiff(ThreeArgumentBaserowFunction):
         arg3: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            BaserowFormulaNumberType(number_decimal_places=0)
+            BaserowFormulaNumberType(number_decimal_places=0, nullable=True)
         )
 
     def to_django_expression(
@@ -1399,7 +1390,6 @@ class BaserowRowId(ZeroArgumentBaserowFunction):
 
 
 class BaserowLength(OneArgumentBaserowFunction):
-
     type = "length"
     arg_type = [BaserowFormulaTextType]
 
@@ -1417,7 +1407,6 @@ class BaserowLength(OneArgumentBaserowFunction):
 
 
 class BaserowReverse(OneArgumentBaserowFunction):
-
     type = "reverse"
     arg_type = [BaserowFormulaTextType]
 
@@ -1433,9 +1422,7 @@ class BaserowReverse(OneArgumentBaserowFunction):
 
 
 class BaserowWhenEmpty(TwoArgumentBaserowFunction):
-
     type = "when_empty"
-
     arg1_type = [BaserowFormulaValidType]
     arg2_type = [BaserowFormulaValidType]
 
@@ -1449,10 +1436,10 @@ class BaserowWhenEmpty(TwoArgumentBaserowFunction):
             return func_call.with_invalid_type(
                 "both inputs for when_empty must be the same type"
             )
-        return func_call.with_valid_type(arg1.expression_type)
+        return func_call.with_valid_type(arg2.expression_type)
 
     def to_django_expression(self, arg1: Expression, arg2: Expression) -> Expression:
-        return Coalesce(arg1, arg2, output_field=arg1.output_field)
+        return Coalesce(arg1, arg2, output_field=arg2.output_field)
 
 
 def _calculate_aggregate_orders(join_ids: JoinIdsType):

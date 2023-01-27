@@ -386,6 +386,7 @@ class BaserowFunctionDefinition(Instance, abc.ABC):
     """
 
     is_wrapper = False
+    try_coerce_nullable_args_to_not_null: bool = True
 
     @property
     @abc.abstractmethod

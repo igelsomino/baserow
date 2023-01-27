@@ -1,13 +1,19 @@
 import abc
-from typing import List, Type, TypeVar
+from typing import TYPE_CHECKING, List, Type, TypeVar
 
 from django.db.models import Expression, Value
 from django.utils.functional import classproperty
 
 from baserow.contrib.database.formula.ast import tree
+from baserow.contrib.database.formula.registries import formula_function_registry
 from baserow.contrib.database.formula.types.exceptions import InvalidFormulaType
 
 T = TypeVar("T", bound="BaserowFormulaType")
+
+if TYPE_CHECKING:
+    from baserow.contrib.database.formula.types.formula_types import (
+        BaserowFormulaBooleanType,
+    )
 
 
 class BaserowFormulaType(abc.ABC):
@@ -32,7 +38,7 @@ class BaserowFormulaType(abc.ABC):
         pass
 
     @classproperty
-    def user_overridable_formatting_option_fields(self) -> List[str]:
+    def user_overridable_formatting_option_fields(cls) -> List[str]:
         """
         :return: The list of FormulaField model field names which control
         formatting for a formula field of this type and should be allowed to be
@@ -42,13 +48,13 @@ class BaserowFormulaType(abc.ABC):
         return []
 
     @classproperty
-    def internal_fields(self) -> List[str]:
+    def internal_fields(cls) -> List[str]:
         """
         :return: The list of FormulaField model field names which store internal
         information required for a formula of this type.
         """
 
-        return []
+        return ["nullable"]
 
     @classmethod
     def all_fields(cls) -> List[str]:
@@ -232,6 +238,41 @@ class BaserowFormulaType(abc.ABC):
 
         return expr
 
+    def placeholder_empty_baserow_expression(
+        self,
+    ) -> "tree.BaserowExpression[BaserowFormulaValidType]":
+        """
+        Returns an expression which is the empty value for this type. For example for
+        a string this would be an empty string, for a number it would be 0 etc.
+        """
+
+        raise NotImplementedError()
+
+    def is_blank(
+        self,
+        func_call: "tree.BaserowFunctionCall[UnTyped]",
+        arg: "tree.BaserowExpression[BaserowFormulaValidType]",
+    ) -> "tree.BaserowExpression[BaserowFormulaBooleanType]":
+
+        equal_expr = formula_function_registry.get("equal")
+        return equal_expr(
+            self.try_coerce_to_not_null(arg),
+            self.placeholder_empty_baserow_expression(),
+        )
+
+    def try_coerce_to_not_null(
+        self, expr: "tree.BaserowExpression[BaserowFormulaValidType]"
+    ):
+
+        try:
+            placeholder_empty_baserow_expr = self.placeholder_empty_baserow_expression()
+        except NotImplementedError:
+            return expr
+
+        return formula_function_registry.get("when_empty")(
+            expr, placeholder_empty_baserow_expr
+        )
+
     def add(
         self,
         add_func_call: "tree.BaserowFunctionCall[UnTyped]",
@@ -265,6 +306,9 @@ class BaserowFormulaType(abc.ABC):
     def __str__(self) -> str:
         return self.type
 
+    def __init__(self, nullable=False):
+        self.nullable = nullable
+
 
 class BaserowFormulaInvalidType(BaserowFormulaType):
 
@@ -274,7 +318,7 @@ class BaserowFormulaInvalidType(BaserowFormulaType):
     limit_comparable_types = []
     type = "invalid"
     baserow_field_type = "text"
-    internal_fields = ["error"]
+    internal_fields = ["error", "nullable"]
 
     text_default = ""
 
@@ -284,8 +328,9 @@ class BaserowFormulaInvalidType(BaserowFormulaType):
     def should_recreate_when_old_type_was(self, old_type: "BaserowFormulaType") -> bool:
         return False
 
-    def __init__(self, error: str):
+    def __init__(self, error: str, **kwargs):
         self.error = error
+        super().__init__(**kwargs)
 
 
 class BaserowFormulaValidType(BaserowFormulaType, abc.ABC):

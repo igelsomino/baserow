@@ -18,6 +18,8 @@ services:
       - "${HOST_PUBLISH_IP:-127.0.0.1}:8000:8000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
 
   web-frontend:
     image: $WEBFRONTEND_CI_DEV_IMAGE
@@ -25,6 +27,8 @@ services:
       - "${HOST_PUBLISH_IP:-127.0.0.1}:3000:3000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
 
   celery:
     image: $BACKEND_CI_DEV_IMAGE
@@ -42,3 +46,5 @@ services:
     command: celery-worker
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true

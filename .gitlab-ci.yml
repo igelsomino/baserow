@@ -544,6 +544,7 @@ e2e-tests:
     - cd e2e-tests
     - yarn install
     - yarn playwright install
+    - docker ps
     - CI=1 yarn playwright test
     - docker-compose down || true
 

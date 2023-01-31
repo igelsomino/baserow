@@ -534,7 +534,6 @@ e2e-tests:
     - docker:20.10.12-dind
     - name: postgres:11
       alias: db
-    - redis:6
     - name: redis:6
       alias: redis
   script:

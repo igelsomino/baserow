@@ -545,7 +545,7 @@ e2e-tests:
     - yarn playwright install
     - docker ps
     - CI=1 yarn playwright test
-    - docker-compose down || true
+    - docker-compose -f ../docker-compose.e2e.yml down || true
 
 
 # ================================== ALL IN ONES ======================================

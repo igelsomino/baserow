@@ -1,0 +1,48 @@
+version: "3.4"
+
+services:
+
+  backend:
+    image: $BACKEND_CI_DEV_IMAGE
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?}
+      BASEROW_JWT_SIGNING_KEY: ${BASEROW_JWT_SIGNING_KEY:-}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+      DATABASE_USER: ${DATABASE_USER:-baserow}
+      DATABASE_NAME: ${DATABASE_NAME:-baserow}
+      DATABASE_HOST: ${DB_IP}
+      DATABASE_PORT:
+      DATABASE_URL: 
+      REDIS_HOST: ${REDIS_IP}
+      REDIS_PORT:
+      REDIS_PROTOCOL:
+      REDIS_URL:
+      REDIS_USER:
+    ports:
+      - "${HOST_PUBLISH_IP:-127.0.0.1}:8000:8000"
+    
+  web-frontend:
+    image: $WEBFRONTEND_CI_DEV_IMAGE
+    ports:
+      - "${HOST_PUBLISH_IP:-127.0.0.1}:3000:3000"
+
+  celery:
+    image: $BACKEND_CI_DEV_IMAGE
+    environment:
+      BASEROW_RUN_MINIMAL: 'yes'
+      SECRET_KEY: ${SECRET_KEY:?}
+      BASEROW_JWT_SIGNING_KEY: ${BASEROW_JWT_SIGNING_KEY:-}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+      DATABASE_USER: ${DATABASE_USER:-baserow}
+      DATABASE_NAME: ${DATABASE_NAME:-baserow}
+      DATABASE_HOST: ${DB_IP}
+      DATABASE_PORT:
+      DATABASE_URL: 
+      REDIS_HOST: ${REDIS_IP}
+      REDIS_PORT:
+      REDIS_PROTOCOL:
+      REDIS_URL:
+      REDIS_USER:
+    command: celery-worker

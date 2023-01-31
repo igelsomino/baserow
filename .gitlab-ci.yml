@@ -305,34 +305,6 @@ backend-lint:
   needs:
     - job: build-backend-image
 
-# If pipeline not triggered by tag:
-# - Runs the backend startup check if changes to the backend, otherwise skips.
-backend-check-startup:
-  variables:
-    RUN_WHEN_CHANGES_MADE_IN: "backend/ premium/backend/ enterprise/backend/"
-    POSTGRES_USER: "baserow"
-    POSTGRES_PASSWORD: "baserow"
-    POSTGRES_DB: "baserow"
-  extends:
-    - .docker-image-test-stage
-    - .skippable-job
-  needs:
-    - job: build-backend-image
-  services:
-    - docker:20.10.12-dind
-    - name: postgres:11
-      alias: db
-  script:
-    - DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
-    - ping -w 2 $DB_IP
-    - |
-      docker run -e DATABASE_USER=baserow \
-          -e DATABASE_NAME=baserow \
-          -e DATABASE_HOST=db \
-          -e DATABASE_PASSWORD=baserow \
-          --rm \
-          --add-host="db:$DB_IP" \
-          $BACKEND_CI_DEV_IMAGE ci-check-startup;
 
 # If pipeline not triggered by tag:
 # - Runs the backend tests (the first 1/3) if changes to the backend, otherwise skips.
@@ -453,7 +425,6 @@ collect-backend-coverage:
 build-final-backend-image:
   extends: .build-final-baserow-image
   needs:
-    - job: backend-check-startup
     - job: backend-test-group-1
     - job: backend-test-group-2
     - job: backend-test-group-3
@@ -540,6 +511,38 @@ build-final-web-frontend-image:
     IMAGE_NAME: $WEBFRONTEND_IMAGE_NAME
     DEV_IMAGE_NAME: $WEBFRONTEND_DEV_IMAGE_NAME
     DOCKERFILE_PATH: $WEBFRONTEND_DOCKERFILE_PATH
+
+# ==================================== E2E TESTS ======================================
+
+e2e-tests:
+  variables:
+    RUN_WHEN_CHANGES_MADE_IN: "backend/ premium/backend/ enterprise/backend/ web-frontend/ premium/web-frontend/ enterprise/web-frontend/ e2e-tests/"
+    DATABASE_USER: "baserow"
+    DATABASE_PASSWORD: "baserow"
+    DATABASE_NAME: "baserow"
+  extends:
+    - .docker-image-test-stage
+    - .skippable-job
+  when:
+    manual
+  needs:
+    - job: build-backend-image
+    - job: build-web-frontend-image
+  services:
+    - docker:20.10.12-dind
+    - name: postgres:11
+      alias: db
+    - redis:6
+    - name: redis:6
+      alias: redis
+  script:
+    - DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
+    - REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
+    - docker-compose up -f docker-compose.e2e.yml --detach
+    - cd e2e-tests
+    - yarn install
+    - CI=1 yarn playwright test
+    - docker-compose down || true
 
 
 # ================================== ALL IN ONES ======================================

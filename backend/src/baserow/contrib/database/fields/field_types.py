@@ -259,7 +259,7 @@ class CharFieldMatchingRegexFieldType(TextFieldMatchingRegexFieldType):
         )
 
     def to_baserow_formula_type(self, field) -> BaserowFormulaType:
-        return BaserowFormulaCharType()
+        return BaserowFormulaCharType(nullable=True)
 
 
 class TextFieldType(FieldType):
@@ -2610,7 +2610,7 @@ class SingleSelectFieldType(SelectOptionBaseFieldType):
         setattr(row, field_name + "_id", select_option_mapping[value])
 
     def to_baserow_formula_type(self, field):
-        return BaserowFormulaSingleSelectType()
+        return BaserowFormulaSingleSelectType(nullable=True)
 
     def from_baserow_formula_type(self, formula_type) -> Field:
         return self.model_class()

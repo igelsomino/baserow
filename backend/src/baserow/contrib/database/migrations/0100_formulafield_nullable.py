@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("database", "0097_add_ip_address_to_jobs"),
+        ("database", "0099_alter_view_ownership_type"),
     ]
 
     operations = [

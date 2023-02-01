@@ -463,7 +463,9 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
         arg2_type = arg2.expression_type
         if isinstance(arg2_type, BaserowFormulaDateType):
             # date - date = interval
-            resulting_type = BaserowFormulaDateIntervalType(nullable=True)
+            resulting_type = BaserowFormulaDateIntervalType(
+                nullable=arg1_type.nullable or arg2_type.nullable
+            )
         else:
             # date - interval = date
             resulting_type = arg1_type
@@ -496,7 +498,7 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
                     get_date_time_format(self, "sql"), BaserowFormulaTextType()
                 ),
             ],
-            BaserowFormulaTextType(),
+            BaserowFormulaTextType(nullable=arg.expression_type.nullable),
         )
 
     def placeholder_empty_value(self):
@@ -574,6 +576,11 @@ class BaserowFormulaArrayType(BaserowFormulaValidType):
         """
 
         return Value([], output_field=JSONField())
+
+    def placeholder_empty_baserow_expression(
+        self,
+    ) -> "BaserowExpression[BaserowFormulaValidType]":
+        pass
 
     def wrap_at_field_level(self, expr: "BaserowExpression[BaserowFormulaType]"):
         return formula_function_registry.get("error_to_null")(expr)
@@ -767,8 +774,12 @@ class BaserowFormulaSingleSelectType(BaserowFormulaValidType):
         to_text_func_call: "BaserowFunctionCall[UnTyped]",
         arg: "BaserowExpression[BaserowFormulaValidType]",
     ) -> "BaserowExpression[BaserowFormulaType]":
-        get_value_func = formula_function_registry.get("get_single_select_value")
-        return get_value_func(arg)
+        single_select_value = formula_function_registry.get("get_single_select_value")(
+            arg
+        )
+        return formula_function_registry.get("when_empty")(
+            single_select_value, literal("")
+        )
 
 
 BASEROW_FORMULA_TYPES = [

@@ -213,7 +213,9 @@ class BaserowUpper(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaTextType())
+        return func_call.with_valid_type(
+            BaserowFormulaTextType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Upper(arg, output_field=fields.TextField())
@@ -228,7 +230,9 @@ class BaserowLower(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaTextType())
+        return func_call.with_valid_type(
+            BaserowFormulaTextType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Lower(arg, output_field=fields.TextField())
@@ -245,7 +249,9 @@ class BaserowDatetimeFormat(TwoArgumentBaserowFunction):
         arg1: BaserowExpression[BaserowFormulaValidType],
         arg2: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaTextType())
+        return func_call.with_valid_type(
+            BaserowFormulaTextType(nullable=arg1.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg1: Expression, arg2: Expression) -> Expression:
         if isinstance(arg1, Value) and arg1.value is None:
@@ -289,7 +295,9 @@ class BaserowT(OneArgumentBaserowFunction):
         if isinstance(arg.expression_type, BaserowFormulaTextType):
             return arg
         else:
-            return func_call.with_valid_type(BaserowFormulaTextType())
+            return func_call.with_valid_type(
+                BaserowFormulaTextType(nullable=arg.expression_type.nullable)
+            )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Cast(Value(""), output_field=fields.TextField())
@@ -417,6 +425,7 @@ class BaserowGreatest(TwoArgumentBaserowFunction):
     type = "greatest"
     arg1_type = [BaserowFormulaNumberType]
     arg2_type = [BaserowFormulaNumberType]
+    try_coerce_nullable_args_to_not_null = False
 
     def type_function(
         self,
@@ -425,7 +434,8 @@ class BaserowGreatest(TwoArgumentBaserowFunction):
         arg2: BaserowExpression[BaserowFormulaNumberType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            calculate_number_type([arg1.expression_type, arg2.expression_type])
+            calculate_number_type([arg1.expression_type, arg2.expression_type]),
+            nullable=arg1.expression_type.nullable and arg2.expression_type.nullable,
         )
 
     def to_django_expression(self, arg1: Expression, arg2: Expression) -> Expression:
@@ -436,6 +446,7 @@ class BaserowLeast(TwoArgumentBaserowFunction):
     type = "least"
     arg1_type = [BaserowFormulaNumberType]
     arg2_type = [BaserowFormulaNumberType]
+    try_coerce_nullable_args_to_not_null = False
 
     def type_function(
         self,
@@ -444,7 +455,8 @@ class BaserowLeast(TwoArgumentBaserowFunction):
         arg2: BaserowExpression[BaserowFormulaNumberType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            calculate_number_type([arg1.expression_type, arg2.expression_type])
+            calculate_number_type([arg1.expression_type, arg2.expression_type]),
+            nullable=arg1.expression_type.nullable and arg2.expression_type.nullable,
         )
 
     def to_django_expression(self, arg1: Expression, arg2: Expression) -> Expression:
@@ -752,6 +764,7 @@ class BaserowFloor(OneArgumentBaserowFunction):
 class BaserowTrunc(OneArgumentBaserowFunction):
     type = "trunc"
     arg_type = [BaserowFormulaNumberType]
+    try_coerce_nullable_args_to_not_null = False
 
     def type_function(
         self,
@@ -759,7 +772,9 @@ class BaserowTrunc(OneArgumentBaserowFunction):
         arg: BaserowExpression[BaserowFormulaNumberType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            BaserowFormulaNumberType(number_decimal_places=0)
+            BaserowFormulaNumberType(
+                number_decimal_places=0, nullable=arg.expression_type.nullable
+            )
         )
 
     def to_django_expression(self, arg: Expression) -> Expression:
@@ -893,6 +908,7 @@ class BaserowDivide(TwoArgumentBaserowFunction):
 class BaserowEqual(TwoArgumentBaserowFunction):
     type = "equal"
     operator = "="
+    try_coerce_nullable_args_to_not_null = False
 
     # Overridden by the arg_types property below
     arg1_type = [BaserowFormulaValidType]
@@ -939,6 +955,7 @@ class BaserowEqual(TwoArgumentBaserowFunction):
 
 class BaserowIf(ThreeArgumentBaserowFunction):
     type = "if"
+    try_coerce_nullable_args_to_not_null = False
 
     arg1_type = [BaserowFormulaBooleanType]
     # Overridden by the type function property below
@@ -971,7 +988,10 @@ class BaserowIf(ThreeArgumentBaserowFunction):
             else:
                 resulting_type = arg2_type
 
-            return func_call.with_valid_type(resulting_type)
+            return func_call.with_valid_type(
+                resulting_type,
+                nullable=arg1.expression_type.nullable or arg2.expression_type.nullable,
+            )
 
     def to_django_expression(
         self, arg1: Expression, arg2: Expression, arg3: Expression
@@ -1167,7 +1187,10 @@ class BaserowToDate(TwoArgumentBaserowFunction):
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
             BaserowFormulaDateType(
-                date_format="ISO", date_include_time=False, date_time_format="24"
+                date_format="ISO",
+                date_include_time=False,
+                date_time_format="24",
+                nullable=arg1.expression_type.nullable,
             )
         )
 
@@ -1190,7 +1213,9 @@ class BaserowDay(OneArgumentBaserowFunction):
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            BaserowFormulaNumberType(number_decimal_places=0)
+            BaserowFormulaNumberType(
+                number_decimal_places=0, nullable=arg.expression_type.nullable
+            )
         )
 
     def to_django_expression(self, arg: Expression) -> Expression:
@@ -1207,7 +1232,9 @@ class BaserowMonth(OneArgumentBaserowFunction):
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            BaserowFormulaNumberType(number_decimal_places=0)
+            BaserowFormulaNumberType(
+                number_decimal_places=0, nullable=arg.expression_type.nullable
+            )
         )
 
     def to_django_expression(self, arg: Expression) -> Expression:
@@ -1228,8 +1255,9 @@ class BaserowDateDiff(ThreeArgumentBaserowFunction):
         arg2: BaserowExpression[BaserowFormulaValidType],
         arg3: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
+        nullable = arg2.expression_type.nullable or arg3.expression_type.nullable
         return func_call.with_valid_type(
-            BaserowFormulaNumberType(number_decimal_places=0, nullable=True)
+            BaserowFormulaNumberType(number_decimal_places=0, nullable=nullable)
         )
 
     def to_django_expression(
@@ -1287,7 +1315,10 @@ class BaserowDateInterval(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaDateIntervalType())
+
+        return func_call.with_valid_type(
+            BaserowFormulaDateIntervalType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Func(
@@ -1308,7 +1339,9 @@ class BaserowReplace(ThreeArgumentBaserowFunction):
         arg2: BaserowExpression[BaserowFormulaValidType],
         arg3: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaTextType())
+        return func_call.with_valid_type(
+            BaserowFormulaTextType(nullable=arg1.expression_type.nullable)
+        )
 
     def to_django_expression(
         self, arg1: Expression, arg2: Expression, arg3: Expression
@@ -1425,6 +1458,7 @@ class BaserowWhenEmpty(TwoArgumentBaserowFunction):
     type = "when_empty"
     arg1_type = [BaserowFormulaValidType]
     arg2_type = [BaserowFormulaValidType]
+    try_coerce_nullable_args_to_not_null = False
 
     def type_function(
         self,
@@ -1827,7 +1861,9 @@ class BaserowGetSingleSelectValue(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaTextType())
+        return func_call.with_valid_type(
+            BaserowFormulaTextType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Func(
@@ -1847,7 +1883,9 @@ class BaserowGetLinkUrl(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaTextType())
+        return func_call.with_valid_type(
+            BaserowFormulaTextType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Func(
@@ -1867,7 +1905,9 @@ class BaserowGetLinkLabel(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaTextType())
+        return func_call.with_valid_type(
+            BaserowFormulaTextType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Func(
@@ -1970,7 +2010,9 @@ class BaserowLink(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaLinkType())
+        return func_call.with_valid_type(
+            BaserowFormulaLinkType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return JSONObject(url=arg)
@@ -1987,7 +2029,9 @@ class BaserowButton(TwoArgumentBaserowFunction):
         arg1: BaserowExpression[BaserowFormulaValidType],
         arg2: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaLinkType())
+        return func_call.with_valid_type(
+            BaserowFormulaLinkType(nullable=arg1.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg1: Expression, arg2: Expression) -> Expression:
         return JSONObject(url=arg1, label=arg2)
@@ -2021,7 +2065,9 @@ class BaserowYear(OneArgumentBaserowFunction):
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            BaserowFormulaNumberType(number_decimal_places=0)
+            BaserowFormulaNumberType(
+                number_decimal_places=0, nullable=arg.expression_type.nullable
+            )
         )
 
     def to_django_expression(self, arg: Expression) -> Expression:
@@ -2038,7 +2084,9 @@ class BaserowSecond(OneArgumentBaserowFunction):
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            BaserowFormulaNumberType(number_decimal_places=0)
+            BaserowFormulaNumberType(
+                number_decimal_places=0, nullable=arg.expression_type.nullable
+            )
         )
 
     def to_django_expression(self, arg: Expression) -> Expression:

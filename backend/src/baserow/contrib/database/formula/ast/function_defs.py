@@ -1936,11 +1936,7 @@ class BaserowLeft(TwoArgumentBaserowFunction):
             arg_to_check_if_nan=arg2,
             when_nan=Value(None),
             when_not_nan=(
-                Left(
-                    arg1,
-                    trunc_numeric_to_int(arg2),
-                    output_field=fields.TextField(),
-                )
+                Left(arg1, trunc_numeric_to_int(arg2), output_field=fields.TextField())
             ),
         )
 

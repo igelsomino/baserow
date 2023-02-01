@@ -19,6 +19,26 @@ if TYPE_CHECKING:
 EVERY_TYPE_INTERNAL_FIELDS = ["nullable"]
 
 
+class BaserowFormulaTypeHasEmptyBaserowExpression(abc.ABC):
+    @abc.abstractmethod
+    def placeholder_empty_baserow_expression(self) -> Expression:
+        """
+        :return: A Django expression that can be used to represent an empty value for
+        this type. This is used when a formula field is nullable and the formula
+        returns an empty value.
+        """
+
+        pass
+
+    def try_coerce_to_not_null(
+        self, expr: "tree.BaserowExpression[BaserowFormulaValidType]"
+    ):
+        placeholder_empty_baserow_expr = self.placeholder_empty_baserow_expression()
+        return formula_function_registry.get("when_empty")(
+            expr, placeholder_empty_baserow_expr
+        )
+
+
 class BaserowFormulaType(abc.ABC):
     @classmethod
     @property
@@ -250,21 +270,16 @@ class BaserowFormulaType(abc.ABC):
 
         return expr
 
-    def placeholder_empty_baserow_expression(
-        self,
-    ) -> "tree.BaserowExpression[BaserowFormulaValidType]":
-        """
-        Returns an expression which is the empty value for this type. For example for
-        a string this would be an empty string, for a number it would be 0 etc.
-        """
-
-        raise NotImplementedError()
-
     def is_blank(
         self,
         func_call: "tree.BaserowFunctionCall[UnTyped]",
         arg: "tree.BaserowExpression[BaserowFormulaValidType]",
     ) -> "tree.BaserowExpression[BaserowFormulaBooleanType]":
+        """
+        Returns an expression which evaluates to true if the given expression is
+        blank. Different formula types may have different definitions of what is
+        blank (e.g. isblank(0) returns True for numbers, False for text ).
+        """
 
         equal_expr = formula_function_registry.get("equal")
         return equal_expr(
@@ -275,15 +290,15 @@ class BaserowFormulaType(abc.ABC):
     def try_coerce_to_not_null(
         self, expr: "tree.BaserowExpression[BaserowFormulaValidType]"
     ):
+        """
+        Tries to coerce the given expression to a not null type. The default
+        behaviour is to return the expression as is. Override this method if the
+        type can be coerced to a not null type or extends
+        BaserowFormulaTypeHasEmptyBaserowExpression and has a
+        placeholder_empty_baserow_expression method.
+        """
 
-        try:
-            placeholder_empty_baserow_expr = self.placeholder_empty_baserow_expression()
-        except NotImplementedError:
-            return expr
-
-        return formula_function_registry.get("when_empty")(
-            expr, placeholder_empty_baserow_expr
-        )
+        return expr
 
     def add(
         self,

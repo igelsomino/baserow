@@ -24,6 +24,7 @@ from baserow.contrib.database.formula.types.exceptions import UnknownFormulaType
 from baserow.contrib.database.formula.types.formula_type import (
     BaserowFormulaInvalidType,
     BaserowFormulaType,
+    BaserowFormulaTypeHasEmptyBaserowExpression,
     BaserowFormulaValidType,
     UnTyped,
 )
@@ -31,7 +32,9 @@ from baserow.contrib.database.formula.types.serializers import LinkSerializer
 from baserow.core.utils import list_to_comma_separated_string
 
 
-class BaserowFormulaTextType(BaserowFormulaValidType):
+class BaserowFormulaTextType(
+    BaserowFormulaTypeHasEmptyBaserowExpression, BaserowFormulaValidType
+):
     type = "text"
     baserow_field_type = "text"
 
@@ -192,7 +195,9 @@ class BaserowFormulaLinkType(BaserowFormulaTextType):
         return formula_function_registry.get("link")(literal(""))
 
 
-class BaserowFormulaNumberType(BaserowFormulaValidType):
+class BaserowFormulaNumberType(
+    BaserowFormulaTypeHasEmptyBaserowExpression, BaserowFormulaValidType
+):
     type = "number"
     baserow_field_type = "number"
     user_overridable_formatting_option_fields = ["number_decimal_places"]
@@ -267,7 +272,9 @@ class BaserowFormulaNumberType(BaserowFormulaValidType):
         return f"number({self.number_decimal_places})"
 
 
-class BaserowFormulaBooleanType(BaserowFormulaValidType):
+class BaserowFormulaBooleanType(
+    BaserowFormulaTypeHasEmptyBaserowExpression, BaserowFormulaValidType
+):
     type = "boolean"
     baserow_field_type = "boolean"
 
@@ -313,7 +320,9 @@ def _calculate_addition_interval_type(
 
 
 # noinspection PyMethodMayBeStatic
-class BaserowFormulaDateIntervalType(BaserowFormulaValidType):
+class BaserowFormulaDateIntervalType(
+    BaserowFormulaTypeHasEmptyBaserowExpression, BaserowFormulaValidType
+):
     type = "date_interval"
     baserow_field_type = None
 
@@ -576,11 +585,6 @@ class BaserowFormulaArrayType(BaserowFormulaValidType):
         """
 
         return Value([], output_field=JSONField())
-
-    def placeholder_empty_baserow_expression(
-        self,
-    ) -> "BaserowExpression[BaserowFormulaValidType]":
-        pass
 
     def wrap_at_field_level(self, expr: "BaserowExpression[BaserowFormulaType]"):
         return formula_function_registry.get("error_to_null")(expr)

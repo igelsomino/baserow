@@ -1,0 +1,50 @@
+version: "3.4"
+
+services:
+
+  backend:
+    image: $BACKEND_CI_DEV_IMAGE
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-test}
+      BASEROW_JWT_SIGNING_KEY: ${BASEROW_JWT_SIGNING_KEY:-}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?}
+      DATABASE_USER: ${DATABASE_USER:-baserow}
+      DATABASE_NAME: ${DATABASE_NAME:-baserow}
+      DATABASE_HOST: ${DB_IP}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      REDIS_HOST: ${REDIS_IP}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+    ports:
+      - "${HOST_PUBLISH_IP:-127.0.0.1}:8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
+
+  web-frontend:
+    image: $WEBFRONTEND_CI_DEV_IMAGE
+    ports:
+      - "${HOST_PUBLISH_IP:-127.0.0.1}:3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
+
+  celery:
+    image: $BACKEND_CI_DEV_IMAGE
+    environment:
+      BASEROW_RUN_MINIMAL: 'yes'
+      SECRET_KEY: ${SECRET_KEY:-test}
+      BASEROW_JWT_SIGNING_KEY: ${BASEROW_JWT_SIGNING_KEY:-}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?}
+      DATABASE_USER: ${DATABASE_USER:-baserow}
+      DATABASE_NAME: ${DATABASE_NAME:-baserow}
+      DATABASE_HOST: ${DB_IP}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      REDIS_HOST: ${REDIS_IP}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+    command: celery-worker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true

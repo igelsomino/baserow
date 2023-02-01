@@ -539,16 +539,16 @@ e2e-tests:
   script:
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
-    - docker --help
     - docker compose version
     - docker compose --help
-    - docker compose -f docker-compose.e2e.yml up --detach --wait
+    - docker compose up --help
     - cd e2e-tests
+    - docker compose -f docker-compose.e2e.yml up --detach --wait
     - yarn install
     - yarn playwright install
     - docker ps
     - CI=1 yarn playwright test
-    - docker compose -f ../docker-compose.e2e.yml down || true
+    - docker compose -f docker-compose.e2e.yml down || true
 
 
 # ================================== ALL IN ONES ======================================

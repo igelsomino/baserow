@@ -16,6 +16,9 @@ if TYPE_CHECKING:
     )
 
 
+EVERY_TYPE_INTERNAL_FIELDS = ["nullable"]
+
+
 class BaserowFormulaType(abc.ABC):
     @classmethod
     @property
@@ -54,7 +57,16 @@ class BaserowFormulaType(abc.ABC):
         information required for a formula of this type.
         """
 
-        return ["nullable"]
+        return []
+
+    @classmethod
+    def get_internal_fields(cls) -> List[str]:
+        """
+        :return: The list of FormulaField model field names which store internal
+        information required for a formula of this type plus EVERY_TYPE_INTERNAL_FIELDS.
+        """
+
+        return EVERY_TYPE_INTERNAL_FIELDS + cls.internal_fields
 
     @classmethod
     def all_fields(cls) -> List[str]:
@@ -63,7 +75,7 @@ class BaserowFormulaType(abc.ABC):
         this type.
         """
 
-        return cls.user_overridable_formatting_option_fields + cls.internal_fields
+        return cls.user_overridable_formatting_option_fields + cls.get_internal_fields()
 
     @property
     @abc.abstractmethod
@@ -156,7 +168,7 @@ class BaserowFormulaType(abc.ABC):
                 kwargs[field_name] = override_set_by_user
             else:
                 kwargs[field_name] = getattr(self, field_name)
-        for field_name in self.internal_fields:
+        for field_name in self.get_internal_fields():
             kwargs[field_name] = getattr(self, field_name)
         return self.__class__(**kwargs)
 
@@ -181,7 +193,7 @@ class BaserowFormulaType(abc.ABC):
                 # already set them.
                 if getattr(formula_field, attr) is None:
                     setattr(formula_field, attr, getattr(self, attr))
-            elif attr in self.internal_fields:
+            elif attr in self.get_internal_fields():
                 setattr(formula_field, attr, getattr(self, attr))
             else:
                 setattr(formula_field, attr, None)
@@ -318,7 +330,7 @@ class BaserowFormulaInvalidType(BaserowFormulaType):
     limit_comparable_types = []
     type = "invalid"
     baserow_field_type = "text"
-    internal_fields = ["error", "nullable"]
+    internal_fields = ["error"]
 
     text_default = ""
 

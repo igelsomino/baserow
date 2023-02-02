@@ -20,6 +20,9 @@ services:
       - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
+    healthcheck:
+      interval: 10s
+      timeout: 120s
 
   web-frontend:
     image: $WEBFRONTEND_CI_DEV_IMAGE
@@ -29,6 +32,9 @@ services:
       - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
+    healthcheck:
+      interval: 10s
+      timeout: 120s
 
   celery:
     image: $BACKEND_CI_DEV_IMAGE
@@ -48,3 +54,7 @@ services:
       - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
+    healthcheck:
+      test: ["CMD", "/bin/bash", "/baserow/backend/docker/docker-entrypoint.sh", "celery-worker-healthcheck"]
+      interval: 10s
+      timeout: 120s

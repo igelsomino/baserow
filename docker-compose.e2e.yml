@@ -17,7 +17,8 @@ services:
     ports:
       - "${HOST_PUBLISH_IP:-127.0.0.1}:8000:8000"
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - $DB_IP
+      - $REDIS_IP
     stdin_open: true
     tty: true
     healthcheck:
@@ -51,7 +52,8 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
     command: celery-worker
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - $DB_IP
+      - $REDIS_IP
     stdin_open: true
     tty: true
     healthcheck:

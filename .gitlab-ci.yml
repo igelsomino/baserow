@@ -540,6 +540,12 @@ e2e-tests:
   script:
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
+    - echo "db ip"
+    - echo $DB_IP
+    - ping -w 2 $DB_IP
+    - echo "redis ip"
+    - echo $REDIS_IP
+    - ping -w 2 $REDIS_IP
     - docker compose -f docker-compose.e2e.yml up &> output.log &
     - echo "test"
     - sleep 120

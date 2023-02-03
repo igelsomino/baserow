@@ -541,8 +541,11 @@ e2e-tests:
     - name: redis:6
       alias: redis
   script:
+    - echo $REDIS_URL
+    - echo $REDIS_PROTOCOL
+    - echo $REDIS_URL
     - echo "trigger rerun"
-    - cat /etc/hosts 
+    - cat /etc/hosts
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
     - echo $DB_IP

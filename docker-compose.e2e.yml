@@ -12,7 +12,7 @@ services:
       DATABASE_NAME: ${DATABASE_NAME:-baserow}
       DATABASE_HOST: ${DB_IP}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      REDIS_HOST: ${REDIS_IP}
+      REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT:-6379}
     ports:
       - "${HOST_PUBLISH_IP:-127.0.0.1}:8000:8000"
@@ -48,7 +48,7 @@ services:
       DATABASE_NAME: ${DATABASE_NAME:-baserow}
       DATABASE_HOST: ${DB_IP}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      REDIS_HOST: ${REDIS_IP}
+      REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT:-6379}
     command: celery-worker
     extra_hosts:

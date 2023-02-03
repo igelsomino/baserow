@@ -540,7 +540,9 @@ e2e-tests:
   script:
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
-    - docker compose -f docker-compose.e2e.yml up --detach --wait
+    - docker compose -f docker-compose.e2e.yml up --detach
+    - echo "test"
+    - sleep 120
     - cd e2e-tests
     - yarn install
     - yarn playwright install

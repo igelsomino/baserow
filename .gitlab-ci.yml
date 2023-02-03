@@ -522,6 +522,9 @@ e2e-tests:
     DATABASE_USER: "baserow"
     DATABASE_PASSWORD: "baserow"
     DATABASE_NAME: "baserow"
+    POSTGRES_USER: baserow
+    POSTGRES_PASSWORD: baserow
+    POSTGRES_DB: baserow
     DOCKER_BUILDKIT: 1
   extends:
     - .docker-image-test-stage

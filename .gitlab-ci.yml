@@ -540,6 +540,7 @@ e2e-tests:
       alias: redis
   script:
     - ping -w 2 localhost
+    - ping -w 2 127.0.0.1
     - echo $REDIS_PROTOCOL
     - echo $REDIS_PORT
     - cat /etc/hosts
@@ -555,7 +556,7 @@ e2e-tests:
     - cd e2e-tests
     - yarn install
     - yarn playwright install
-    - cat output.log
+    - cat ../output.log
     - docker ps
     - CI=1 yarn playwright test
     - docker compose -f ../docker-compose.e2e.yml down || true

@@ -15,6 +15,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT:-6379}
       BASEROW_BACKEND_PORT: 8000
+      HOST_PUBLISH_IP: ${HOST_PUBLISH_IP:-127.0.0.1}
     ports:
       - "${HOST_PUBLISH_IP:-127.0.0.1}:8000:8000"
     extra_hosts:
@@ -52,6 +53,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT:-6379}
       BASEROW_BACKEND_PORT: 8000
+      HOST_PUBLISH_IP: ${HOST_PUBLISH_IP:-127.0.0.1}
     command: celery-worker
     extra_hosts:
       - db:$DB_IP

@@ -519,12 +519,10 @@ build-final-web-frontend-image:
 e2e-tests:
   variables:
     RUN_WHEN_CHANGES_MADE_IN: "backend/ premium/backend/ enterprise/backend/ web-frontend/ premium/web-frontend/ enterprise/web-frontend/ e2e-tests/"
-    DATABASE_USER: "baserow"
-    DATABASE_PASSWORD: "baserow"
-    DATABASE_NAME: "baserow"
     POSTGRES_USER: baserow
     POSTGRES_PASSWORD: baserow
     POSTGRES_DB: baserow
+    REDIS_PORT: 6379
     DOCKER_BUILDKIT: 1
   extends:
     - .docker-image-test-stage
@@ -541,10 +539,8 @@ e2e-tests:
     - name: redis:6
       alias: redis
   script:
-    - echo $REDIS_URL
     - echo $REDIS_PROTOCOL
-    - echo $REDIS_URL
-    - echo "trigger rerun"
+    - echo $REDIS_PORT
     - cat /etc/hosts
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
@@ -553,7 +549,6 @@ e2e-tests:
     - echo $REDIS_IP
     - ping -w 2 $REDIS_IP
     - docker compose -f docker-compose.e2e.yml up &> output.log &
-    - echo "test"
     - sleep 120
     - cat output.log
     - cd e2e-tests

@@ -359,7 +359,9 @@ class BaserowFormulaDateIntervalType(
         arg2: "BaserowExpression[BaserowFormulaValidType]",
     ):
         return minus_func_call.with_valid_type(
-            BaserowFormulaDateIntervalType(nullable=True)
+            BaserowFormulaDateIntervalType(
+                nullable=arg1.expression_type.nullable or arg2.expression_type.nullable
+            )
         )
 
     def get_baserow_field_instance_and_type(self):
@@ -499,16 +501,12 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
         to_text_func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaValidType]:
-        return BaserowFunctionCall[BaserowFormulaValidType](
-            formula_function_registry.get("datetime_format"),
-            [
-                arg,
-                BaserowStringLiteral(
-                    get_date_time_format(self, "sql"), BaserowFormulaTextType()
-                ),
-            ],
-            BaserowFormulaTextType(nullable=arg.expression_type.nullable),
+        when_empty_func = formula_function_registry.get("when_empty")
+        datetime_fmt_func = formula_function_registry.get("datetime_format")
+        datetime_text_literal = datetime_fmt_func(
+            arg, literal(get_date_time_format(self, "sql"))
         )
+        return when_empty_func(datetime_text_literal, literal(""))
 
     def placeholder_empty_value(self):
         if self.date_include_time:
@@ -523,8 +521,11 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
         func_call: "BaserowFunctionCall[UnTyped]",
         arg: "BaserowExpression[BaserowFormulaValidType]",
     ) -> "BaserowExpression[BaserowFormulaBooleanType]":
-
-        return formula_function_registry.get("isnull")(arg)
+        equal_expr = formula_function_registry.get("equal")
+        return equal_expr(
+            self.cast_to_text(func_call, arg),
+            literal(""),
+        )
 
     def __str__(self) -> str:
         date_or_datetime = "datetime" if self.date_include_time else "date"

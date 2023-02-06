@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("database", "0099_alter_view_ownership_type"),
+        ("database", "0100_airtableimportjob_user_ip_address"),
     ]
 
     operations = [

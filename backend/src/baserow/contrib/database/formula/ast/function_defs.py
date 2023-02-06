@@ -764,7 +764,6 @@ class BaserowFloor(OneArgumentBaserowFunction):
 class BaserowTrunc(OneArgumentBaserowFunction):
     type = "trunc"
     arg_type = [BaserowFormulaNumberType]
-    try_coerce_nullable_args_to_not_null = False
 
     def type_function(
         self,
@@ -796,13 +795,13 @@ class BaserowIsNaN(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: Union[BaserowExpression[BaserowFormulaNumberType]],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(BaserowFormulaBooleanType())
+        return func_call.with_valid_type(
+            BaserowFormulaBooleanType(nullable=arg.expression_type.nullable)
+        )
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return EqualsExpr(
-            arg,
-            Value(Decimal("NaN")),
-            output_field=fields.BooleanField(),
+            arg, Value(Decimal("NaN")), output_field=fields.BooleanField()
         )
 
 
@@ -818,7 +817,7 @@ class BaserowWhenNan(TwoArgumentBaserowFunction):
         arg2: Union[BaserowExpression[BaserowFormulaNumberType]],
     ) -> BaserowExpression[BaserowFormulaType]:
         return func_call.with_valid_type(
-            calculate_number_type([arg1.expression_type, arg2.expression_type])
+            calculate_number_type([arg1.expression_type, arg2.expression_type]),
         )
 
     def to_django_expression(self, arg1: Expression, arg2: Expression) -> Expression:
@@ -990,7 +989,7 @@ class BaserowIf(ThreeArgumentBaserowFunction):
 
             return func_call.with_valid_type(
                 resulting_type,
-                nullable=arg1.expression_type.nullable or arg2.expression_type.nullable,
+                nullable=arg2_type.nullable or arg3_type.nullable,
             )
 
     def to_django_expression(

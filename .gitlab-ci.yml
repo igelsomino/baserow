@@ -252,12 +252,6 @@ variables:
 
 # ==================================== CI UTIL ====================================
 
-.get-container-id: &get-container-id
-  |
-  # Getting Container ID
-  CONTAINER_ID=$(basename $(cat /proc/1/cpuset))
-  echo $CONTAINER_ID
-
 # A simple util image used by the other jobs containing some helper tools like git, jq,
 # coverage etc.
 build-ci-util-image:
@@ -532,7 +526,7 @@ e2e-tests:
     DOCKER_BUILDKIT: 1
     frontendBaseUrl: http://web-frontend:3000
     backendBaseUrl: http://backend:8000
-    COMPOSE_PROJECT_NAME: docker-compose-demonstrator-$CI_JOB_ID
+    COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
   extends:
     - .docker-image-test-stage
     - .skippable-job
@@ -563,7 +557,7 @@ e2e-tests:
     - echo $COMPOSE_PROJECT_NAME
     - docker ps
     - docker network list
-    - *get-container-id
+    - CONTAINER_ID=$(basename $(cat /proc/1/cpuset))
     - docker network connect ${COMPOSE_PROJECT_NAME}_default $CONTAINER_ID
     - echo $frontendBaseUrl
     - echo $backendBaseUrl

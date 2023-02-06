@@ -524,8 +524,8 @@ e2e-tests:
     POSTGRES_DB: baserow
     REDIS_PORT: 6379
     DOCKER_BUILDKIT: 1
-    frontendBaseUrl: http://127.0.0.1:3000
-    HOST_PUBLISH_IP: 127.0.0.1
+    frontendBaseUrl: http://docker:3000
+    backendBaseUrl: http://docker:8000
   extends:
     - .docker-image-test-stage
     - .skippable-job
@@ -541,18 +541,11 @@ e2e-tests:
     - name: redis:6
       alias: redis
   script:
-    - echo $HOST_PUBLISH_IP
     - ping -w 2 localhost
-    - ping -w 2 127.0.0.1
-    - echo $REDIS_PROTOCOL
-    - echo $REDIS_PORT
+    - ping -w 2 docker
     - cat /etc/hosts
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
-    - echo $DB_IP
-    - ping -w 2 $DB_IP
-    - echo $REDIS_IP
-    - ping -w 2 $REDIS_IP
     - docker compose -f docker-compose.e2e.yml up &> output.log &
     - sleep 120
     - cat output.log
@@ -561,11 +554,10 @@ e2e-tests:
     - yarn playwright install
     - cat ../output.log
     - docker ps
-    - export backendBaseUrl=http://127.0.0.1:8000
     - echo $frontendBaseUrl
     - echo $backendBaseUrl
-    - curl $backendBaseUrl
     - curl $frontendBaseUrl
+    - curl $backendBaseUrl
     - CI=1 yarn playwright test
     - docker compose -f ../docker-compose.e2e.yml down || true
 

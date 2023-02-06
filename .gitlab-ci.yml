@@ -524,8 +524,8 @@ e2e-tests:
     POSTGRES_DB: baserow
     REDIS_PORT: 6379
     DOCKER_BUILDKIT: 1
-    frontendBaseUrl: http://docker:3000
-    backendBaseUrl: http://docker:8000
+    frontendBaseUrl: http://$DOCKER_HOST:3000
+    backendBaseUrl: http://$DOCKER_HOST:8000
   extends:
     - .docker-image-test-stage
     - .skippable-job
@@ -541,6 +541,7 @@ e2e-tests:
     - name: redis:6
       alias: redis
   script:
+    - echo $DOCKER_HOST
     - ping -w 2 localhost
     - ping -w 2 docker
     - cat /etc/hosts

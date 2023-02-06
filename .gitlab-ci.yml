@@ -546,6 +546,7 @@ e2e-tests:
     - cat /etc/hosts
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
+    - export DOCKER_IP=$(cat /etc/hosts | awk '{if ($2 == "docker") print $1;}')
     - docker compose -f docker-compose.e2e.yml up &> output.log &
     - sleep 120
     - cat output.log

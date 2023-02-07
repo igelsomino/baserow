@@ -148,6 +148,8 @@ VALID_FORMULA_TESTS = [
     ),
     ("todate('20200101', 'YYYYMMDD') - todate('20210101', 'YYYYMMDD')", "-366 days"),
     ("date_interval('1 year') - date_interval('1 day')", "1 year -1 days"),
+    ("now() > todate('20200101', 'YYYYMMDD')", True),
+    ("todate('01123456', 'DDMMYYYY') < now()", False),
     ("replace('test test', 'test', 'a')", "a a"),
     ("search('test test', 'test')", "1"),
     ("search('a', 'test')", "0"),

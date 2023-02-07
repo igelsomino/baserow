@@ -2,6 +2,7 @@ from abc import ABC
 from decimal import Decimal
 from typing import List, Optional, Type, Union
 
+from django.conf import settings
 from django.contrib.postgres.aggregates import JSONBAgg
 from django.db.models import (
     Avg,
@@ -40,6 +41,7 @@ from django.db.models.functions import (
     Log,
     Lower,
     Mod,
+    Now,
     Power,
     Replace,
     Reverse,
@@ -170,6 +172,8 @@ def register_formula_functions(registry):
     registry.register(BaserowToDate())
     registry.register(BaserowDateDiff())
     registry.register(BaserowBcToNull())
+    if "now_formula" in settings.FEATURE_FLAGS:
+        registry.register(BaserowNow())
     # Date interval functions
     registry.register(BaserowDateInterval())
     # Special functions
@@ -1161,6 +1165,22 @@ class BaserowLessThanOrEqual(BaseLimitComparableFunction):
             arg2,
             output_field=fields.BooleanField(),
         )
+
+
+class BaserowNow(ZeroArgumentBaserowFunction):
+    type = "now"
+
+    def type_function(
+        self, func_call: BaserowFunctionCall[UnTyped]
+    ) -> BaserowExpression[BaserowFormulaType]:
+        return func_call.with_valid_type(
+            BaserowFormulaDateType(
+                date_format="ISO", date_include_time=False, date_time_format="24"
+            )
+        )
+
+    def to_django_expression(self) -> Expression:
+        return Now()
 
 
 class BaserowToDate(TwoArgumentBaserowFunction):

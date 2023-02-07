@@ -525,7 +525,7 @@ e2e-tests:
     REDIS_PORT: 6379
     DOCKER_BUILDKIT: 1
     COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
-    FF_NETWORK_PER_BUILD: 1
+    # FF_NETWORK_PER_BUILD: 1
   extends:
     - .docker-image-test-stage
     - .skippable-job
@@ -542,9 +542,10 @@ e2e-tests:
     - name: redis:6
       alias: redis
   script:
-    - export CI_BUILD_NETWORK_ID="$HOSTNAME-job-$CI_JOB_ID-network"
-    - echo $CI_BUILD_NETWORK_ID
+    # - export CI_BUILD_NETWORK_ID="$HOSTNAME-job-$CI_JOB_ID-network"
+    # - echo $CI_BUILD_NETWORK_ID
     - cat /etc/hosts
+    - docker network list
     - ping -w 2 docker
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')

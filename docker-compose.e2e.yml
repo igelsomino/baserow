@@ -64,6 +64,6 @@ services:
       timeout: 120s
 
 networks:
-  default:
+  ci:
     external: true
-    name: bridge
+    name: $CI_BUILD_NETWORK_ID

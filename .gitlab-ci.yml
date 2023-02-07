@@ -525,7 +525,7 @@ e2e-tests:
     REDIS_PORT: 6379
     DOCKER_BUILDKIT: 1
     COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
-    # FF_NETWORK_PER_BUILD: 1
+    FF_NETWORK_PER_BUILD: "true"
   extends:
     - .docker-image-test-stage
     - .skippable-job
@@ -542,11 +542,12 @@ e2e-tests:
     - name: redis:6
       alias: redis
   script:
-    # - export CI_BUILD_NETWORK_ID="$HOSTNAME-job-$CI_JOB_ID-network"
-    # - echo $CI_BUILD_NETWORK_ID
+    - export CI_BUILD_NETWORK_ID="$HOSTNAME-job-$CI_JOB_ID-network"
+    - echo $CI_BUILD_NETWORK_ID
     - cat /etc/hosts
     - docker network list
     - ping -w 2 docker
+    - ping -w 2 db
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
     - export DOCKER_IP=$(cat /etc/hosts | awk '{if ($2 == "docker") print $1;}')
@@ -557,15 +558,15 @@ e2e-tests:
     # - yarn install
     # - yarn playwright install
     - cat ../output.log
+    - cat /etc/hosts
     - docker ps
     - docker network list
     - docker network inspect bridge
     - docker network inspect host
-    - cat /etc/hosts
     - docker ps -q | xargs -n 1 docker inspect --format '{{ .Name }} {{range .NetworkSettings.Networks}} {{.IPAddress}}{{end}}' | sed 's#^/##';
     - CONTAINER_ID=$(basename $(cat /proc/1/cpuset))
-    - frontendBaseUrl="http://127.0.0.1:3000"
-    - backendBaseUrl="http://127.0.0.1:8000"
+    - frontendBaseUrl="http://web-frontend:3000"
+    - backendBaseUrl="http://backend:8000"
     - echo $frontendBaseUrl
     - echo $backendBaseUrl
     - curl $frontendBaseUrl

@@ -266,7 +266,7 @@ class FormulaTypingVisitor(
             expression = field_type.to_baserow_formula_expression(referenced_field)
             # if other formula fields are referenced, we want to avoid
             # keep nesting wrapper functions, so unwrap the expression here
-            if expression.is_wrapper:
+            while expression.is_wrapper:
                 expression = expression.expression_type.unwrap_at_field_level(
                     expression
                 )

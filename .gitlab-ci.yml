@@ -524,8 +524,6 @@ e2e-tests:
     POSTGRES_DB: baserow
     REDIS_PORT: 6379
     DOCKER_BUILDKIT: 1
-    frontendBaseUrl: http://web-frontend:3000
-    backendBaseUrl: http://backend:8000
     COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
   extends:
     - .docker-image-test-stage
@@ -536,7 +534,8 @@ e2e-tests:
     - job: build-backend-image
     - job: build-web-frontend-image
   services:
-    - docker:20.10.12-dind
+    - name: docker:20.10.12-dind
+      alias: docker
     - name: postgres:11
       alias: db
     - name: redis:6
@@ -554,11 +553,11 @@ e2e-tests:
     - yarn install
     - yarn playwright install
     - cat ../output.log
-    - echo $COMPOSE_PROJECT_NAME
     - docker ps
     - docker network list
     - CONTAINER_ID=$(basename $(cat /proc/1/cpuset))
-    - docker network connect ${COMPOSE_PROJECT_NAME}_default $CONTAINER_ID
+    - frontendBaseUrl="http://$DOCKER_IP:3000"
+    - backendBaseUrl="http://$DOCKER_IP:8000"
     - echo $frontendBaseUrl
     - echo $backendBaseUrl
     - curl $frontendBaseUrl

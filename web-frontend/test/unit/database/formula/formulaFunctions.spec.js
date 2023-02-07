@@ -50,6 +50,7 @@ describe('Formula Functions Test', () => {
       'is_nan',
       'not',
       'not_equal',
+      'now',
       'greater_than',
       'greater_than_or_equal',
       'less_than',

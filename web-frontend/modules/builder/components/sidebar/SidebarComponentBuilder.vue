@@ -1,6 +1,7 @@
 <template>
   <div>
     <SidebarApplication
+      ref="sidebarApplication"
       :group="group"
       :application="application"
       @selected="selected"
@@ -15,7 +16,7 @@
             )
           "
         >
-          <a @click="$refs.builderSettingsModal.show()">
+          <a @click="settingsClicked">
             <i class="context__menu-icon fas fa-fw fa-cog"></i>
             {{ $t('sidebarComponentBuilder.settings') }}
           </a>
@@ -46,6 +47,10 @@ export default {
   methods: {
     selected() {
       console.log('TODO')
+    },
+    settingsClicked() {
+      this.$refs.sidebarApplication.$refs.context.hide()
+      this.$refs.builderSettingsModal.show()
     },
   },
 }

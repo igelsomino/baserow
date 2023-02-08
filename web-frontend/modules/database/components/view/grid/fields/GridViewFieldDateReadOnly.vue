@@ -2,7 +2,10 @@
   <div ref="cell" class="grid-view__cell active">
     <div
       class="grid-field-date"
-      :class="{ 'grid-field-date--has-time': field.date_include_time }"
+      :class="{
+        'grid-field-date--has-time': field.date_include_time,
+        'grid-field-date--has-tzinfo': field.date_show_tzinfo,
+      }"
     >
       <div ref="dateDisplay" class="grid-field-date__date">
         {{ getDate(field, value) }}
@@ -13,6 +16,9 @@
         class="grid-field-date__time"
       >
         {{ getTime(field, value) }}
+      </div>
+      <div v-if="field.date_show_tzinfo" class="grid-field-date__tzinfo">
+        {{ showTimezone(field, value) }}
       </div>
     </div>
   </div>

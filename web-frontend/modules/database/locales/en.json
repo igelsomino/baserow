@@ -235,6 +235,7 @@
         "dateFormatUS": "US",
         "dateFormatISO": "ISO",
         "includeTimeLabel": "Include time",
+        "showTimezoneLabel": "Show timezone",
         "timeFormatLabel": "Time format",
         "24Hour": "24 hour",
         "12Hour": "12 hour"

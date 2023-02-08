@@ -34,12 +34,13 @@ from baserow.contrib.database.views.registries import view_type_registry
 from baserow.core.exceptions import UserNotInGroup
 from baserow.core.handler import CoreHandler
 
+from baserow_premium.api.views.errors import ERROR_INVALID_SELECT_OPTION_PARAMETER
+
 from .errors import (
-    ERROR_INVALID_SELECT_OPTION_PARAMETER,
     ERROR_KANBAN_DOES_NOT_EXIST,
     ERROR_KANBAN_VIEW_HAS_NO_SINGLE_SELECT_FIELD,
 )
-from .exceptions import InvalidSelectOptionParameter
+from baserow_premium.api.views.exceptions import InvalidSelectOptionParameter
 from .serializers import KanbanViewExampleResponseSerializer
 from .utils import prepare_kanban_view_parameters
 

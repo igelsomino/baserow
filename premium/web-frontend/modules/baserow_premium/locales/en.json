@@ -13,7 +13,8 @@
             "licenses": "Licenses"
         },
         "viewType": {
-            "kanban": "Kanban"
+            "kanban": "Kanban",
+            "calendar": "Calendar"
         },
         "exporterType": {
             "json": "Export to JSON",
@@ -183,6 +184,7 @@
     "premiumFeatures": {
         "rowComments": "Row comments",
         "kanbanView": "Kanban view",
+        "calendarView": "Calendar view",
         "exports": "JSON and XML export",
         "admin": "Admin functionality",
         "rowColoring": "Row coloring",

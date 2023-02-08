@@ -14,7 +14,7 @@ import kanbanStore from '@baserow_premium/store/view/kanban'
 import impersonatingStore from '@baserow_premium/store/impersonating'
 import { PremiumDatabaseApplicationType } from '@baserow_premium/applicationTypes'
 import { registerRealtimeEvents } from '@baserow_premium/realtime'
-import { KanbanViewType } from '@baserow_premium/viewTypes'
+import { KanbanViewType, CalendarViewType } from '@baserow_premium/viewTypes'
 
 import {
   LeftBorderColorViewDecoratorType,
@@ -71,6 +71,7 @@ export default (context) => {
   app.$registry.register('exporter', new JSONTableExporter(context))
   app.$registry.register('exporter', new XMLTableExporter(context))
   app.$registry.register('view', new KanbanViewType(context))
+  app.$registry.register('view', new CalendarViewType(context))
 
   app.$registry.register(
     'viewDecorator',

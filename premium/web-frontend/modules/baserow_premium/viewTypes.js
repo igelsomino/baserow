@@ -4,7 +4,9 @@ import {
 } from '@baserow/modules/database/viewTypes'
 import { SingleSelectFieldType } from '@baserow/modules/database/fieldTypes'
 import KanbanView from '@baserow_premium/components/views/kanban/KanbanView'
+import CalendarView from '@baserow_premium/components/views/calendar/CalendarView'
 import KanbanViewHeader from '@baserow_premium/components/views/kanban/KanbanViewHeader'
+import CalendarViewHeader from '@baserow_premium/components/views/calendar/CalendarViewHeader'
 import PremiumModal from '@baserow_premium/components/PremiumModal'
 import PremiumFeatures from '@baserow_premium/features'
 
@@ -207,5 +209,106 @@ export class KanbanViewType extends PremiumViewType {
     // have been deleted
     this._setFieldToNull(context, field, 'single_select_field')
     this._setFieldToNull(context, field, 'card_cover_image_field')
+  }
+}
+
+
+export class CalendarViewType extends PremiumViewType {
+  static getType() {
+    return 'calendar'
+  }
+
+  getIconClass() {
+    return 'calendar'
+  }
+
+  getColorClass() {
+    return 'color-success'
+  }
+
+  getName() {
+    const { i18n } = this.app
+    return i18n.t('premium.viewType.calendar')
+  }
+
+  canFilter() {
+    return false
+  }
+
+  canSort() {
+    return false
+  }
+
+  canShare() {
+    return false
+  }
+
+  getPublicRoute() {
+    return 'database-public-calendar-view'
+  }
+
+  getHeaderComponent() {
+    return CalendarViewHeader
+  }
+
+  getComponent() {
+    return CalendarView
+  }
+
+  async fetch({ store }, view, fields, storePrefix = '') {
+  }
+
+  async refresh(
+    { store },
+    view,
+    fields,
+    storePrefix = '',
+    includeFieldOptions = false
+  ) {
+  }
+
+  async fieldOptionsUpdated({ store }, view, fieldOptions, storePrefix) {
+  }
+
+  updated(context, view, oldView, storePrefix) {
+  }
+
+  async rowCreated(
+    { store },
+    tableId,
+    fields,
+    values,
+    metadata,
+    storePrefix = ''
+  ) {
+  }
+
+  async rowUpdated(
+    { store },
+    tableId,
+    fields,
+    row,
+    values,
+    metadata,
+    storePrefix = ''
+  ) {
+  }
+
+  async rowDeleted({ store }, tableId, fields, row, storePrefix = '') {
+  }
+
+  async afterFieldCreated(
+    { dispatch },
+    table,
+    field,
+    fieldType,
+    storePrefix = ''
+  ) {
+  }
+
+  afterFieldUpdated(context, field, oldField, fieldType, storePrefix) {
+  }
+
+  afterFieldDeleted(context, field, fieldType, storePrefix = '') {
   }
 }

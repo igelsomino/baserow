@@ -28,7 +28,7 @@
 
 <script>
 import SidebarApplication from '@baserow/modules/core/components/sidebar/SidebarApplication'
-import BuilderSettingsModal from '@baserow/modules/builder/components/BuilderSettingsModal'
+import BuilderSettingsModal from '@baserow/modules/builder/components/settings/BuilderSettingsModal'
 
 export default {
   name: 'TemplateSidebar',

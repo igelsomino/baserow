@@ -25,4 +25,9 @@ export default function BuilderModule(options) {
   this.nuxt.hook('i18n:extend-messages', function (additionalMessages) {
     additionalMessages.push({ en, fr, nl, de, it, es, pl })
   })
+
+  // Override Baserow's existing default.scss in favor of our own because that one
+  // imports the original. We do this so that we can use the existing variables,
+  // mixins, placeholders etc.
+  this.options.css[0] = path.resolve(__dirname, 'assets/scss/default.scss')
 }

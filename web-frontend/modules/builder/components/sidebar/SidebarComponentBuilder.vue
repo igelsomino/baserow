@@ -4,6 +4,22 @@
     :application="application"
     @selected="selected"
   >
+    <template #context>
+      <li
+        v-if="
+          $hasPermission(
+            'application.update',
+            application,
+            application.group.id
+          )
+        "
+      >
+        <a>
+          <i class="context__menu-icon fas fa-fw fa-cog"></i>
+          {{ $t('sidebarComponentBuilder.settings') }}
+        </a>
+      </li>
+    </template>
   </SidebarApplication>
 </template>
 

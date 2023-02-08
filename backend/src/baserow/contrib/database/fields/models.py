@@ -421,6 +421,10 @@ class FormulaField(Field):
         max_length=32,
         help_text="24 (14:30) or 12 (02:30 PM)",
     )
+    date_show_tzinfo = models.BooleanField(
+        default=False,
+        help_text="Indicates if the time zone should be shown.",
+    )
 
     @cached_property
     def cached_untyped_expression(self):

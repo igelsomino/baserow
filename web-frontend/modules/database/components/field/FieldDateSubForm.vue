@@ -27,6 +27,9 @@
     </div>
     <div class="control">
       <div class="control__elements">
+        <Checkbox v-model="values.date_show_tzinfo">{{
+          $t('fieldDateSubForm.showTimezoneLabel')
+        }}</Checkbox>
         <Checkbox v-model="values.date_include_time">{{
           $t('fieldDateSubForm.includeTimeLabel')
         }}</Checkbox>
@@ -60,7 +63,6 @@
 import { required } from 'vuelidate/lib/validators'
 
 import form from '@baserow/modules/core/mixins/form'
-
 import fieldSubForm from '@baserow/modules/database/mixins/fieldSubForm'
 
 export default {
@@ -68,11 +70,17 @@ export default {
   mixins: [form, fieldSubForm],
   data() {
     return {
-      allowedValues: ['date_format', 'date_include_time', 'date_time_format'],
+      allowedValues: [
+        'date_format',
+        'date_include_time',
+        'date_time_format',
+        'date_show_tzinfo',
+      ],
       values: {
         date_format: 'EU',
         date_include_time: false,
         date_time_format: '24',
+        date_show_tzinfo: false,
       },
     }
   },
@@ -91,11 +99,19 @@ export default {
         this.values.date_include_time = false
       }
     },
+    'values.date_show_tzinfo'(newValue, oldValue) {
+      // For formula fields date_show_tzinfo is nullable, ensure it is set to the
+      // default otherwise we will be sending nulls to the server.
+      if (newValue == null) {
+        this.values.date_show_tzinfo = false
+      }
+    },
   },
   validations: {
     values: {
       date_format: { required },
       date_time_format: { required },
+      date_show_tzinfo: { required },
     },
   },
 }

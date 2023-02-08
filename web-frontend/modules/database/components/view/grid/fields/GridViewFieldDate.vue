@@ -7,7 +7,10 @@
   >
     <div
       class="grid-field-date"
-      :class="{ 'grid-field-date--has-time': field.date_include_time }"
+      :class="{
+        'grid-field-date--has-time': field.date_include_time,
+        'grid-field-date--has-tzinfo': field.date_show_tzinfo,
+      }"
     >
       <div v-show="!editing" ref="dateDisplay" class="grid-field-date__date">
         {{ date }}

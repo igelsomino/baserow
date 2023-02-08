@@ -26,5 +26,13 @@ export default {
       const timeFormat = getTimeMomentFormat(field.date_time_format)
       return existing.format(timeFormat)
     },
+    showTimezone(field, value) {
+      if (value === null || value === undefined) {
+        return ''
+      }
+
+      const existing = moment.tz(value || undefined, this.getTimezone(field))
+      return existing.format('z')
+    },
   },
 }

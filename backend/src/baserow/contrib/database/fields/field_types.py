@@ -675,8 +675,18 @@ class BooleanFieldType(FieldType):
 class DateFieldType(FieldType):
     type = "date"
     model_class = DateField
-    allowed_fields = ["date_format", "date_include_time", "date_time_format"]
-    serializer_field_names = ["date_format", "date_include_time", "date_time_format"]
+    allowed_fields = [
+        "date_format",
+        "date_include_time",
+        "date_time_format",
+        "date_show_tzinfo",
+    ]
+    serializer_field_names = [
+        "date_format",
+        "date_include_time",
+        "date_time_format",
+        "date_show_tzinfo",
+    ]
 
     def prepare_value_for_db(self, instance, value):
         """

@@ -1,3 +1,5 @@
+import moment from 'moment-timezone'
+
 const dateMapping = {
   EU: {
     momentFormat: 'DD/MM/YYYY',
@@ -50,4 +52,10 @@ export const getTimeHumanReadableFormat = (type) => {
     throw new Error(`${type} wasn't found in the time mapping.`)
   }
   return timeMapping[type].humanFormat
+}
+
+export const getTimezone = (field) => {
+  return field.date_include_time
+    ? field.date_force_timezone || moment.tz.guess()
+    : 'GMT'
 }

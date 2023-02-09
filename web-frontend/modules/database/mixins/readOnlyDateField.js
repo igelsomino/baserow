@@ -2,18 +2,16 @@ import moment from '@baserow/modules/core/moment'
 import {
   getDateMomentFormat,
   getTimeMomentFormat,
+  getTimezone,
 } from '@baserow/modules/database/utils/date'
 
 export default {
   methods: {
-    getTimezone(field) {
-      return field.timezone || 'UTC'
-    },
     getDate(field, value) {
       if (value === null || value === undefined) {
         return ''
       }
-      const existing = moment.tz(value || undefined, this.getTimezone(field))
+      const existing = moment.utc(value || undefined)
       const dateFormat = getDateMomentFormat(field.date_format)
       return existing.format(dateFormat)
     },
@@ -22,7 +20,7 @@ export default {
         return ''
       }
 
-      const existing = moment.tz(value || undefined, this.getTimezone(field))
+      const existing = moment(value || undefined).tz(getTimezone(field))
       const timeFormat = getTimeMomentFormat(field.date_time_format)
       return existing.format(timeFormat)
     },
@@ -31,7 +29,7 @@ export default {
         return ''
       }
 
-      const existing = moment.tz(value || undefined, this.getTimezone(field))
+      const existing = moment(value || undefined).tz(getTimezone(field))
       return existing.format('z')
     },
   },

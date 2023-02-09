@@ -44,6 +44,11 @@ class BaseDateMixin(models.Model):
     date_show_tzinfo = models.BooleanField(
         default=False, help_text="Indicates if the timezone should be shown."
     )
+    date_force_timezone = models.CharField(
+        max_length=255,
+        null=True,
+        help_text="Force a timezone for the field overriding user profile settings.",
+    )
 
     class Meta:
         abstract = True

@@ -680,12 +680,14 @@ class DateFieldType(FieldType):
         "date_include_time",
         "date_time_format",
         "date_show_tzinfo",
+        "date_force_timezone",
     ]
     serializer_field_names = [
         "date_format",
         "date_include_time",
         "date_time_format",
         "date_show_tzinfo",
+        "date_force_timezone",
     ]
 
     def prepare_value_for_db(self, instance, value):

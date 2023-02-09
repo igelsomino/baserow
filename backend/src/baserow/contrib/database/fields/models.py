@@ -425,6 +425,11 @@ class FormulaField(Field):
         default=False,
         help_text="Indicates if the time zone should be shown.",
     )
+    date_force_timezone = models.CharField(
+        max_length=255,
+        null=True,
+        help_text="Force a timezone for the field overriding user profile settings.",
+    )
 
     @cached_property
     def cached_untyped_expression(self):
@@ -485,6 +490,7 @@ class FormulaField(Field):
         recalculate = kwargs.pop("recalculate", not self.trashed)
         field_cache = kwargs.pop("field_cache", None)
         raise_if_invalid = kwargs.pop("raise_if_invalid", False)
+
         if recalculate:
             self.recalculate_internal_fields(
                 field_cache=field_cache, raise_if_invalid=raise_if_invalid

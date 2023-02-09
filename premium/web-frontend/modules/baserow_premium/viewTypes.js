@@ -212,7 +212,6 @@ export class KanbanViewType extends PremiumViewType {
   }
 }
 
-
 export class CalendarViewType extends PremiumViewType {
   static getType() {
     return 'calendar'
@@ -255,8 +254,7 @@ export class CalendarViewType extends PremiumViewType {
     return CalendarView
   }
 
-  async fetch({ store }, view, fields, storePrefix = '') {
-  }
+  async fetch({ store }, view, fields, storePrefix = '') {}
 
   async refresh(
     { store },
@@ -264,14 +262,11 @@ export class CalendarViewType extends PremiumViewType {
     fields,
     storePrefix = '',
     includeFieldOptions = false
-  ) {
-  }
+  ) {}
 
-  async fieldOptionsUpdated({ store }, view, fieldOptions, storePrefix) {
-  }
+  async fieldOptionsUpdated({ store }, view, fieldOptions, storePrefix) {}
 
-  updated(context, view, oldView, storePrefix) {
-  }
+  updated(context, view, oldView, storePrefix) {}
 
   async rowCreated(
     { store },
@@ -280,8 +275,7 @@ export class CalendarViewType extends PremiumViewType {
     values,
     metadata,
     storePrefix = ''
-  ) {
-  }
+  ) {}
 
   async rowUpdated(
     { store },
@@ -291,11 +285,9 @@ export class CalendarViewType extends PremiumViewType {
     values,
     metadata,
     storePrefix = ''
-  ) {
-  }
+  ) {}
 
-  async rowDeleted({ store }, tableId, fields, row, storePrefix = '') {
-  }
+  async rowDeleted({ store }, tableId, fields, row, storePrefix = '') {}
 
   async afterFieldCreated(
     { dispatch },
@@ -303,12 +295,9 @@ export class CalendarViewType extends PremiumViewType {
     field,
     fieldType,
     storePrefix = ''
-  ) {
-  }
+  ) {}
 
-  afterFieldUpdated(context, field, oldField, fieldType, storePrefix) {
-  }
+  afterFieldUpdated(context, field, oldField, fieldType, storePrefix) {}
 
-  afterFieldDeleted(context, field, fieldType, storePrefix = '') {
-  }
+  afterFieldDeleted(context, field, fieldType, storePrefix = '') {}
 }

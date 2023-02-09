@@ -17,6 +17,18 @@ export default function BuilderModule(options) {
     src: path.resolve(__dirname, 'plugin.js'),
   })
 
+  // Override the existing generated nuxt router.js file, so that we can change the
+  // used router.
+  this.addPlugin({
+    src: path.resolve(__dirname, 'plugins/router.js'),
+    fileName: 'router.js',
+  })
+  // Create a with the old router that can be used by the `plugins/router.js`
+  this.addTemplate({
+    fileName: 'defaultRouter.js',
+    src: require.resolve('@nuxt/vue-app/template/router'),
+  })
+
   // Add all the related routes.
   this.extendRoutes((configRoutes) => {
     configRoutes.push(...routes)

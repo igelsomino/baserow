@@ -1421,7 +1421,9 @@ class BaseDateFieldType extends FieldType {
       formats = formats.concat(USFormat).concat(EUFormat)
     }
 
-    const date = moment.utc(value, formats)
+    const date = moment(value, formats).tz(
+      field.date_force_timestamp || moment.tz.guess()
+    )
 
     if (date.isValid()) {
       return field.date_include_time ? date.format() : date.format('YYYY-MM-DD')
@@ -1518,7 +1520,7 @@ export class CreatedOnLastModifiedBaseFieldType extends BaseDateFieldType {
    * is simply the current time.
    */
   getNewRowValue() {
-    return moment().utc().format()
+    return moment().local().format()
   }
 
   shouldFetchDataWhenAdded() {

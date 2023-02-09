@@ -389,6 +389,7 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
         "date_include_time",
         "date_time_format",
         "date_show_tzinfo",
+        "date_force_timezone",
     ]
 
     def __init__(
@@ -397,11 +398,13 @@ class BaserowFormulaDateType(BaserowFormulaValidType):
         date_include_time: bool,
         date_time_format: str,
         date_show_tzinfo: bool = False,
+        date_force_timezone: Optional[str] = None,
     ):
         self.date_format = date_format
         self.date_include_time = date_include_time
         self.date_time_format = date_time_format
         self.date_show_tzinfo = date_show_tzinfo
+        self.date_force_timezone = date_force_timezone
 
     @property
     def comparable_types(self) -> List[Type["BaserowFormulaValidType"]]:

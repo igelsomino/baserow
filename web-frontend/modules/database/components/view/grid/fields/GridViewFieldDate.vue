@@ -23,6 +23,7 @@
       >
         {{ time }}
       </div>
+
       <template v-if="editing">
         <input
           ref="date"
@@ -73,6 +74,9 @@
           ></TimeSelectContext>
         </template>
       </template>
+      <div v-if="field.date_show_tzinfo" class="grid-field-date__tzinfo">
+        {{ showTimezone(field, value) }}
+      </div>
     </div>
   </div>
 </template>

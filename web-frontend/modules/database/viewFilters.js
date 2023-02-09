@@ -619,7 +619,7 @@ export class DateCompareTodayViewFilterType extends ViewFilterType {
   }
 
   getDefaultValue() {
-    return new Intl.DateTimeFormat().resolvedOptions().timeZone
+    return moment.tz.guess()
   }
 
   prepareValue() {
@@ -774,7 +774,7 @@ export class DateEqualsXAgoViewFilterType extends ViewFilterType {
   }
 
   getExample() {
-    const tzone = new Intl.DateTimeFormat().resolvedOptions().timeZone
+    const tzone = moment.tz.guess()
     const xAgo = 1
     return `${tzone}${this.getSeparator()}${xAgo}`
   }
@@ -786,7 +786,7 @@ export class DateEqualsXAgoViewFilterType extends ViewFilterType {
       ;[tzone, rawXAgo] = rawValue.split(this.getSeparator())
       xAgo = parseInt(rawXAgo)
     } else {
-      tzone = new Intl.DateTimeFormat().resolvedOptions().timeZone
+      tzone = moment.tz.guess()
     }
     xAgo = isNaN(xAgo) ? '' : xAgo
     return `${tzone}${this.getSeparator()}${xAgo}`

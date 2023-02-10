@@ -15,7 +15,7 @@
           >
             <i
               class="fas modal-sidebar__nav-icon"
-              :class="'fa-' + setting.iconClass"
+              :class="'fa-' + setting.getIconClass()"
             ></i>
             {{ setting.getName() }}
           </a>

@@ -11,6 +11,10 @@ class BuilderSettingType extends Registerable {
     return null
   }
 
+  getIconClass() {
+    return null
+  }
+
   getComponent() {
     return null
   }
@@ -23,6 +27,10 @@ export class IntegrationsBuilderSettingsType extends BuilderSettingType {
 
   getName() {
     return this.app.i18n.t('builderSettingTypes.integrationsName')
+  }
+
+  getIconClass() {
+    return 'plug'
   }
 
   getOrder() {
@@ -41,6 +49,10 @@ export class ThemeBuilderSettingsType extends BuilderSettingType {
 
   getName() {
     return this.app.i18n.t('builderSettingTypes.themeName')
+  }
+
+  getIconClass() {
+    return 'tint'
   }
 
   getOrder() {

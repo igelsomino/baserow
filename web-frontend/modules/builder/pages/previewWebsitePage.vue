@@ -9,22 +9,20 @@
 
 <script>
 import PageContent from '@baserow/modules/builder/components/PageContent'
-import publicSiteService from '@baserow/modules/builder/services/builderApplication'
+import publicSiteService from '@baserow/modules/builder/services/builderApplication.js'
 import { resolveApplicationRoute } from '@baserow/modules/builder/utils/routing'
 
 export default {
   components: { PageContent },
   async asyncData(context) {
-    const host = process.server
-      ? context.req.headers.host
-      : window.location.host
-    const hostname = new URL(`http://${host}`).hostname
+    const application = await publicSiteService(context.$client).fetchById(
+      context.route.params.id
+    )
 
-    const application = await publicSiteService(
-      context.$client
-    ).fetchByHostname(hostname)
-
-    const found = resolveApplicationRoute(application, context.route.path)
+    const found = resolveApplicationRoute(
+      application,
+      context.route.params.pathMatch
+    )
     // Handle 404
     if (!found) {
       context.error({

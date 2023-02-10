@@ -52,7 +52,6 @@ export function createRouter(ssrContext, config) {
     )
   })
 
-  // @TODO show special 404 or 500 page when publicWebsiteRoutes is true.
   return new Router({
     ...routerOptions,
     routes: newRoutes,

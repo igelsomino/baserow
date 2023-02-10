@@ -17,7 +17,6 @@ For example:
 * Add e2e tests. [#820](https://gitlab.com/bramw/baserow/-/issues/820)
 * Added missing actions for audit log. [#1500](https://gitlab.com/bramw/baserow/-/issues/1500)
 * Add `is_nan` and `when_nan` formula functions [#1527](https://gitlab.com/bramw/baserow/-/issues/1527)
-* Add ability to create an Application Builder [#1567](https://gitlab.com/bramw/baserow/-/issues/1567)
 
 ### Bug Fixes
 * Add missing `procps` system package to all-in-one docker image fixing `/baserow/supervisor/docker-postgres-setup.sh run` (#1512)[https://gitlab.com/bramw/baserow/-/issues/1512]

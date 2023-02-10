@@ -16,13 +16,13 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.files.storage import Storage, default_storage
 from django.db import OperationalError, models
-from django.db.models import CharField, DateTimeField, F, Func, Q, Value
+from django.db.models import CharField, F, Func, Q, Value
 from django.db.models.functions import Coalesce
 from django.utils.timezone import make_aware
 
 from dateutil import parser
 from dateutil.parser import ParserError
-from pytz import all_timezones, timezone
+from pytz import timezone
 from rest_framework import serializers
 
 from baserow.contrib.database.api.fields.errors import (
@@ -900,92 +900,22 @@ class CreatedOnLastModifiedBaseFieldType(ReadOnlyFieldType, DateFieldType):
     can_be_in_form_view = False
     field_data_is_derived_from_attrs = True
 
-    allowed_fields = DateFieldType.allowed_fields + ["timezone"]
-    serializer_field_names = DateFieldType.serializer_field_names + ["timezone"]
-    serializer_field_overrides = {
-        "timezone": serializers.ChoiceField(choices=all_timezones, required=True)
-    }
     source_field_name = None
     model_field_class = models.DateTimeField
     model_field_kwargs = {}
     populate_from_field = None
 
-    def get_export_value(self, value, field_object, rich_value=False):
-        if value is None:
-            return value if rich_value else ""
-
-        python_format = field_object["field"].get_python_format()
-        field = field_object["field"]
-        field_timezone = timezone(field.get_timezone())
-        return value.astimezone(field_timezone).strftime(python_format)
-
     def get_serializer_field(self, instance, **kwargs):
         if not instance.date_include_time:
             kwargs["format"] = "%Y-%m-%d"
-            kwargs["default_timezone"] = timezone(instance.timezone)
 
-        return serializers.DateTimeField(
-            **{
-                "required": False,
-                **kwargs,
-            }
-        )
+        return serializers.DateTimeField(**{"required": False, **kwargs})
 
     def get_model_field(self, instance, **kwargs):
         kwargs["null"] = True
         kwargs["blank"] = True
         kwargs.update(self.model_field_kwargs)
         return self.model_field_class(**kwargs)
-
-    def contains_query(self, field_name, value, model_field, field):
-        value = value.strip()
-        # If an empty value has been provided we do not want to filter at all.
-        if value == "":
-            return Q()
-        # No user input goes into the RawSQL, safe to use.
-        return AnnotatedQ(
-            annotation={
-                f"formatted_date_{field_name}": Coalesce(
-                    Func(
-                        Func(
-                            Value(
-                                field.get_timezone(),
-                            ),
-                            F(field_name),
-                            function="timezone",
-                            output_field=DateTimeField(),
-                        ),
-                        Value(field.get_psql_format()),
-                        function="to_char",
-                        output_field=CharField(),
-                    ),
-                    Value(""),
-                )
-            },
-            q={f"formatted_date_{field_name}__icontains": value},
-        )
-
-    def get_alter_column_prepare_old_value(self, connection, from_field, to_field):
-        """
-        If the field type has changed then we want to convert the date or timestamp to
-        a human readable text following the old date format.
-        """
-
-        to_field_type = field_type_registry.get_by_model(to_field)
-        if to_field_type.type != self.type:
-            sql_format = from_field.get_psql_format()
-            variables = {}
-            variable_name = f"{from_field.db_column}_timezone"
-            variables[variable_name] = from_field.get_timezone()
-            return (
-                f"""p_in = TO_CHAR(p_in::timestamptz at time zone %({variable_name})s,
-                '{sql_format}');""",
-                variables,
-            )
-
-        return super().get_alter_column_prepare_old_value(
-            connection, from_field, to_field
-        )
 
     def after_create(self, field, model, user, connection, before, field_kwargs):
         """

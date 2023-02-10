@@ -5,6 +5,7 @@ import {
   getDateHumanReadableFormat,
   getTimeHumanReadableFormat,
   getTimezone,
+  localizeMoment,
 } from '@baserow/modules/database/utils/date'
 
 /**
@@ -50,7 +51,7 @@ export default {
      */
     updateDate(field, value) {
       const dateFormat = getDateMomentFormat(field.date_format)
-      const newDate = moment.utc(value, dateFormat)
+      const newDate = localizeMoment(field, value, dateFormat)
       this.updateCopy(
         field,
         {
@@ -67,7 +68,7 @@ export default {
      * value that is actually going to be saved.
      */
     updateTime(field, value) {
-      const newTime = moment(value, ['h:m a', 'H:m']).tz(getTimezone(field))
+      const newTime = localizeMoment(field, value, ['h:m a', 'H:m'])
       this.updateCopy(
         field,
         {
@@ -84,7 +85,7 @@ export default {
      */
     chooseDate(field, value) {
       const dateFormat = getDateMomentFormat(field.date_format)
-      value = moment.utc(value).format(dateFormat)
+      value = localizeMoment(field, moment(value)).format(dateFormat)
       this.date = value
       this.updateDate(field, value)
     },
@@ -105,15 +106,14 @@ export default {
         return
       }
 
-      const existing = moment(this.copy || undefined).seconds(0)
+      const existing = localizeMoment(
+        field,
+        moment(this.copy || undefined).seconds(0)
+      )
       existing.set(values)
-      let newValue
-      if (!field.date_include_time) {
-        newValue = existing.format('YYYY-MM-DD')
-      } else {
-        newValue = existing.tz(getTimezone(field)).format()
-      }
-      this.copy = newValue
+      this.copy = field.date_include_time
+        ? existing.format()
+        : existing.format('YYYY-MM-DD')
     },
     /**
      * Updates the date and time data by converting the value to the correct formats.
@@ -125,21 +125,19 @@ export default {
         return
       }
 
-      const existing = moment(value || undefined).seconds(0)
+      const existing = localizeMoment(
+        field,
+        moment(value || undefined).seconds(0)
+      )
 
       const dateFormat = getDateMomentFormat(this.field.date_format)
       const timeFormat = getTimeMomentFormat(this.field.date_time_format)
 
       this.date = existing.format(dateFormat)
-      this.time = existing.tz(getTimezone(field)).format(timeFormat)
+      this.time = existing.format(timeFormat)
     },
-    showTimezone(field, value) {
-      if (value === null || value === undefined) {
-        return ''
-      }
-
-      const existing = moment(value || undefined).tz(getTimezone(field))
-      return existing.format('z')
+    getTimezone(field, value) {
+      return getTimezone(field, value)
     },
     /**
      * Returns a human readable date placeholder of the format for the input.

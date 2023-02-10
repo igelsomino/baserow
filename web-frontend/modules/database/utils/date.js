@@ -54,8 +54,20 @@ export const getTimeHumanReadableFormat = (type) => {
   return timeMapping[type].humanFormat
 }
 
-export const getTimezone = (field) => {
-  return field.date_include_time
-    ? field.date_force_timezone || moment.tz.guess()
-    : 'GMT'
+export const getTimezone = (field, value) => {
+  if (value === null || value === undefined) {
+    return ''
+  } else if (!field.date_include_time) {
+    return 'GMT'
+  }
+  return localizeMoment(field, moment(value)).format('z')
+}
+
+export const localizeMoment = (field, value, format = undefined) => {
+  const momentValue = moment(value, format)
+  if (!field.date_include_time) {
+    return momentValue
+  }
+  const timezone = field.date_force_timezone || moment.tz.guess()
+  return momentValue.tz(timezone)
 }

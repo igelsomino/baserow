@@ -14,7 +14,6 @@ import FieldNumberSubForm from '@baserow/modules/database/components/field/Field
 import FieldRatingSubForm from '@baserow/modules/database/components/field/FieldRatingSubForm'
 import FieldTextSubForm from '@baserow/modules/database/components/field/FieldTextSubForm'
 import FieldDateSubForm from '@baserow/modules/database/components/field/FieldDateSubForm'
-import FieldCreatedOnLastModifiedSubForm from '@baserow/modules/database/components/field/FieldCreatedOnLastModifiedSubForm'
 import FieldLinkRowSubForm from '@baserow/modules/database/components/field/FieldLinkRowSubForm'
 import FieldSelectOptionsSubForm from '@baserow/modules/database/components/field/FieldSelectOptionsSubForm'
 
@@ -1542,7 +1541,7 @@ export class CreatedOnLastModifiedBaseFieldType extends BaseDateFieldType {
   }
 
   getFormComponent() {
-    return FieldCreatedOnLastModifiedSubForm
+    return FieldDateSubForm
   }
 
   getFormViewFieldComponent() {

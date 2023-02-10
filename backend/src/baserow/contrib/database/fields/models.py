@@ -10,7 +10,6 @@ from baserow.contrib.database.fields.mixins import (
     DATE_FORMAT_CHOICES,
     DATE_TIME_FORMAT_CHOICES,
     BaseDateMixin,
-    TimezoneMixin,
 )
 from baserow.contrib.database.formula import (
     BASEROW_FORMULA_ARRAY_TYPE_CHOICES,
@@ -294,11 +293,11 @@ class DateField(Field, BaseDateMixin):
     pass
 
 
-class LastModifiedField(Field, BaseDateMixin, TimezoneMixin):
+class LastModifiedField(Field, BaseDateMixin):
     pass
 
 
-class CreatedOnField(Field, BaseDateMixin, TimezoneMixin):
+class CreatedOnField(Field, BaseDateMixin):
     pass
 
 

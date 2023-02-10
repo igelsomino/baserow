@@ -12,3 +12,6 @@ class BuilderApplicationType(ApplicationType):
 
     def export_safe_transaction_context(self, application: Application) -> Atomic:
         return transaction.atomic()
+
+    def init_application(self, user, application: Application) -> None:
+        pass  # TODO create first page

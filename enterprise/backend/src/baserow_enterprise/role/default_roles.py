@@ -1,9 +1,9 @@
-from baserow.contrib.builder.operations import ListPagesBuilderOperationType
 from baserow_premium.row_comments.operations import (
     CreateRowCommentsOperationType,
     ReadRowCommentsOperationType,
 )
 
+from baserow.contrib.builder.operations import ListPagesBuilderOperationType
 from baserow.contrib.builder.page.operations import (
     CreatePageOperationType,
     DeletePageOperationType,

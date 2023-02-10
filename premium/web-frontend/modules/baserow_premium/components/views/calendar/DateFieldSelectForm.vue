@@ -4,25 +4,25 @@
       <label class="control__label">
         {{ $t('dateFieldSelectForm.dateField') }}
       </label>
-        <div class="control__elements">
-          <Dropdown v-model="values.default_role" :show-search="false">
-            <DropdownItem
-              v-for="role in roles"
-              :key="role.uid"
-              :name="role.name"
-              :value="role.uid"
-              :description="role.description"
-            >
-              {{ role.name }}
-              <Badge
-                v-if="!role.isBillable && atLeastOneBillableRole"
-                primary
-                class="margin-left-1"
-                >{{ $t('common.free') }}
-              </Badge>
-            </DropdownItem>
-          </Dropdown>
+      <div class="control__elements">
+        <Dropdown v-model="values.dateField" :show-search="true">
+          <template #defaultValue>
+            <i class="select__item-icon color-neutral fas fa-calendar-alt"></i>
+            {{ $t('dateFieldSelectForm.date') }}
+          </template>
+          <DropdownItem
+            v-for="dateField in dateFields"
+            :key="dateField.id"
+            :name="dateField.name"
+            :value="dateField.id"
+            :icon="fieldIcon(dateField.type)"
+          >
+          </DropdownItem>
+        </Dropdown>
+        <div v-if="fieldHasErrors('dateField')" class="error">
+          {{ $t('error.requiredField') }}
         </div>
+      </div>
     </FormElement>
     <slot></slot>
   </form>
@@ -35,22 +35,31 @@ import form from '@baserow/modules/core/mixins/form'
 export default {
   name: 'DateFieldSelectForm',
   mixins: [form],
-  props: {},
+  props: {
+    table: {
+      type: Object,
+      required: true,
+    },
+    dateFields: {
+      type: Array,
+      required: true,
+    }
+  },
   data() {
     return {
       values: {
-        dateField: undefined,
+        dateField: null,
       },
     }
   },
-  computed: {
-    // TODO: Provide a list of fields to choose from
-    // viewOwnershipTypes() {
-    //   return this.$registry.getAll('viewOwnershipType')
-    // },
-  },
-  mounted() {
-    this.$refs.name.focus()
+  methods: {
+    fieldIcon(type) {
+      const ft = this.$registry.get('field', type)
+      if (ft && ft.getIconClass() !== null) {
+        return ft.getIconClass()
+      }
+      return 'calendar-alt'
+    },
   },
   validations: {
     values: {

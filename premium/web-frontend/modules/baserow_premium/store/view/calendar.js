@@ -18,14 +18,18 @@ export function populateRow(row) {
 }
 
 export const state = () => ({
-  dateFieldId: -1,
+  lastCalendarId: null,
+  dateFieldId: null,
   fieldOptions: {},
 })
 
 export const mutations = {
   RESET(state) {
-    state.dateFieldId = -1
+    state.dateFieldId = null
     state.fieldOptions = {}
+  },
+  SET_LAST_CALENDAR_ID(state, calendarId) {
+    state.lastCalendarId = calendarId
   },
   SET_DATE_FIELD_ID(state, dateFieldId) {
     state.dateFieldId = dateFieldId
@@ -83,24 +87,24 @@ export const actions = {
    */
   async fetchInitial(
     { dispatch, commit, getters, rootGetters },
-    { kanbanId, singleSelectFieldId, includeFieldOptions = true }
+    { calendarId, dateFieldId, includeFieldOptions = true }
   ) {
-    const { data } = await KanbanService(this.$client).fetchRows({
-      kanbanId,
+    const { data } = await CalendarService(this.$client).fetchRows({
+      calendarId,
       limit: getters.getBufferRequestSize,
       offset: 0,
       includeFieldOptions,
-      selectOptions: [],
-      publicUrl: rootGetters['page/view/public/getIsPublic'],
-      publicAuthToken: rootGetters['page/view/public/getAuthToken'],
-      filters: getFilters(rootGetters, kanbanId),
+      // selectOptions: [],
+      // publicUrl: rootGetters['page/view/public/getIsPublic'],
+      // publicAuthToken: rootGetters['page/view/public/getAuthToken'],
+      // filters: getFilters(rootGetters, kanbanId),
     })
-    Object.keys(data.rows).forEach((key) => {
-      populateStack(data.rows[key])
-    })
-    commit('SET_LAST_KANBAN_ID', kanbanId)
-    commit('SET_SINGLE_SELECT_FIELD_ID', singleSelectFieldId)
-    commit('REPLACE_ALL_STACKS', data.rows)
+    // Object.keys(data.rows).forEach((key) => {
+    //   populateStack(data.rows[key])
+    // })
+    commit('SET_LAST_CALENDAR_ID', calendarId)
+    commit('SET_DATE_FIELD_ID', dateFieldId)
+    // commit('REPLACE_ALL_STACKS', data.rows)
     if (includeFieldOptions) {
       commit('REPLACE_ALL_FIELD_OPTIONS', data.field_options)
     }
@@ -116,7 +120,7 @@ export const actions = {
   ) {
     const stack = getters.getStack(selectOptionId)
     const { data } = await KanbanService(this.$client).fetchRows({
-      kanbanId: getters.getLastKanbanId,
+      kanbanId: getters.getLastCalendarId,
       limit: getters.getBufferRequestSize,
       offset: 0,
       includeFieldOptions: false,
@@ -129,7 +133,7 @@ export const actions = {
       ],
       publicUrl: rootGetters['page/view/public/getIsPublic'],
       publicAuthToken: rootGetters['page/view/public/getAuthToken'],
-      filters: getFilters(rootGetters, getters.getLastKanbanId),
+      filters: getFilters(rootGetters, getters.getLastCalendarId),
     })
     const count = data.rows[selectOptionId].count
     const rows = data.rows[selectOptionId].results
@@ -158,13 +162,13 @@ export const actions = {
   ) {
     dispatch('forceUpdateAllFieldOptions', newFieldOptions)
 
-    const kanbanId = getters.getLastKanbanId
+    const calendarId = getters.getLastCalendarId
     if (!readOnly) {
       const updateValues = { field_options: newFieldOptions }
 
       try {
         await ViewService(this.$client).updateFieldOptions({
-          viewId: kanbanId,
+          viewId: calendarId,
           values: updateValues,
         })
       } catch (error) {
@@ -225,7 +229,7 @@ export const actions = {
    */
   async updateFieldOptionsOfField(
     { commit, getters, rootGetters },
-    { kanban, field, values, readOnly = false }
+    { view, field, values, readOnly = false }
   ) {
     commit('UPDATE_FIELD_OPTIONS_OF_FIELD', {
       fieldId: field.id,
@@ -233,14 +237,14 @@ export const actions = {
     })
 
     if (!readOnly) {
-      const kanbanId = getters.getLastKanbanId
+      const calendarId = getters.getLastCalendarId
       const oldValues = clone(getters.getAllFieldOptions[field.id])
       const updateValues = { field_options: {} }
       updateValues.field_options[field.id] = values
 
       try {
         await ViewService(this.$client).updateFieldOptions({
-          viewId: kanbanId,
+          viewId: calendarId,
           values: updateValues,
         })
       } catch (error) {
@@ -251,25 +255,6 @@ export const actions = {
         throw error
       }
     }
-  },
-  /**
-   * Creates a new row and adds it to the state if needed.
-   */
-  async createNewRow(
-    { dispatch, commit, getters },
-    { view, table, fields, values }
-  ) {
-    const preparedRow = prepareRowForRequest(values, fields, this.$registry)
-
-    const { data } = await RowService(this.$client).create(
-      table.id,
-      preparedRow
-    )
-    return await dispatch('createdNewRow', {
-      view,
-      values: data,
-      fields,
-    })
   },
   /**
    * Can be called when a new row has been created. This action will make sure that
@@ -492,6 +477,9 @@ export const actions = {
 }
 
 export const getters = {
+  getLastCalendarId(state) {
+    return state.lastCalendarId
+  },
   getDateFieldId(state) {
     return state.dateFieldId
   },

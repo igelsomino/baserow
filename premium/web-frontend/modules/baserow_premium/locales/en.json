@@ -165,6 +165,11 @@
         "tryAgain": "Try again",
         "new": "New"
     },
+    "calendarViewHeader": {
+        "displayBy": "Display by",
+        "displayedBy": "Displayed by “{fieldName}” field",
+        "labels": "Labels"
+    },
     "dashboard": {
         "title": "Dashboard",
         "totals": "Totals",
@@ -287,5 +292,13 @@
     },
     "viewsContext": {
         "personal": "Personal"
+    },
+    "dateFieldSelectForm": {
+        "dateField": "Which field would you like to use for this view?",
+        "date": "Date"
+    },
+    "selectDateFieldModal": {
+        "chooseDateField": "Choose date field",
+        "save": "Save"
     }
 }

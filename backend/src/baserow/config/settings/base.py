@@ -340,6 +340,7 @@ SPECTACULAR_SETTINGS = {
         {"name": "Database table gallery view"},
         {"name": "Database table form view"},
         {"name": "Database table kanban view"},
+        {"name": "Database table calendar view"},
         {"name": "Database table rows"},
         {"name": "Database table export"},
         {"name": "Database table webhooks"},
@@ -360,6 +361,7 @@ SPECTACULAR_SETTINGS = {
             "gallery",
             "form",
             "kanban",
+            "calendar",
         ],
         "FieldTypesEnum": [
             "text",

@@ -564,6 +564,14 @@ export class FieldType extends Registerable {
   getCanImport() {
     return false
   }
+
+  /**
+   * Should return true if the field is used to represent
+   * a single date or datetime.
+   */
+  isDateField() {
+    return false
+  }
 }
 
 export class TextFieldType extends FieldType {
@@ -1453,6 +1461,10 @@ class BaseDateFieldType extends FieldType {
   }
 
   getCanImport() {
+    return true
+  }
+
+  isDateField() {
     return true
   }
 }

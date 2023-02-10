@@ -11,6 +11,7 @@ import {
 } from '@baserow_premium/adminTypes'
 import rowCommentsStore from '@baserow_premium/store/row_comments'
 import kanbanStore from '@baserow_premium/store/view/kanban'
+import calendarStore from '@baserow_premium/store/view/calendar'
 import impersonatingStore from '@baserow_premium/store/impersonating'
 import { PremiumDatabaseApplicationType } from '@baserow_premium/applicationTypes'
 import { registerRealtimeEvents } from '@baserow_premium/realtime'
@@ -60,6 +61,7 @@ export default (context) => {
 
   store.registerModule('row_comments', rowCommentsStore)
   store.registerModule('page/view/kanban', kanbanStore)
+  store.registerModule('page/view/calendar', calendarStore)
   store.registerModule('template/view/kanban', kanbanStore)
   store.registerModule('impersonating', impersonatingStore)
 

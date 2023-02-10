@@ -1,22 +1,23 @@
 <template>
   <div>
-    <ChooseDateFieldModal
-      ref="chooseDateFieldModal"
+    <SelectDateFieldModal
+      ref="selectDateFieldModal"
       :view="view"
       :table="table"
       :database="database"
     >
-    </ChooseDateFieldModal>
+    </SelectDateFieldModal>
     <button @click="showChooseDateFieldModal">click</button>
   </div>
 </template>
 <script>
-import ChooseDateFieldModal from '@baserow_premium/components/views/calendar/ChooseDateFieldModal'
+import { mapGetters } from 'vuex'
+import SelectDateFieldModal from '@baserow_premium/components/views/calendar/SelectDateFieldModal'
 
 export default {
   name: 'CalendarView',
   components: {
-    ChooseDateFieldModal
+    SelectDateFieldModal,
   },
   props: {
     database: {
@@ -40,12 +41,23 @@ export default {
       required: true,
     },
   },
+  beforeCreate() {
+    this.$options.computed = {
+      ...(this.$options.computed || {}),
+      ...mapGetters({
+        dateFieldId:
+          this.$options.propsData.storePrefix + 'view/calendar/getDateFieldId',
+      }),
+    }
+  },
   mounted() {
-    // this.showChooseDateFieldModal()
+    if (this.dateFieldId === null) {
+      this.showChooseDateFieldModal()
+    }
   },
   methods: {
     showChooseDateFieldModal() {
-      this.$refs.chooseDateFieldModal.show()
+      this.$refs.selectDateFieldModal.show()
     },
   },
 }

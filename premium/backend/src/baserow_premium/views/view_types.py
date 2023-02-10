@@ -281,7 +281,7 @@ class CalendarViewType(ViewType):
         from baserow_premium.api.views.calendar import urls as api_urls
 
         return [
-            path("kanban/", include(api_urls, namespace=self.type)),
+            path("calendar/", include(api_urls, namespace=self.type)),
         ]
 
     def prepare_values(self, values, table, user):
@@ -393,7 +393,7 @@ class CalendarViewType(ViewType):
         field_options = view.get_field_options(create_if_missing=True).order_by(
             "field__id"
         )
-        ids_to_update = [f.id for f in field_options[0:3]]
+        ids_to_update = [f.id for f in field_options[0:1]]
 
         if len(ids_to_update) > 0:
             CalendarViewFieldOptions.objects.filter(id__in=ids_to_update).update(

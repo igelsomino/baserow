@@ -254,7 +254,16 @@ export class CalendarViewType extends PremiumViewType {
     return CalendarView
   }
 
-  async fetch({ store }, view, fields, storePrefix = '') {}
+  async fetch({ store }, view, fields, storePrefix = '') {
+    if (view.date_field === null) {
+      await store.dispatch(storePrefix + 'view/calendar/reset')
+    } else {
+      await store.dispatch(storePrefix + 'view/calendar/fetchInitial', {
+        calendarId: view.id,
+        dateFieldId: view.date_field,
+      })
+    }
+  }
 
   async refresh(
     { store },

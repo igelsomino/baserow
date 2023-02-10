@@ -24,7 +24,7 @@ export default (client) => {
 
       const config = { params }
 
-      return client.get(`/database/views/calendar/${calendarId}/${url}`, config)
+      return client.get(`/database/views/calendar/${calendarId}/`, config)
     },
   }
 }

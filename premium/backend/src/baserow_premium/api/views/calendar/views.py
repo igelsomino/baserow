@@ -106,6 +106,8 @@ class CalendarViewView(APIView):
     def get(self, request, view_id, field_options):
         # TODO: """Responds with the rows grouped by the view's select option field value."""
 
+        print("I am here")
+
         view_handler = ViewHandler()
         view = view_handler.get_view_as_user(request.user, view_id, CalendarView)
         group = view.table.database.group
@@ -137,7 +139,7 @@ class CalendarViewView(APIView):
         #     default_offset,
         # ) = prepare_kanban_view_parameters(request)
 
-        # model = view.table.get_model()
+        model = view.table.get_model()
         # serializer_class = get_row_serializer_class(
         #     model, RowSerializer, is_response=True
         # )
@@ -155,13 +157,14 @@ class CalendarViewView(APIView):
 
         # response = {"rows": rows}
 
-        # if field_options:
-        #     view_type = view_type_registry.get_by_model(view)
-        #     context = {"fields": [o["field"] for o in model._field_objects.values()]}
-        #     serializer_class = view_type.get_field_options_serializer_class(
-        #         create_if_missing=True
-        #     )
-        #     response.update(**serializer_class(view, context=context).data)
+        response = {}
 
-        # return Response(response)
-        return Response({})
+        if field_options:
+            view_type = view_type_registry.get_by_model(view)
+            context = {"fields": [o["field"] for o in model._field_objects.values()]}
+            serializer_class = view_type.get_field_options_serializer_class(
+                create_if_missing=True
+            )
+            response.update(**serializer_class(view, context=context).data)
+
+        return Response(response)

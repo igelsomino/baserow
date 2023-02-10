@@ -3,7 +3,10 @@ from baserow_premium.row_comments.operations import (
     ReadRowCommentsOperationType,
 )
 
-from baserow.contrib.builder.page.operations import CreatePageOperationType
+from baserow.contrib.builder.page.operations import (
+    CreatePageOperationType,
+    DeletePageOperationType,
+)
 from baserow.contrib.database.airtable.operations import (
     RunAirtableImportJobOperationType,
 )
@@ -200,6 +203,7 @@ EDITOR_OPS = COMMENTER_OPS + [
 ]
 BUILDER_OPS = EDITOR_OPS + [
     CreatePageOperationType,
+    DeletePageOperationType,
     CreateTableDatabaseTableOperationType,
     UpdateDatabaseTableOperationType,
     DeleteDatabaseTableOperationType,

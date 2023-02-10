@@ -6,6 +6,7 @@
 %grid-field-date__date {
   flex: 0 0 100%;
   width: 100%;
+  padding-left: 8px;
 
   .grid-field-date--has-time & {
     width: 60%;
@@ -13,34 +14,37 @@
   }
 
   .grid-field-date--has-tzinfo & {
-    width: 70%;
-    flex-basis: 70%;
+    width: 60%;
+    flex-basis: 60%;
   }
 
   .grid-field-date--has-time.grid-field-date--has-tzinfo & {
-    width: 50%;
-    flex-basis: 50%;
+    width: 45%;
+    flex-basis: 45%;
+    padding: 0 8px 4px;
   }
 }
 
 %grid-field-date__time {
-  flex: 0 0 40%;
-  width: 40%;
+  flex: 0 0 45%;
+  width: 45%;
 
   .grid-field-date--has-tzinfo & {
     flex-basis: 30%;
     width: 30%;
+    padding: 0 4px;
   }
 }
 
 %grid-field-date__tzinfo {
-  flex: 0 0 30%;
-  width: 30%;
+  flex: 0 0 40%;
+  width: 40%;
+  justify-content: right;
   padding-right: 8px;
 
   .grid-field-date--has-time & {
     width: 20%;
-    flex-basis: 20%;
+    padding-right: 4px;
   }
 }
 

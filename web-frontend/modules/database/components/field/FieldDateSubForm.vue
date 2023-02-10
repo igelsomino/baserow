@@ -57,7 +57,7 @@
           >{{ $t('fieldDateSubForm.forceTimezoneLabel') }}</Checkbox
         >
         <div
-          v-if="values.date_force_timezone !== null"
+          v-if="values.date_include_time && values.date_force_timezone !== null"
           class="control margin-top-2"
         >
           <label class="control__label control__label--small">{{

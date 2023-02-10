@@ -3,6 +3,7 @@ import {
   getDateMomentFormat,
   getTimeMomentFormat,
   getTimezone,
+  localizeMoment,
 } from '@baserow/modules/database/utils/date'
 
 export default {
@@ -11,8 +12,9 @@ export default {
       if (value === null || value === undefined) {
         return ''
       }
-      const existing = moment.utc(value || undefined)
+      const existing = localizeMoment(field, moment(value))
       const dateFormat = getDateMomentFormat(field.date_format)
+      console.log(existing.format(dateFormat))
       return existing.format(dateFormat)
     },
     getTime(field, value) {
@@ -20,17 +22,12 @@ export default {
         return ''
       }
 
-      const existing = moment(value || undefined).tz(getTimezone(field))
+      const existing = localizeMoment(field, moment(value))
       const timeFormat = getTimeMomentFormat(field.date_time_format)
       return existing.format(timeFormat)
     },
-    showTimezone(field, value) {
-      if (value === null || value === undefined) {
-        return ''
-      }
-
-      const existing = moment(value || undefined).tz(getTimezone(field))
-      return existing.format('z')
+    getTimezone(field, value) {
+      return getTimezone(field, value)
     },
   },
 }

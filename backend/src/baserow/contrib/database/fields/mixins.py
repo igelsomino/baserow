@@ -1,7 +1,5 @@
 from django.db import models
 
-import pytz
-
 DATE_FORMAT = {
     "EU": {"name": "European (D/M/Y)", "format": "%d/%m/%Y", "sql": "DD/MM/YYYY"},
     "US": {"name": "US (M/D/Y)", "format": "%m/%d/%Y", "sql": "MM/DD/YYYY"},
@@ -100,25 +98,3 @@ class BaseDateMixin(models.Model):
 
     def _get_format(self, format_type):
         return get_date_time_format(self, format_type)
-
-
-class TimezoneMixin(models.Model):
-    timezone = models.CharField(
-        max_length=255,
-        blank=False,
-        help_text="Timezone of User during field creation.",
-        default="UTC",
-    )
-
-    def get_timezone(self, fallback="UTC"):
-        return self.timezone if self.timezone in pytz.all_timezones else fallback
-
-    class Meta:
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        """Check if the timezone is a valid choice."""
-
-        if self.timezone not in pytz.all_timezones:
-            raise ValueError(f"{self.timezone} is not a valid choice.")
-        super().save(*args, **kwargs)

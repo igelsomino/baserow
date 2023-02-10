@@ -57,7 +57,7 @@ def test_delete_page(data_fixture):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_delete_page(data_fixture):
+def test_delete_page_user_not_in_group(data_fixture):
     user = data_fixture.create_user()
     user_unrelated = data_fixture.create_user()
     builder = data_fixture.create_builder_application(user=user)

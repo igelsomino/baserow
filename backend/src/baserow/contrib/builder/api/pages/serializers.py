@@ -12,3 +12,9 @@ class PageSerializer(serializers.ModelSerializer):
             "builder_id": {"read_only": True},
             "order": {"help_text": "Lowest first."},
         }
+
+
+class CreatePageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Page
+        fields = ("name",)

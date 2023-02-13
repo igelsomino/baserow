@@ -11,8 +11,10 @@ import {
   ThemeBuilderSettingsType,
 } from '@baserow/modules/builder/builderSettingTypes'
 
+import pageStore from '@baserow/modules/builder/store/page'
+
 export default (context) => {
-  const { app, isDev } = context
+  const { store, app, isDev } = context
 
   // Allow locale file hot reloading in dev
   if (isDev && app.i18n) {
@@ -25,6 +27,8 @@ export default (context) => {
     i18n.mergeLocaleMessage('it', it)
     i18n.mergeLocaleMessage('pl', pl)
   }
+
+  store.registerModule('page', pageStore)
 
   app.$registry.registerNamespace('builderSettings')
 

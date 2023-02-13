@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 from django.db.transaction import Atomic
 from django.utils import translation
@@ -18,7 +19,7 @@ class BuilderApplicationType(ApplicationType):
     def export_safe_transaction_context(self, application: Application) -> Atomic:
         return transaction.atomic()
 
-    def init_application(self, user, application: Application) -> None:
+    def init_application(self, user: AbstractUser, application: Application) -> None:
         with translation.override(user.profile.language):
             first_page_name = _("Page")
 

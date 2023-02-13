@@ -3,7 +3,7 @@ import re
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import deepcopy
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from random import randint, randrange, sample
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
@@ -672,6 +672,13 @@ class BooleanFieldType(FieldType):
         return BooleanField()
 
 
+def valid_utc_offset_value_validator(value):
+    if value % 30 != 0:
+        raise serializers.ValidationError(
+            "The UTC offset must be different from 0 and a multiple of 30 minutes."
+        )
+
+
 class DateFieldType(FieldType):
     type = "date"
     model_class = DateField
@@ -681,6 +688,7 @@ class DateFieldType(FieldType):
         "date_time_format",
         "date_show_tzinfo",
         "date_force_timezone",
+        "date_force_timezone_offset",
     ]
     serializer_field_names = [
         "date_format",
@@ -689,6 +697,55 @@ class DateFieldType(FieldType):
         "date_show_tzinfo",
         "date_force_timezone",
     ]
+    request_serializer_field_names = serializer_field_names + [
+        "date_force_timezone_offset",
+    ]
+    request_serializer_field_overrides = {
+        "date_force_timezone_offset": serializers.IntegerField(
+            required=False,
+            allow_null=True,
+            min_value=-26 * 60,
+            max_value=26 * 60,
+            validators=[valid_utc_offset_value_validator],
+        )
+    }
+    serializer_extra_kwargs: {"date_force_timezone_offset": {"write_only": True}}
+
+    def after_update(
+        self,
+        from_field,
+        to_field,
+        from_model,
+        to_model,
+        user,
+        connection,
+        altered_column,
+        before,
+        to_field_kwargs,
+    ):
+        """
+        If the date_force_timezone field is changed and
+        date_force_timezone_offset is set to an integer value, we need to
+        replace the timezone of all the values in the database by adding the
+        utcOffset accordingly.
+        """
+
+        date_force_timezone_offset = to_field_kwargs.get(
+            "date_force_timezone_offset", None
+        )
+        if (
+            not to_field.date_include_time
+            or not to_field.date_force_timezone
+            or not date_force_timezone_offset
+        ):
+            return
+
+        to_model.objects.filter(**{f"{to_field.db_column}__isnull": False}).update(
+            **{
+                to_field.db_column: models.F(to_field.db_column)
+                + timedelta(minutes=date_force_timezone_offset)
+            }
+        )
 
     def prepare_value_for_db(self, instance, value):
         """

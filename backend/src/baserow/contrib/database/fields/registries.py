@@ -470,7 +470,7 @@ class FieldType(
             "name": field.name,
         }
 
-        values.update({key: getattr(field, key) for key in self.allowed_fields})
+        values.update({key: getattr(field, key) for key in self.serializer_field_names})
 
         if self.can_have_select_options:
             values["select_options"] = [

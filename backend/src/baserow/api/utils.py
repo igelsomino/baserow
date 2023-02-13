@@ -286,6 +286,7 @@ def get_serializer_class(
     meta_ref_name=None,
     required_fields=None,
     base_mixins=None,
+    meta_extra_kwargs=None,
 ):
     """
     Generates a model serializer based on the provided field names and field overrides.
@@ -307,6 +308,9 @@ def get_serializer_class(
     :type required_fields: list[str]
     :param mixins: An optional list of mixins that must be added to the serializer.
     :type base_mixins: list[serializers.Serializer]
+    :param meta_extra_kwargs: An optional dict containing extra kwargs for the Meta
+        class.
+    :type meta_extra_kwargs: dict or None
     :return: The generated model serializer containing the provided fields.
     :rtype: ModelSerializer
     """
@@ -335,6 +339,7 @@ def get_serializer_class(
         ref_name = meta_ref_name
         model = model_
         fields = list(field_names)
+        extra_kwargs = meta_extra_kwargs or {}
 
     attrs = {"Meta": Meta}
 

@@ -14,7 +14,6 @@ export default {
       }
       const existing = localizeMoment(field, moment(value))
       const dateFormat = getDateMomentFormat(field.date_format)
-      console.log(existing.format(dateFormat))
       return existing.format(dateFormat)
     },
     getTime(field, value) {

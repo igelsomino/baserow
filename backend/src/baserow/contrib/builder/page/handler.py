@@ -31,7 +31,7 @@ class PageHandler:
             user,
             DeletePageOperationType.type,
             group=page.builder.group,
-            context=page.builder,
+            context=page,
         )
 
         page.delete()

@@ -1,3 +1,10 @@
+export function populatePage(page) {
+  page._ = {
+    selected: false,
+  }
+  return page
+}
+
 const state = {}
 
 const mutations = {}

@@ -5,8 +5,8 @@ from rest_framework import serializers
 
 from baserow.api.applications.serializers import ApplicationSerializer
 from baserow.contrib.builder.api.pages.serializers import PageSerializer
+from baserow.contrib.builder.operations import ListPagesBuilderOperationType
 from baserow.contrib.builder.page.model import Page
-from baserow.contrib.database.operations import ListTablesDatabaseTableOperationType
 from baserow.core.handler import CoreHandler
 from baserow.core.models import Application
 
@@ -42,7 +42,7 @@ class BuilderSerializer(ApplicationSerializer):
         if user:
             pages = CoreHandler().filter_queryset(
                 user,
-                ListTablesDatabaseTableOperationType.type,
+                ListPagesBuilderOperationType.type,
                 pages,
                 group=instance.group,
                 context=instance,

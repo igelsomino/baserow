@@ -22,7 +22,7 @@ class PageHandler:
         last_order = Page.get_last_order(builder)
         page = Page.objects.create(builder=builder, name=name, order=last_order)
 
-        page_created.send(self, page=page)
+        page_created.send(self, page=page, user=user)
 
         return page
 

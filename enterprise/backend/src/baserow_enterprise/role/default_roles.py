@@ -7,6 +7,7 @@ from baserow.contrib.builder.operations import ListPagesBuilderOperationType
 from baserow.contrib.builder.page.operations import (
     CreatePageOperationType,
     DeletePageOperationType,
+    ReadPageOperationType,
 )
 from baserow.contrib.database.airtable.operations import (
     RunAirtableImportJobOperationType,
@@ -159,6 +160,7 @@ from baserow_enterprise.teams.operations import (
 
 NO_ACCESS_OPS = []
 VIEWER_OPS = NO_ACCESS_OPS + [
+    ReadPageOperationType,
     ListPagesBuilderOperationType,
     ReadGroupOperationType,
     ReadTeamOperationType,

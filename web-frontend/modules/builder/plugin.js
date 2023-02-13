@@ -12,6 +12,7 @@ import {
 } from '@baserow/modules/builder/builderSettingTypes'
 
 import pageStore from '@baserow/modules/builder/store/page'
+import { registerRealtimeEvents } from '@baserow/modules/builder/realtime'
 
 export default (context) => {
   const { store, app, isDev } = context
@@ -27,6 +28,8 @@ export default (context) => {
     i18n.mergeLocaleMessage('it', it)
     i18n.mergeLocaleMessage('pl', pl)
   }
+
+  registerRealtimeEvents(app.$realtime)
 
   store.registerModule('page', pageStore)
 

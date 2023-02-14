@@ -19,6 +19,19 @@ RUN apt-get update && \
     vim \
     git \
     gosu \
+    libgtk-3-0 \
+    libasound2 \ 
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libxtst6 \
+    libatk1.0-0 \
+    libdbus-glib-1-2 \
+    libdbus-1-3 \
+    libx11-xcb1 \
+    libxcursor1 \
+    libxi6 \
     && apt-get autoclean \
     && apt-get clean \
     && apt-get autoremove \
@@ -41,7 +54,7 @@ COPY --chown=$UID:$GID ./e2e-tests/package.json ./e2e-tests/yarn.lock /baserow/e
 WORKDIR /baserow/e2e-tests
 
 RUN yarn install && yarn playwright install
-RUN npx playwright install-deps
+# RUN npx playwright install-deps TODO:
 
 WORKDIR /baserow/web-frontend
 

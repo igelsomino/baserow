@@ -519,14 +519,19 @@ build-final-web-frontend-image:
 e2e-tests:
   variables:
     RUN_WHEN_CHANGES_MADE_IN: "backend/ premium/backend/ enterprise/backend/ web-frontend/ premium/web-frontend/ enterprise/web-frontend/ e2e-tests/"
+    
+    # vars for Gitlab services
     POSTGRES_USER: baserow
     POSTGRES_PASSWORD: baserow
     POSTGRES_DB: baserow
     REDIS_PORT: 6379
     REDIS_PASSWORD: baserow
     DOCKER_BUILDKIT: 1
-    COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
+
+    # vars for compose
     SECRET_KEY: test
+    # BASEROW_JWT_SIGNING_KEY:
+    DATABASE_PASSWORD: baserow
   extends:
     - .docker-image-test-stage
     - .skippable-job

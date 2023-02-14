@@ -549,13 +549,13 @@ e2e-tests:
     - export REDIS_IP=$(cat /etc/hosts | awk '{if ($2 == "redis") print $1;}')
     - export DOCKER_IP=$(cat /etc/hosts | awk '{if ($2 == "docker") print $1;}')
     - echo $DOCKER_IP
-    - docker compose -f docker-compose.e2e.yml up # &> output.log &
+    - docker compose -f docker-compose.e2e.yml up --detach --wait # &> output.log &
     # - sleep 120
     - cd e2e-tests
-    - cat ../output.log
+    # - cat ../output.log
     - cat /etc/hosts
     - docker ps
-    # - docker compose exec -w /baserow/e2e-tests e2e-tests yarn run test-all-browsers
+    - docker compose exec -w /baserow/e2e-tests e2e-tests yarn run test-all-browsers
     - docker compose -f ../docker-compose.e2e.yml down || true
 
 

@@ -14,6 +14,7 @@ services:
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-baserow}
     ports:
       - "8000:8000"
     extra_hosts:
@@ -51,6 +52,7 @@ services:
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-baserow}
     command: celery-worker
     extra_hosts:
       - db:$DB_IP

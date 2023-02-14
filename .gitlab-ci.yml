@@ -523,6 +523,7 @@ e2e-tests:
     POSTGRES_PASSWORD: baserow
     POSTGRES_DB: baserow
     REDIS_PORT: 6379
+    REDIS_PASSWORD: baserow
     DOCKER_BUILDKIT: 1
     COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
   extends:
@@ -553,6 +554,7 @@ e2e-tests:
     - cd e2e-tests
     - cat ../output.log
     - cat /etc/hosts
+    - docker ps
     - docker compose exec -w /baserow/e2e-tests e2e-tests yarn run test-all-browsers
     - docker compose -f ../docker-compose.e2e.yml down || true
 

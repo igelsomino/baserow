@@ -526,6 +526,7 @@ e2e-tests:
     REDIS_PASSWORD: baserow
     DOCKER_BUILDKIT: 1
     COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
+    SECRET_KEY: test
   extends:
     - .docker-image-test-stage
     - .skippable-job

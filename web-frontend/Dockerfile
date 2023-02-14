@@ -29,6 +29,9 @@ RUN apt-get update && \
     libatk1.0-0 \
     libdbus-glib-1-2 \
     libdbus-1-3 \
+    libnspr4 \
+    libdrm2 \
+    libgbm1 \
     libx11-xcb1 \
     libxcursor1 \
     libxi6 \

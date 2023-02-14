@@ -63,7 +63,16 @@ services:
       interval: 10s
       timeout: 120s
 
-networks:
-  ci:
-    external: true
-    name: $CI_BUILD_NETWORK_ID
+  e2e-tests:
+    image: $WEBFRONTEND_CI_DEV_IMAGE
+    environment:
+      frontendBaseUrl: "http://web-frontend:3000"
+      backendBaseUrl: "http://backend:8000"
+      CI: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
+    entrypoint: ["/usr/bin/tini", "--", "/bin/bash"]
+    healthcheck:
+      disable: true

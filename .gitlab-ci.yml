@@ -525,7 +525,6 @@ e2e-tests:
     REDIS_PORT: 6379
     DOCKER_BUILDKIT: 1
     COMPOSE_PROJECT_NAME: docker-compose-$CI_JOB_ID
-    FF_NETWORK_PER_BUILD: "true"
   extends:
     - .docker-image-test-stage
     - .skippable-job
@@ -542,10 +541,7 @@ e2e-tests:
     - name: redis:6
       alias: redis
   script:
-    - export CI_BUILD_NETWORK_ID="$HOSTNAME-job-$CI_JOB_ID-network"
-    - echo $CI_BUILD_NETWORK_ID
     - cat /etc/hosts
-    - docker network list
     - ping -w 2 docker
     - ping -w 2 db
     - export DB_IP=$(cat /etc/hosts | awk '{if ($2 == "db") print $1;}')
@@ -555,23 +551,9 @@ e2e-tests:
     - docker compose -f docker-compose.e2e.yml up &> output.log &
     - sleep 120
     - cd e2e-tests
-    # - yarn install
-    # - yarn playwright install
     - cat ../output.log
     - cat /etc/hosts
-    - docker ps
-    - docker network list
-    - docker network inspect bridge
-    - docker network inspect host
-    - docker ps -q | xargs -n 1 docker inspect --format '{{ .Name }} {{range .NetworkSettings.Networks}} {{.IPAddress}}{{end}}' | sed 's#^/##';
-    - CONTAINER_ID=$(basename $(cat /proc/1/cpuset))
-    - frontendBaseUrl="http://web-frontend:3000"
-    - backendBaseUrl="http://backend:8000"
-    - echo $frontendBaseUrl
-    - echo $backendBaseUrl
-    - curl $frontendBaseUrl
-    - curl $backendBaseUrl
-    - CI=1 yarn playwright test
+    - docker compose exec -w /baserow/e2e-tests e2e-tests yarn run test-all-browsers
     - docker compose -f ../docker-compose.e2e.yml down || true
 
 

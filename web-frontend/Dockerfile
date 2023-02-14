@@ -36,6 +36,11 @@ USER $UID:$GID
 
 # Create and install the dependencies in separate COPY commands
 COPY --chown=$UID:$GID ./web-frontend/package.json ./web-frontend/yarn.lock /baserow/web-frontend/
+COPY --chown=$UID:$GID ./e2e-tests/package.json ./e2e-tests/yarn.lock /baserow/e2e-tests/
+
+WORKDIR /baserow/e2e-tests
+
+RUN yarn install && yarn playwright install
 
 WORKDIR /baserow/web-frontend
 
@@ -46,6 +51,7 @@ COPY --chown=$UID:$GID ./web-frontend /baserow/web-frontend/
 COPY --chown=$UID:$GID ./premium/web-frontend /baserow/premium/web-frontend/
 COPY --chown=$UID:$GID ./enterprise/web-frontend /baserow/enterprise/web-frontend/
 COPY --chown=$UID:$GID ./deploy/plugins/*.sh /baserow/plugins/
+COPY --chown=$UID:$GID ./e2e-tests /baserow/e2e-tests/
 
 RUN dos2unix /baserow/web-frontend/docker/docker-entrypoint.sh && \
     chmod a+x /baserow/web-frontend/docker/docker-entrypoint.sh

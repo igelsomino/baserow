@@ -77,4 +77,4 @@ services:
     tty: true
     entrypoint: ["/usr/bin/tini", "--", "/bin/bash"]
     healthcheck:
-      disable: true
+      test: ["CMD", "/bin/bash", "echo a"]

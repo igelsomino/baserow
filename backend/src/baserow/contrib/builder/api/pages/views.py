@@ -59,7 +59,7 @@ class PageView(APIView):
     )
     @validate_body(CreatePageSerializer)
     def post(self, request, data, builder_id):
-        builder = BuilderHandler().get_builder(builder_id)
+        builder = BuilderHandler().get_builder(builder_id).specific
 
         CoreHandler().check_permissions(
             request.user,

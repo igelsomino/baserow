@@ -31,6 +31,24 @@
             :page="page"
           ></SidebarItemBuilder>
         </ul>
+        <a
+          v-if="
+            $hasPermission(
+              'builder.page.create',
+              application,
+              application.group.id
+            )
+          "
+          class="tree__sub-add"
+          @click="$refs.createPageModal.show()"
+        >
+          <i class="fas fa-plus"></i>
+          {{ $t('sidebarComponentBuilder.createPage') }}
+        </a>
+        <CreatePageModal
+          ref="createPageModal"
+          :builder="application"
+        ></CreatePageModal>
       </template>
     </SidebarApplication>
     <BuilderSettingsModal ref="builderSettingsModal"></BuilderSettingsModal>
@@ -43,10 +61,16 @@ import BuilderSettingsModal from '@baserow/modules/builder/components/settings/B
 import { mapGetters } from 'vuex'
 import { notifyIf } from '@baserow/modules/core/utils/error'
 import SidebarItemBuilder from '@baserow/modules/builder/components/sidebar/SidebarItemBuilder'
+import CreatePageModal from '@baserow/modules/builder/components/page/CreatePageModal'
 
 export default {
   name: 'TemplateSidebar',
-  components: { SidebarItemBuilder, BuilderSettingsModal, SidebarApplication },
+  components: {
+    CreatePageModal,
+    SidebarItemBuilder,
+    BuilderSettingsModal,
+    SidebarApplication,
+  },
   props: {
     application: {
       type: Object,

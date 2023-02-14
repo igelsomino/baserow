@@ -6,7 +6,7 @@ app_name = "baserow.contrib.builder.api.pages"
 
 urlpatterns = [
     re_path(
-        r"/$",
+        r"builder/(?P<builder_id>[0-9]+)/$",
         PageView.as_view(),
         name="create",
     ),

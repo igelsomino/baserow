@@ -22,7 +22,7 @@ class BuilderApplicationType(ApplicationType):
 
         return [
             path(
-                "builder/(?P<builder_id>[0-9]+)",
+                "builder/",
                 include(api_urls, namespace=self.type),
             ),
         ]

@@ -3,7 +3,8 @@
         "submit": "Add application"
     },
     "sidebarComponentBuilder": {
-        "settings": "Settings"
+        "settings": "Settings",
+        "createPage": "Create page"
     },
     "builderSettingsModal": {
         "title": "Application"
@@ -11,5 +12,11 @@
     "builderSettingTypes": {
         "integrationsName": "Integrations",
         "themeName": "Theme"
+    },
+    "createPageModal": {
+        "header": "Create page",
+        "nameLabel": "Name",
+        "namePlaceholder": "Page",
+        "submit": "Add page"
     }
 }

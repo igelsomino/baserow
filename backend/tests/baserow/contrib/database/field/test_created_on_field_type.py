@@ -157,23 +157,6 @@ def test_created_on_field_type(data_fixture):
     assert len(CreatedOnField.objects.all()) == 0
 
 
-@pytest.mark.django_db
-def test_created_on_field_type_wrong_timezone(data_fixture):
-    user = data_fixture.create_user()
-    table = data_fixture.create_database_table(user=user)
-
-    field_handler = FieldHandler()
-
-    with pytest.raises(ValueError):
-        field_handler.create_field(
-            user=user,
-            table=table,
-            type_name="created_on",
-            name="Create Date",
-            timezone="SDj",
-        )
-
-
 @pytest.mark.django_db(transaction=True)
 def test_import_export_last_modified_field(data_fixture):
     user = data_fixture.create_user()

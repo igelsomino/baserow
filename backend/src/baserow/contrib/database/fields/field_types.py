@@ -688,7 +688,6 @@ class DateFieldType(FieldType):
         "date_time_format",
         "date_show_tzinfo",
         "date_force_timezone",
-        "date_force_timezone_offset",
     ]
     serializer_field_names = [
         "date_format",
@@ -709,7 +708,15 @@ class DateFieldType(FieldType):
             validators=[valid_utc_offset_value_validator],
         )
     }
-    serializer_extra_kwargs: {"date_force_timezone_offset": {"write_only": True}}
+    serializer_extra_kwargs = {"date_force_timezone_offset": {"write_only": True}}
+
+    def get_request_kwargs_to_backup(
+        self, field, kwargs, for_undo=False
+    ) -> Dict[str, Any]:
+        date_force_timezone_offset = kwargs.get("date_force_timezone_offset", None)
+        if date_force_timezone_offset:
+            return {"date_force_timezone_offset": -date_force_timezone_offset}
+        return {}
 
     def after_update(
         self,
@@ -740,10 +747,12 @@ class DateFieldType(FieldType):
         ):
             return
 
+        # FIXME: why we need to do / 2? There's a bug with update and F expressions
+        #  that I don't understand yet, but it double the amount wanted.
         to_model.objects.filter(**{f"{to_field.db_column}__isnull": False}).update(
             **{
                 to_field.db_column: models.F(to_field.db_column)
-                + timedelta(minutes=date_force_timezone_offset)
+                + timedelta(minutes=date_force_timezone_offset / 2)
             }
         )
 

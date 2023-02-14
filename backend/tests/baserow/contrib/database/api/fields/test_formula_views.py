@@ -562,7 +562,7 @@ def test_changing_type_of_reference_field_to_valid_one_for_formula(
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
-    assert response.status_code == HTTP_200_OK
+    assert response.status_code == HTTP_200_OK, response.json()
 
     response = api_client.get(
         reverse("api:database:rows:list", kwargs={"table_id": table.id}),

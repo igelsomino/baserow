@@ -421,7 +421,8 @@ class FormulaField(Field):
         help_text="24 (14:30) or 12 (02:30 PM)",
     )
     date_show_tzinfo = models.BooleanField(
-        default=False,
+        default=None,
+        null=True,
         help_text="Indicates if the time zone should be shown.",
     )
     date_force_timezone = models.CharField(

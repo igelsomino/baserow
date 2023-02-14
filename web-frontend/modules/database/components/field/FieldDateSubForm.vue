@@ -86,7 +86,12 @@
           :value="values.date_force_timezone_offset !== null"
           @input="toggleForceTimezoneOffset()"
           >{{
-            $t('fieldDateSubForm.replaceTimezoneLabel', { utcOffsetDiff })
+            $t(
+              utcOffsetDiff > 0
+                ? 'fieldDateSubForm.addTimezoneOffsetLabel'
+                : 'fieldDateSubForm.subTimezoneOffsetLabel',
+              { utcOffsetDiff: Math.abs(utcOffsetDiff) }
+            )
           }}</Checkbox
         >
         <Checkbox v-model="values.date_show_tzinfo">{{
@@ -132,7 +137,10 @@ export default {
       return moment.tz.names()
     },
     onCreate() {
-      return this.defaultValues.name === null
+      return (
+        this.defaultValues.name === null ||
+        this.defaultValues.name === undefined
+      )
     },
     utcOffsetDiff() {
       if (this.values.date_force_timezone === null) {

@@ -330,16 +330,18 @@ def get_serializer_class(
         base_class = ModelSerializer
 
     extends_meta = object
+    meta_extra_kwargs = meta_extra_kwargs or {}
 
     if hasattr(base_class, "Meta"):
         extends_meta = getattr(base_class, "Meta")
         field_names = list(extends_meta.fields) + list(field_names)
+        meta_extra_kwargs.update(getattr(extends_meta, "extra_kwargs", {}))
 
     class Meta(extends_meta):
         ref_name = meta_ref_name
         model = model_
         fields = list(field_names)
-        extra_kwargs = meta_extra_kwargs or {}
+        extra_kwargs = meta_extra_kwargs
 
     attrs = {"Meta": Meta}
 

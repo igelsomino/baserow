@@ -6,6 +6,7 @@ from django.utils import timezone as django_timezone
 from django.utils.timezone import datetime, make_aware
 
 import pytest
+from pytest_unordered import unordered
 from freezegun import freeze_time
 from pyinstrument import Profiler
 from pytz import timezone
@@ -1774,10 +1775,10 @@ def test_last_modified_date_equal_filter_type(data_fixture):
     table = data_fixture.create_database_table(user=user)
     grid_view = data_fixture.create_grid_view(table=table)
     last_modified_field_date = data_fixture.create_last_modified_field(
-        table=table, date_include_time=False, timezone="Europe/Berlin"
+        table=table, date_include_time=False
     )
     last_modified_field_datetime = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/Berlin"
+        table=table, date_include_time=True
     )
     model = table.get_model()
 
@@ -1787,8 +1788,8 @@ def test_last_modified_date_equal_filter_type(data_fixture):
     with freeze_time("2021-08-04 22:01", tz_offset=+2):
         row_1 = model.objects.create(**{})
 
-    with freeze_time("2021-08-04 23:01", tz_offset=+2):
-        row_2 = model.objects.create(**{})
+    with freeze_time("2021-08-05 00:01", tz_offset=+2):
+        model.objects.create(**{})
 
     handler = ViewHandler()
     model = table.get_model()
@@ -1800,16 +1801,12 @@ def test_last_modified_date_equal_filter_type(data_fixture):
         value="2021-08-04",
     )
     ids = [r.id for r in handler.apply_filters(grid_view, model.objects.all()).all()]
-    assert len(ids) == 1
-    assert row.id in ids
+    assert ids == unordered([row.id, row_1.id])
 
     filter.field = last_modified_field_date
     filter.save()
     ids = [r.id for r in handler.apply_filters(grid_view, model.objects.all()).all()]
-    assert len(ids) == 1
-    assert row.id in ids
-    assert row_1.id not in ids
-    assert row_2.id not in ids
+    assert ids == unordered([row.id, row_1.id])
 
 
 @pytest.mark.django_db
@@ -1817,18 +1814,17 @@ def test_last_modified_datetime_equals_days_ago_filter_type(data_fixture):
     user = data_fixture.create_user()
     table = data_fixture.create_database_table(user=user)
     grid_view = data_fixture.create_grid_view(table=table)
-    tzone = "Europe/Berlin"
     last_modified_field_date = data_fixture.create_last_modified_field(
-        table=table, date_include_time=False, timezone=tzone
+        table=table, date_include_time=False
     )
     last_modified_field_datetime = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone=tzone
+        table=table, date_include_time=True
     )
 
     model = table.get_model()
 
     days_ago = 1
-    when = datetime.utcnow().astimezone(timezone(tzone)) - timedelta(days=days_ago)
+    when = datetime.utcnow() - timedelta(days=days_ago)
 
     # the first and only object created with the correct amount of days ago
     with freeze_time(when.replace(hour=4, minute=59)):
@@ -1861,7 +1857,7 @@ def test_last_modified_datetime_equals_days_ago_filter_type(data_fixture):
         view=grid_view,
         field=last_modified_field_datetime,
         type="date_equals_days_ago",
-        value=f"{tzone}?{days_ago}",
+        value=f"{'GMT'}?{days_ago}",
     )
 
     ids = apply_filter()
@@ -1877,7 +1873,7 @@ def test_last_modified_datetime_equals_days_ago_filter_type(data_fixture):
     assert row_4.id in ids
 
     # an invalid value results in an empty filter
-    for invalid_value in ["", f"?", f"{tzone}?1?", f"{tzone}?"]:
+    for invalid_value in ["", f"?", f"GMT?1?", f"GMT?"]:
         filter.value = invalid_value
         filter.save()
         ids = apply_filter()
@@ -1899,7 +1895,6 @@ def test_last_modified_date_equals_days_ago_filter_type(data_fixture):
     table = data_fixture.create_database_table(user=user)
     grid_view = data_fixture.create_grid_view(table=table)
     date_field = data_fixture.create_date_field(table=table)
-    tzone = "Europe/Berlin"
 
     handler = ViewHandler()
     model = table.get_model()
@@ -1947,7 +1942,7 @@ def test_last_modified_date_equals_days_ago_filter_type(data_fixture):
         view=grid_view,
         field=date_field,
         type="date_equals_days_ago",
-        value=f"{tzone}?{days_ago}",
+        value=f"GMT?{days_ago}",
     )
 
     ids = apply_filter()
@@ -1967,7 +1962,7 @@ def test_last_modified_date_equals_days_ago_filter_type(data_fixture):
         assert r.id in ids
 
     # an invalid value results in an empty filter
-    for invalid_value in ["", f"?", f"{tzone}?1?", f"{tzone}?"]:
+    for invalid_value in ["", f"?", f"GMT?1?", f"GMT?"]:
         filter.value = invalid_value
         filter.save()
         ids = apply_filter()
@@ -2035,7 +2030,7 @@ def test_date_equals_months_ago_filter_type(data_fixture):
             view=grid_view,
             field=date_field,
             type="date_equals_months_ago",
-            value=f"Europe/Berlin?{months_ago}",
+            value=f"GMT?{months_ago}",
         )
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 2
@@ -2044,7 +2039,7 @@ def test_date_equals_months_ago_filter_type(data_fixture):
 
     months_ago = 1
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2052,7 +2047,7 @@ def test_date_equals_months_ago_filter_type(data_fixture):
 
     months_ago = 2
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2060,7 +2055,7 @@ def test_date_equals_months_ago_filter_type(data_fixture):
 
     months_ago = 3
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 0
@@ -2118,7 +2113,7 @@ def test_datetime_equals_months_ago_filter_type(data_fixture):
             view=grid_view,
             field=datetime_field,
             type="date_equals_months_ago",
-            value=f"Europe/Berlin?{months_ago}",
+            value=f"GMT?{months_ago}",
         )
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 2
@@ -2127,7 +2122,7 @@ def test_datetime_equals_months_ago_filter_type(data_fixture):
 
     months_ago = 1
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2135,7 +2130,7 @@ def test_datetime_equals_months_ago_filter_type(data_fixture):
 
     months_ago = 2
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2143,7 +2138,7 @@ def test_datetime_equals_months_ago_filter_type(data_fixture):
 
     months_ago = 3
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 0
@@ -2173,17 +2168,10 @@ def test_datetime_equals_months_ago_filter_type_timezone(data_fixture):
             view=grid_view,
             field=datetime_field,
             type="date_equals_months_ago",
-            value=f"Europe/Berlin?{months_ago}",
+            value=f"GMT?{months_ago}",
         )
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 0
-
-    # with timezone moving the day to january
-    with freeze_time(day_in_feb):
-        filter.value = f"America/Havana?{months_ago}"
-        filter.save()
-        rows = handler.apply_filters(grid_view, model.objects.all()).all()
-        assert len(rows) == 1
 
 
 @pytest.mark.django_db
@@ -2228,7 +2216,7 @@ def test_date_equals_years_ago_filter_type(data_fixture):
             view=grid_view,
             field=date_field,
             type="date_equals_years_ago",
-            value=f"Europe/Berlin?{years_ago}",
+            value=f"GMT?{years_ago}",
         )
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 2
@@ -2237,7 +2225,7 @@ def test_date_equals_years_ago_filter_type(data_fixture):
 
     years_ago = 1
     with freeze_time(day_in_2022):
-        filter.value = f"Europe/Berlin?{years_ago}"
+        filter.value = f"GMT?{years_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2245,7 +2233,7 @@ def test_date_equals_years_ago_filter_type(data_fixture):
 
     years_ago = 2
     with freeze_time(day_in_2022):
-        filter.value = f"Europe/Berlin?{years_ago}"
+        filter.value = f"GMT?{years_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2253,7 +2241,7 @@ def test_date_equals_years_ago_filter_type(data_fixture):
 
     years_ago = 3
     with freeze_time(day_in_2022):
-        filter.value = f"Europe/Berlin?{years_ago}"
+        filter.value = f"GMT?{years_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 0
@@ -2301,7 +2289,7 @@ def test_datetime_equals_years_ago_filter_type(data_fixture):
             view=grid_view,
             field=datetime_field,
             type="date_equals_years_ago",
-            value=f"Europe/Berlin?{months_ago}",
+            value=f"GMT?{months_ago}",
         )
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 2
@@ -2310,7 +2298,7 @@ def test_datetime_equals_years_ago_filter_type(data_fixture):
 
     months_ago = 1
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2318,7 +2306,7 @@ def test_datetime_equals_years_ago_filter_type(data_fixture):
 
     months_ago = 2
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 1
@@ -2326,7 +2314,7 @@ def test_datetime_equals_years_ago_filter_type(data_fixture):
 
     months_ago = 3
     with freeze_time(day_in_march):
-        filter.value = f"Europe/Berlin?{months_ago}"
+        filter.value = f"GMT?{months_ago}"
         filter.save()
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 0
@@ -2356,7 +2344,7 @@ def test_datetime_equals_years_ago_filter_type_timezone(data_fixture):
             view=grid_view,
             field=datetime_field,
             type="date_equals_years_ago",
-            value=f"Europe/Berlin?{months_ago}",
+            value=f"GMT?{months_ago}",
         )
         rows = handler.apply_filters(grid_view, model.objects.all()).all()
         assert len(rows) == 0
@@ -2375,10 +2363,10 @@ def test_last_modified_day_filter_type(data_fixture):
     table = data_fixture.create_database_table(user=user)
     grid_view = data_fixture.create_grid_view(table=table)
     last_modified_field_datetime_berlin = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/Berlin"
+        table=table, date_include_time=True
     )
     last_modified_field_datetime_london = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/London"
+        table=table, date_include_time=True
     )
     handler = ViewHandler()
     model = table.get_model()
@@ -2446,7 +2434,7 @@ def test_last_modified_day_filter_type(data_fixture):
 
         # LastModified Column is based on London Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 1
@@ -2468,7 +2456,7 @@ def test_last_modified_day_filter_type(data_fixture):
 
         # LastModified Column is based on Berlin Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 1
@@ -2490,7 +2478,7 @@ def test_last_modified_day_filter_type(data_fixture):
 
         # LastModified Column is based on London Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 2
@@ -2512,7 +2500,7 @@ def test_last_modified_day_filter_type(data_fixture):
 
         # LastModified Column is based on Berlin Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 2
@@ -2527,10 +2515,10 @@ def test_last_modified_month_filter_type(data_fixture):
     table = data_fixture.create_database_table(user=user)
     grid_view = data_fixture.create_grid_view(table=table)
     last_modified_field_datetime_berlin = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/Berlin"
+        table=table, date_include_time=True
     )
     last_modified_field_datetime_london = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/London"
+        table=table, date_include_time=True
     )
     handler = ViewHandler()
     model = table.get_model()
@@ -2568,7 +2556,7 @@ def test_last_modified_month_filter_type(data_fixture):
 
         # LastModified Column is based on London Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 1
@@ -2590,7 +2578,7 @@ def test_last_modified_month_filter_type(data_fixture):
 
         # LastModified Column is based on Berlin Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 1
@@ -2612,7 +2600,7 @@ def test_last_modified_month_filter_type(data_fixture):
 
         # LastModified Column is based on London Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 2
@@ -2634,7 +2622,7 @@ def test_last_modified_month_filter_type(data_fixture):
 
         # LastModified Column is based on Berlin Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 2
@@ -2649,10 +2637,10 @@ def test_last_modified_year_filter_type(data_fixture):
     table = data_fixture.create_database_table(user=user)
     grid_view = data_fixture.create_grid_view(table=table)
     last_modified_field_datetime_berlin = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/Berlin"
+        table=table, date_include_time=True
     )
     last_modified_field_datetime_london = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/London"
+        table=table, date_include_time=True
     )
     handler = ViewHandler()
     model = table.get_model()
@@ -2690,7 +2678,7 @@ def test_last_modified_year_filter_type(data_fixture):
 
         # LastModified Column is based on London Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 1
@@ -2712,7 +2700,7 @@ def test_last_modified_year_filter_type(data_fixture):
 
         # LastModified Column is based on Berlin Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 1
@@ -2734,7 +2722,7 @@ def test_last_modified_year_filter_type(data_fixture):
 
         # LastModified Column is based on London Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 2
@@ -2756,7 +2744,7 @@ def test_last_modified_year_filter_type(data_fixture):
 
         # LastModified Column is based on Berlin Time
         # Filter value is based on Berlin Time
-        filter.value = "Europe/Berlin"
+        filter.value = "GMT"
         filter.save()
         ids = apply_filter()
         assert len(ids) == 2
@@ -4632,10 +4620,7 @@ def test_date_equals_day_of_month_filter_type(data_fixture):
     grid_view = data_fixture.create_grid_view(table=table)
     date_field = data_fixture.create_date_field(table=table)
     last_modified_field_datetime_berlin = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/Berlin"
-    )
-    last_modified_field_datetime_london = data_fixture.create_last_modified_field(
-        table=table, date_include_time=True, timezone="Europe/London"
+        table=table, date_include_time=True
     )
 
     handler = ViewHandler()
@@ -4693,24 +4678,14 @@ def test_date_equals_day_of_month_filter_type(data_fixture):
     with freeze_time("2019-1-01 23:01"):
         row_3_tz = model.objects.create(**{})
 
-    # Testing with Berlin time, only one row should be accepted
     view_filter.field = last_modified_field_datetime_berlin
     view_filter.value = "1"
     view_filter.save()
 
     ids = [r.id for r in handler.apply_filters(grid_view, model.objects.all()).all()]
-    assert len(ids) == 1
-    assert row_2_tz.id in ids
-    assert row_3_tz.id not in ids
-
-    # Testing with London time, both rows should be accepted
-    view_filter.field = last_modified_field_datetime_london
-    view_filter.save()
-
-    ids = [r.id for r in handler.apply_filters(grid_view, model.objects.all()).all()]
     assert len(ids) == 2
     assert row_2_tz.id in ids
-    assert row_3_tz.id in ids
+    assert row_3_tz.id not in ids
 
 
 @pytest.mark.django_db

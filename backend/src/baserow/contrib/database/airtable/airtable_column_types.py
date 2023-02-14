@@ -159,7 +159,22 @@ class DateAirtableColumnType(AirtableColumnType):
 
     def to_baserow_field(self, raw_airtable_table, raw_airtable_column, timezone):
         type_options = raw_airtable_column.get("typeOptions", {})
-        return DateField(**import_airtable_date_type_options(type_options))
+        # Check if a timezone is provided in the type options, if so, we might want
+        # to use that timezone for the conversion later on.
+        airtable_timezone = type_options.get("timeZone", None)
+        date_show_tzinfo = type_options.get("shouldDisplayTimeZone", False)
+
+        # Baserow default to the client timezone (date_force_timezone=None). If
+        # another timezone is provided, use it to visualize data in that
+        # specific timezone.
+        if airtable_timezone == "client":
+            airtable_timezone = None
+
+        return DateField(
+            date_show_tzinfo=date_show_tzinfo,
+            date_force_timezone=airtable_timezone,
+            **import_airtable_date_type_options(type_options),
+        )
 
     def to_baserow_export_serialized_value(
         self,
@@ -173,27 +188,9 @@ class DateAirtableColumnType(AirtableColumnType):
         if value is None:
             return value
 
-        # Check if a timezone is provided in the type options, if so, we might want
-        # to use that timezone for the conversion later on.
-        airtable_timezone = raw_airtable_column.get("typeOptions", {}).get(
-            "timeZone", None
-        )
-
-        # Baserow doesn't support a "client" option for the date field, so if that is
-        # provided, we must fallback on the main timezone chosen during the import.
-        # Otherwise, we can use the timezone of that value.
-        if airtable_timezone is not None and airtable_timezone != "client":
-            timezone = pytz_timezone(airtable_timezone)
-
-        # The provided Airtable date value is always in UTC format. Because Baserow
-        # doesn't support different timezones for the date field, we need to convert
-        # to the given timezone because then it will be visible in the correct
-        # timezone to the user.
         try:
-            value = (
-                datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
-                .astimezone(timezone)
-                .replace(tzinfo=UTC)
+            value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
+                tzinfo=UTC
             )
         except ValueError:
             tb = traceback.format_exc()
@@ -222,23 +219,26 @@ class FormulaAirtableColumnType(AirtableColumnType):
         type_options = raw_airtable_column.get("typeOptions", {})
         display_type = type_options.get("displayType", "")
         airtable_timezone = type_options.get("timeZone", None)
+        date_show_tzinfo = type_options.get("shouldDisplayTimeZone", False)
 
-        # Baserow doesn't support a "client" option for the date field, so if that is
-        # provided, we must fallback on the main timezone chosen during the import.
-        # Otherwise, we can use the timezone of that field.
-        if airtable_timezone is not None and airtable_timezone != "client":
-            timezone = pytz_timezone(airtable_timezone)
+        # Baserow default to the client timezone (date_force_timezone=None). If
+        # another timezone is provided, use it to visualize data in that
+        # specific timezone.
+        if airtable_timezone == "client":
+            airtable_timezone = None
 
         # The formula conversion isn't support yet, but because the Created on and
         # Last modified fields work as a formula, we can convert those.
         if display_type == "lastModifiedTime":
             return LastModifiedField(
-                timezone=str(timezone),
+                date_show_tzinfo=date_show_tzinfo,
+                date_force_timezone=airtable_timezone,
                 **import_airtable_date_type_options(type_options),
             )
         elif display_type == "createdTime":
             return CreatedOnField(
-                timezone=str(timezone),
+                date_show_tzinfo=date_show_tzinfo,
+                date_force_timezone=airtable_timezone,
                 **import_airtable_date_type_options(type_options),
             )
 

@@ -132,7 +132,7 @@ def test_airtable_import_created_on_column(data_fixture, api_client):
     assert baserow_field.date_format == "ISO"
     assert baserow_field.date_include_time is False
     assert baserow_field.date_time_format == "24"
-    assert baserow_field.timezone == "UTC"
+    assert baserow_field.date_force_timezone is None
 
     airtable_field = {
         "id": "fldcTpJuoUVpsDNoszO",
@@ -161,7 +161,7 @@ def test_airtable_import_created_on_column(data_fixture, api_client):
     assert baserow_field.date_format == "EU"
     assert baserow_field.date_include_time is True
     assert baserow_field.date_time_format == "12"
-    assert baserow_field.timezone == "Europe/Amsterdam"
+    assert baserow_field.date_force_timezone == "Europe/Amsterdam"
 
     assert (
         airtable_column_type.to_baserow_export_serialized_value(
@@ -577,7 +577,7 @@ def test_airtable_import_last_modified_column(data_fixture, api_client):
     assert baserow_field.date_format == "ISO"
     assert baserow_field.date_include_time is False
     assert baserow_field.date_time_format == "24"
-    assert baserow_field.timezone == "UTC"
+    assert baserow_field.date_force_timezone is None
 
     airtable_field = {
         "id": "fldws6n8xdrEJrMxJFJ",
@@ -609,7 +609,7 @@ def test_airtable_import_last_modified_column(data_fixture, api_client):
     assert baserow_field.date_format == "US"
     assert baserow_field.date_include_time is True
     assert baserow_field.date_time_format == "12"
-    assert baserow_field.timezone == "Europe/Amsterdam"
+    assert baserow_field.date_force_timezone == "Europe/Amsterdam"
 
     assert (
         airtable_column_type.to_baserow_export_serialized_value(

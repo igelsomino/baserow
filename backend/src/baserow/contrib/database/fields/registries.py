@@ -454,6 +454,18 @@ class FieldType(
 
         return values
 
+    def get_request_kwargs_to_backup(
+        self, field: Field, kwargs, for_undo=False
+    ) -> Dict[str, Any]:
+        """
+        Returns a dict of attributes that should be backed up when the field is
+        updated. This attributes are sent in the update requests but are not
+        stored in the database. This is for example used by the DateField to
+        replace the timezone adding/removing the corresponding timedelta.
+        """
+
+        return {}
+
     def export_prepared_values(self, field: Field):
         """
         Returns a serializable dict of prepared values for the fields attributes.
@@ -470,7 +482,7 @@ class FieldType(
             "name": field.name,
         }
 
-        values.update({key: getattr(field, key) for key in self.serializer_field_names})
+        values.update({key: getattr(field, key) for key in self.allowed_fields})
 
         if self.can_have_select_options:
             values["select_options"] = [

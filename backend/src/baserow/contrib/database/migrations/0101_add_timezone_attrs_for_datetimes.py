@@ -55,7 +55,9 @@ class Migration(migrations.Migration):
             model_name="formulafield",
             name="date_show_tzinfo",
             field=models.BooleanField(
-                default=False, help_text="Indicates if the time zone should be shown."
+                default=None,
+                help_text="Indicates if the time zone should be shown.",
+                null=True,
             ),
         ),
         migrations.AddField(

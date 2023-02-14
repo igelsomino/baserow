@@ -41,6 +41,7 @@ COPY --chown=$UID:$GID ./e2e-tests/package.json ./e2e-tests/yarn.lock /baserow/e
 WORKDIR /baserow/e2e-tests
 
 RUN yarn install && yarn playwright install
+RUN npx playwright install-deps
 
 WORKDIR /baserow/web-frontend
 

@@ -35,6 +35,7 @@ RUN apt-get update && \
     libx11-xcb1 \
     libxcursor1 \
     libxi6 \
+    libnss3 \
     && apt-get autoclean \
     && apt-get clean \
     && apt-get autoremove \

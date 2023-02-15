@@ -533,7 +533,7 @@ e2e-tests:
     # BASEROW_JWT_SIGNING_KEY:
     DATABASE_PASSWORD: baserow
     PUBLIC_WEB_FRONTEND_URL: http://web-frontend:3000
-    PUBLIC_BACKEND_URL: http://backend:3000
+    PUBLIC_BACKEND_URL: http://backend:8000
   extends:
     - .docker-image-test-stage
     - .skippable-job

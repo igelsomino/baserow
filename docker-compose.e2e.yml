@@ -29,6 +29,9 @@ services:
 
   web-frontend:
     image: $WEBFRONTEND_CI_DEV_IMAGE
+    environment:
+      PUBLIC_BACKEND_URL: http://backend:8000
+      PUBLIC_WEB_FRONTEND_URL: http://web-frontend:3000
     ports:
       - "3000:3000"
     extra_hosts:
@@ -71,6 +74,7 @@ services:
       frontendBaseUrl: "http://web-frontend:3000"
       backendBaseUrl: "http://backend:8000"
       CI: 1
+      DEBUG: "pw:api"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     stdin_open: true

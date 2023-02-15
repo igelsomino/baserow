@@ -3,7 +3,10 @@ from baserow_premium.row_comments.operations import (
     ReadRowCommentsOperationType,
 )
 
-from baserow.contrib.builder.operations import ListPagesBuilderOperationType
+from baserow.contrib.builder.operations import (
+    ListPagesBuilderOperationType,
+    OrderPagesBuilderOperationType,
+)
 from baserow.contrib.builder.page.operations import (
     CreatePageOperationType,
     DeletePageOperationType,
@@ -163,6 +166,7 @@ NO_ACCESS_OPS = []
 VIEWER_OPS = NO_ACCESS_OPS + [
     ReadPageOperationType,
     ListPagesBuilderOperationType,
+    OrderPagesBuilderOperationType,
     ReadGroupOperationType,
     ReadTeamOperationType,
     ListTeamsOperationType,

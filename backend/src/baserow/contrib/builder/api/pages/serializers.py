@@ -18,3 +18,10 @@ class CreatePageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
         fields = ("name",)
+
+
+class OrderPagesSerializer(serializers.Serializer):
+    page_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        help_text="The ids of the pages in the order they are supposed to be set in",
+    )

@@ -9,3 +9,7 @@ class BuilderOperationType(OperationType, metaclass=ABCMeta):
 
 class ListPagesBuilderOperationType(BuilderOperationType):
     type = "builder.list_pages"
+
+
+class OrderPagesBuilderOperationType(BuilderOperationType):
+    type = "builder.order_pages"

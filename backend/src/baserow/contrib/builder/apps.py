@@ -21,9 +21,13 @@ class BuilderConfig(AppConfig):
         object_scope_type_registry.register(BuilderObjectScopeType())
         object_scope_type_registry.register(BuilderPageObjectScopeType())
 
-        from baserow.contrib.builder.operations import ListPagesBuilderOperationType
+        from baserow.contrib.builder.operations import (
+            ListPagesBuilderOperationType,
+            OrderPagesBuilderOperationType,
+        )
 
         operation_type_registry.register(ListPagesBuilderOperationType())
+        operation_type_registry.register(OrderPagesBuilderOperationType())
 
         from baserow.contrib.builder.page.operations import (
             CreatePageOperationType,

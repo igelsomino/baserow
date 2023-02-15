@@ -27,6 +27,18 @@
           <SidebarItemBuilder
             v-for="page in orderedPages"
             :key="page.id"
+            v-sortable="{
+              id: page.id,
+              update: orderPages,
+              marginLeft: 34,
+              marginRight: 10,
+              marginTop: -1.5,
+              enabled: $hasPermission(
+                'builder.order_pages',
+                application,
+                application.group.id
+              ),
+            }"
             :builder="application"
             :page="page"
           ></SidebarItemBuilder>
@@ -100,6 +112,17 @@ export default {
     settingsClicked() {
       this.$refs.sidebarApplication.$refs.context.hide()
       this.$refs.builderSettingsModal.show()
+    },
+    orderPages(order, oldOrder) {
+      try {
+        this.$store.dispatch('page/order', {
+          builder: this.application,
+          order,
+          oldOrder,
+        })
+      } catch (error) {
+        notifyIf(error, 'page')
+      }
     },
   },
 }

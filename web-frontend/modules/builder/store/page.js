@@ -1,6 +1,7 @@
 import { StoreItemLookupError } from '@baserow/modules/core/errors'
 import { BuilderApplicationType } from '@baserow/modules/builder/applicationTypes'
 import PageService from '@baserow/modules/builder/services/page'
+import { generateHash } from '@baserow/modules/core/utils/hashing'
 
 export function populatePage(page) {
   page._ = {
@@ -27,6 +28,13 @@ const mutations = {
     })
     page._.selected = true
     state.selected = page
+  },
+  ORDER_PAGES(state, { builder, order, isHashed = false }) {
+    builder.pages.forEach((page) => {
+      const pageId = isHashed ? generateHash(page.id) : page.id
+      const index = order.findIndex((value) => value === pageId)
+      page.order = index === -1 ? 0 : index + 1
+    })
   },
 }
 
@@ -83,6 +91,19 @@ const actions = {
     }, {})
 
     dispatch('forceUpdate', { builder, page, values: update })
+  },
+  async order(
+    { commit, getters },
+    { builder, order, oldOrder, isHashed = false }
+  ) {
+    commit('ORDER_PAGES', { builder, order, isHashed })
+
+    try {
+      await PageService(this.$client).order(builder.id, order)
+    } catch (error) {
+      commit('ORDER_PAGES', { builder, order: oldOrder, isHashed })
+      throw error
+    }
   },
 }
 

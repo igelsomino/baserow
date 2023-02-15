@@ -9,7 +9,7 @@
         v-model="values.name"
         type="text"
         class="input input--large"
-        :placeholder="$t('createPageForm.namePlaceholder')"
+        @blur="$v.$touch"
       />
       <div
         v-if="$v.values.name.$dirty && !$v.values.name.required"
@@ -37,6 +37,7 @@
 <script>
 import form from '@baserow/modules/core/mixins/form'
 import { required } from 'vuelidate/lib/validators'
+import { getNextAvailableNameInSequence } from '@baserow/modules/core/utils/string'
 
 export default {
   name: 'CreatePageForm',
@@ -55,6 +56,18 @@ export default {
       },
     }
   },
+  computed: {
+    pageNames() {
+      return this.builder.pages.map((table) => table.name)
+    },
+    defaultName() {
+      const baseName = this.$t('createPageForm.defaultName')
+      return getNextAvailableNameInSequence(baseName, this.pageNames)
+    },
+  },
+  created() {
+    this.values.name = this.defaultName
+  },
   methods: {
     submit() {
       this.$v.$touch()
@@ -64,7 +77,7 @@ export default {
       this.$emit('submit', this.values)
     },
     isNameUnique(name) {
-      return !this.builder.pages.map((page) => page.name).includes(name)
+      return !this.pageNames.includes(name)
     },
   },
   validations() {

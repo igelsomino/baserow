@@ -18,8 +18,8 @@
     },
     "createPageForm": {
         "nameLabel": "Name",
-        "namePlaceholder": "Page",
         "submit": "Add page",
-        "errorNameNotUnique": "A page with this name already exists"
+        "errorNameNotUnique": "A page with this name already exists",
+        "defaultName": "Page"
     }
 }

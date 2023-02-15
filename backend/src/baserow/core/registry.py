@@ -1,5 +1,6 @@
 import contextlib
 import typing
+from abc import ABC, abstractmethod
 from functools import lru_cache
 from typing import (
     Any,
@@ -253,8 +254,9 @@ class MapAPIExceptionsInstanceMixin:
             yield
 
 
-class ImportExportMixin:
-    def export_serialized(self, instance):
+class ImportExportMixin(Generic[T], ABC):
+    @abstractmethod
+    def export_serialized(self, instance: T) -> Dict[str, Any]:
         """
         Should return with a serialized version of the provided instance. It must be
         JSON serializable and it must be possible to the import via the
@@ -263,31 +265,24 @@ class ImportExportMixin:
         :param instance: The instance that must be serialized and exported. Could be
             any object type because it depends on the type instance that uses this
             mixin.
-        :type instance: Object
         :return: Serialized version of the instance.
-        :rtype: dict
         """
 
-        raise NotImplementedError("The export_serialized method must be implemented.")
-
-    def import_serialized(self, parent, serialized_values, id_mapping):
+    @abstractmethod
+    def import_serialized(
+        self, parent: Any, serialized_values: Dict[str, Any], id_mapping: Dict
+    ) -> Any:
         """
         Should import and create the correct instances in the database based on the
         serialized values exported by the `export_serialized` method. It should create
         a copy. An entry to the mapping could be made if a new instance is created.
 
         :param parent: Optionally a parent instance can be provided here.
-        :type parent: Object
         :param serialized_values: The values that must be inserted.
-        :type serialized_values: dict
         :param id_mapping: The map of exported ids to newly created ids that must be
             updated when a new instance has been created.
-        :type id_mapping: dict
         :return: The newly created instance.
-        :rtype: Object
         """
-
-        raise NotImplementedError("The import_serialized method must be implemented.")
 
 
 T = TypeVar("T", bound=Instance)
@@ -484,8 +479,14 @@ class ModelRegistryMixin(Generic[P, T]):
         return all_matching_non_abstract_types
 
 
-class CustomFieldsRegistryMixin:
-    def get_serializer(self, model_instance, base_class=None, context=None, **kwargs):
+class CustomFieldsRegistryMixin(Generic[T]):
+    def get_serializer(
+        self,
+        model_instance: T,
+        base_class: Optional[Type[serializers.ModelSerializer]] = None,
+        context: Optional[Dict[str, any]] = None,
+        **kwargs,
+    ):
         """
         Based on the provided model_instance and base_class a unique serializer
         containing the correct field type is generated.

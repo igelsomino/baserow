@@ -13,6 +13,9 @@ class BuilderConfig(AppConfig):
 
         application_type_registry.register(BuilderApplicationType())
 
+        from baserow.contrib.builder.elements.object_scopes import (
+            BuilderElementObjectScopeType,
+        )
         from baserow.contrib.builder.object_scopes import BuilderObjectScopeType
         from baserow.contrib.builder.page.object_scopes import (
             BuilderPageObjectScopeType,
@@ -20,6 +23,7 @@ class BuilderConfig(AppConfig):
 
         object_scope_type_registry.register(BuilderObjectScopeType())
         object_scope_type_registry.register(BuilderPageObjectScopeType())
+        object_scope_type_registry.register(BuilderElementObjectScopeType())
 
         from baserow.contrib.builder.operations import (
             ListPagesBuilderOperationType,
@@ -40,6 +44,28 @@ class BuilderConfig(AppConfig):
         operation_type_registry.register(DeletePageOperationType())
         operation_type_registry.register(UpdatePageOperationType())
         operation_type_registry.register(ReadPageOperationType())
+
+        from baserow.contrib.builder.elements.operations import (
+            CreateElementOperationType,
+            DeleteElementOperationType,
+            ListElementsPageOperationType,
+            OrderElementsPageOperationType,
+            ReadElementOperationType,
+            UpdateElementOperationType,
+        )
+
+        operation_type_registry.register(ListElementsPageOperationType())
+        operation_type_registry.register(OrderElementsPageOperationType())
+        operation_type_registry.register(CreateElementOperationType())
+        operation_type_registry.register(ReadElementOperationType())
+        operation_type_registry.register(UpdateElementOperationType())
+        operation_type_registry.register(DeleteElementOperationType())
+
+        from .elements.element_types import HeaderElementType, ParagraphElementType
+        from .elements.registries import element_type_registry
+
+        element_type_registry.register(HeaderElementType())
+        element_type_registry.register(ParagraphElementType())
 
         # The signals must always be imported last because they use the registries
         # which need to be filled first.

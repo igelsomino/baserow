@@ -1,14 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+from faker import Faker
+
 from baserow.contrib.database.fields.models import Field, SelectOption
+from baserow.contrib.database.fields.registries import field_type_registry
 from baserow.contrib.database.models import Database
 from baserow.contrib.database.rows.handler import RowHandler
 from baserow.contrib.database.table.handler import TableHandler
 from baserow.contrib.database.table.models import Table
 from baserow.core.handler import CoreHandler
-from baserow.contrib.database.fields.registries import field_type_registry
-from faker import Faker
 
 User = get_user_model()
 

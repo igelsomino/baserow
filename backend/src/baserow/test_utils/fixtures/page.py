@@ -6,7 +6,7 @@ class PageFixtures:
         if user is None:
             user = self.create_user()
 
-        if "builder" not in kwargs:
+        if not kwargs.get("builder", None):
             kwargs["builder"] = self.create_builder_application(user=user)
 
         if "name" not in kwargs:

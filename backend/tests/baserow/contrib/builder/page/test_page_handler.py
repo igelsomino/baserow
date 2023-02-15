@@ -68,3 +68,56 @@ def test_delete_page_user_not_in_group(data_fixture):
         PageHandler().delete_page(user_unrelated, page)
 
     assert Page.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_get_page(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application(user=user)
+    page = data_fixture.create_builder_page(builder=builder)
+
+    assert PageHandler().get_page(user, builder, page.id).id == page.id
+
+
+@pytest.mark.django_db
+def test_get_page_user_not_in_group(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application()
+    page = data_fixture.create_builder_page(builder=builder)
+
+    with pytest.raises(UserNotInGroup):
+        PageHandler().get_page(user, builder, page.id)
+
+
+@pytest.mark.django_db
+def test_update_page(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application(user=user)
+    page = data_fixture.create_builder_page(builder=builder)
+
+    new_name = "test"
+
+    page_updated = PageHandler().update_page(user, page, {"name": new_name})
+
+    assert page_updated.name == new_name
+
+
+@pytest.mark.django_db
+def test_update_page_user_not_in_group(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application()
+    page = data_fixture.create_builder_page(builder=builder)
+
+    with pytest.raises(UserNotInGroup):
+        PageHandler().update_page(user, page, {"name": "test"})
+
+
+@pytest.mark.django_db
+def test_update_page_invalid_values(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application(user=user)
+    page = data_fixture.create_builder_page(builder=builder)
+
+    page_updated = PageHandler().update_page(user, page, {"nonsense": "hello"})
+
+    assert hasattr(page_updated, "nonsense") is False

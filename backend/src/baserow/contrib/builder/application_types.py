@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 from django.db.transaction import Atomic
-from django.urls import include, path
 from django.utils import translation
 from django.utils.translation import gettext as _
 
@@ -20,12 +19,7 @@ class BuilderApplicationType(ApplicationType):
     def get_api_urls(self):
         from .api import urls as api_urls
 
-        return [
-            path(
-                "builder/",
-                include(api_urls, namespace=self.type),
-            ),
-        ]
+        return api_urls.urlpatterns
 
     def export_safe_transaction_context(self, application: Application) -> Atomic:
         return transaction.atomic()

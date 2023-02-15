@@ -15,5 +15,9 @@ class DeletePageOperationType(BuilderPageOperationType):
     type = "builder.page.delete"
 
 
+class UpdatePageOperationType(BuilderPageOperationType):
+    type = "builder.page.update"
+
+
 class ReadPageOperationType(BuilderPageOperationType):
     type = "builder.page.read"

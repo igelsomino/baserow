@@ -8,14 +8,39 @@
       @click.prevent="selectPage(builder, page)"
     >
       <Editable
+        ref="rename"
         :value="page.name"
         @change="renamePage(builder, page, $event)"
       ></Editable>
     </a>
+    <a
+      v-show="!builder._.loading"
+      v-if="showOptions"
+      class="tree__options"
+      @click="$refs.context.toggle($event.currentTarget, 'bottom', 'right', 0)"
+      @mousedown.stop
+    >
+      <i class="fas fa-ellipsis-v"></i>
+    </a>
+    <Context ref="context">
+      <div class="context__menu-title">{{ page.name }} ({{ page.id }})</div>
+      <ul class="context__menu">
+        <li
+          v-if="$hasPermission('builder.page.update', page, builder.group.id)"
+        >
+          <a @click="enableRename()">
+            <i class="context__menu-icon fas fa-fw fa-pen"></i>
+            {{ $t('action.rename') }}
+          </a>
+        </li>
+      </ul>
+    </Context>
   </li>
 </template>
 
 <script>
+import { notifyIf } from '@baserow/modules/core/utils/error'
+
 export default {
   name: 'SidebarItemBuilder',
   props: {
@@ -28,10 +53,31 @@ export default {
       required: true,
     },
   },
+  computed: {
+    showOptions() {
+      return (
+        this.$hasPermission(
+          'builder.page.run_export',
+          this.page,
+          this.builder.group.id
+        ) ||
+        this.$hasPermission(
+          'builder.page.update',
+          this.page,
+          this.builder.group.id
+        ) ||
+        this.$hasPermission(
+          'builder.page.duplicate',
+          this.page,
+          this.builder.group.id
+        )
+      )
+    },
+  },
   methods: {
-    setLoading(database, value) {
+    setLoading(builder, value) {
       this.$store.dispatch('application/setItemLoading', {
-        application: database,
+        application: builder,
         value,
       })
     },
@@ -64,8 +110,26 @@ export default {
 
       return props.href
     },
-    renamePage(builder, page) {
-      console.log('TODO')
+    enableRename() {
+      this.$refs.context.hide()
+      this.$refs.rename.edit()
+    },
+    async renamePage(builder, page, event) {
+      this.setLoading(builder, true)
+      try {
+        await this.$store.dispatch('page/update', {
+          builder,
+          page,
+          values: {
+            name: event.value,
+          },
+        })
+      } catch (error) {
+        this.$refs.rename.set(event.oldValue)
+        notifyIf(error, 'page')
+      }
+
+      this.setLoading(builder, false)
     },
   },
 }

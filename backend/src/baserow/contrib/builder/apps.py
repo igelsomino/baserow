@@ -29,10 +29,12 @@ class BuilderConfig(AppConfig):
             CreatePageOperationType,
             DeletePageOperationType,
             ReadPageOperationType,
+            UpdatePageOperationType,
         )
 
         operation_type_registry.register(CreatePageOperationType())
         operation_type_registry.register(DeletePageOperationType())
+        operation_type_registry.register(UpdatePageOperationType())
         operation_type_registry.register(ReadPageOperationType())
 
         # The signals must always be imported last because they use the registries

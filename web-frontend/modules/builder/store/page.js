@@ -18,6 +18,9 @@ const mutations = {
     populatePage(page)
     builder.pages.push(page)
   },
+  UPDATE_ITEM(state, { page, values }) {
+    Object.assign(page, page, values)
+  },
   SET_SELECTED(state, { builder, page }) {
     Object.values(builder.pages).forEach((item) => {
       item._.selected = false
@@ -28,6 +31,9 @@ const mutations = {
 }
 
 const actions = {
+  forceUpdate({ commit }, { builder, page, values }) {
+    commit('UPDATE_ITEM', { builder, page, values })
+  },
   async selectById({ commit, dispatch }, { builderId, pageId }) {
     const builder = await dispatch('application/selectById', builderId, {
       root: true,
@@ -63,6 +69,20 @@ const actions = {
     commit('ADD_ITEM', { builder, page })
 
     dispatch('selectById', { builderId: builder.id, pageId: page.id })
+  },
+  async update({ dispatch }, { builder, page, values }) {
+    const { data } = await PageService(this.$client).update(
+      builder.id,
+      page.id,
+      values
+    )
+
+    const update = Object.keys(values).reduce((result, key) => {
+      result[key] = data[key]
+      return result
+    }, {})
+
+    dispatch('forceUpdate', { builder, page, values: update })
   },
 }
 

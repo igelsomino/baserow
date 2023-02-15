@@ -14,9 +14,12 @@
         "themeName": "Theme"
     },
     "createPageModal": {
-        "header": "Create page",
+        "header": "Create page"
+    },
+    "createPageForm": {
         "nameLabel": "Name",
         "namePlaceholder": "Page",
-        "submit": "Add page"
+        "submit": "Add page",
+        "errorNameNotUnique": "A page with this name already exists"
     }
 }

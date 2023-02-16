@@ -63,7 +63,7 @@ class PageHandler:
 
         page.delete()
 
-        page_deleted.send(self, page_id=page.id)
+        page_deleted.send(self, builder=page.builder, page_id=page.id, user=user)
 
     def update_page(self, user: AbstractUser, page: Page, values: Dict):
         CoreHandler().check_permissions(
@@ -80,7 +80,7 @@ class PageHandler:
 
         page.save()
 
-        page_updated.send(self, page=page)
+        page_updated.send(self, page=page, user=user)
 
         return page
 

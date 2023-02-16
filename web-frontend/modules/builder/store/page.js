@@ -43,8 +43,11 @@ const mutations = {
 }
 
 const actions = {
-  forceUpdate({ commit }, { builder, page, values }) {
-    commit('UPDATE_ITEM', { builder, page, values })
+  forceUpdate({ commit }, { page, values }) {
+    commit('UPDATE_ITEM', { page, values })
+  },
+  forceAdd({ commit }, { builder, page }) {
+    commit('ADD_ITEM', { builder, page })
   },
   async selectById({ commit, dispatch }, { builderId, pageId }) {
     const builder = await dispatch('application/selectById', builderId, {

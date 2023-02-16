@@ -1,15 +1,18 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 from django.dispatch import receiver
 
 from baserow.contrib.builder.api.pages.serializers import PageSerializer
+from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.page import signals as page_signals
+from baserow.contrib.builder.page.model import Page
 from baserow.contrib.builder.page.object_scopes import BuilderPageObjectScopeType
 from baserow.contrib.builder.page.operations import ReadPageOperationType
 from baserow.ws.tasks import broadcast_to_permitted_users
 
 
 @receiver(page_signals.page_created)
-def page_created(sender, page, user, **kwargs):
+def page_created(sender, page: Page, user: AbstractUser, **kwargs):
     transaction.on_commit(
         lambda: broadcast_to_permitted_users.delay(
             page.builder.group_id,
@@ -17,6 +20,37 @@ def page_created(sender, page, user, **kwargs):
             BuilderPageObjectScopeType.type,
             page.id,
             {"type": "page_created", "page": PageSerializer(page).data},
+            getattr(user, "web_socket_id", None),
+        )
+    )
+
+
+@receiver(page_signals.page_updated)
+def page_updated(sender, page: Page, user: AbstractUser, **kwargs):
+    transaction.on_commit(
+        lambda: broadcast_to_permitted_users.delay(
+            page.builder.group_id,
+            ReadPageOperationType.type,
+            BuilderPageObjectScopeType.type,
+            page.id,
+            {
+                "type": "page_updated",
+                "page": PageSerializer(page).data,
+            },
+            getattr(user, "web_socket_id", None),
+        )
+    )
+
+
+@receiver(page_signals.page_deleted)
+def page_deleted(sender, builder: Builder, page_id: int, user: AbstractUser, **kwargs):
+    transaction.on_commit(
+        lambda: broadcast_to_permitted_users.delay(
+            builder.group_id,
+            ReadPageOperationType.type,
+            BuilderPageObjectScopeType.type,
+            page_id,
+            {"type": "page_deleted", "page_id": page_id, "builder_id": builder.id},
             getattr(user, "web_socket_id", None),
         )
     )

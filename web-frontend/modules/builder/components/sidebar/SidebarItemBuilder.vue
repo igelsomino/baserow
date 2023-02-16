@@ -33,6 +33,17 @@
             {{ $t('action.rename') }}
           </a>
         </li>
+        <li
+          v-if="$hasPermission('builder.page.delete', page, builder.group.id)"
+        >
+          <a
+            :class="{ 'context__menu-item--loading': deleteLoading }"
+            @click="deletePage()"
+          >
+            <i class="context__menu-icon fas fa-fw fa-trash"></i>
+            {{ $t('action.delete') }}
+          </a>
+        </li>
       </ul>
     </Context>
   </li>
@@ -52,6 +63,11 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  data() {
+    return {
+      deleteLoading: false,
+    }
   },
   computed: {
     showOptions() {
@@ -130,6 +146,20 @@ export default {
       }
 
       this.setLoading(builder, false)
+    },
+    async deletePage() {
+      this.deleteLoading = true
+
+      try {
+        await this.$store.dispatch('page/delete', {
+          builder: this.builder,
+          page: this.page,
+        })
+      } catch (error) {
+        notifyIf(error, 'page')
+      }
+
+      this.deleteLoading = false
     },
   },
 }

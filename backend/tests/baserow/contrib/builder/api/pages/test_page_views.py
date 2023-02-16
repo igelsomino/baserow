@@ -176,3 +176,77 @@ def test_order_pages_application_does_not_exist(api_client, data_fixture):
 
     assert response.status_code == HTTP_404_NOT_FOUND
     assert response.json()["error"] == "ERROR_APPLICATION_DOES_NOT_EXIST"
+
+
+@pytest.mark.django_db
+def test_delete_page(api_client, data_fixture):
+    user, token = data_fixture.create_user_and_token()
+    builder = data_fixture.create_builder_application(user=user)
+    page = data_fixture.create_builder_page(builder=builder, order=1)
+
+    url = reverse(
+        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": page.id}
+    )
+    response = api_client.delete(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=f"JWT {token}",
+    )
+
+    assert response.status_code == HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_page_user_not_in_group(api_client, data_fixture):
+    user, token = data_fixture.create_user_and_token()
+    builder = data_fixture.create_builder_application()
+    page = data_fixture.create_builder_page(builder=builder, order=1)
+
+    url = reverse(
+        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": page.id}
+    )
+    response = api_client.delete(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=f"JWT {token}",
+    )
+
+    assert response.status_code == HTTP_400_BAD_REQUEST
+    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
+
+
+@pytest.mark.django_db
+def test_delete_page_application_does_not_exist(api_client, data_fixture):
+    user, token = data_fixture.create_user_and_token()
+    builder = data_fixture.create_builder_application(user=user)
+    page = data_fixture.create_builder_page(builder=builder, order=1)
+
+    url = reverse(
+        "api:builder:pages:item", kwargs={"builder_id": 99999, "page_id": page.id}
+    )
+    response = api_client.delete(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=f"JWT {token}",
+    )
+
+    assert response.status_code == HTTP_404_NOT_FOUND
+    assert response.json()["error"] == "ERROR_APPLICATION_DOES_NOT_EXIST"
+
+
+@pytest.mark.django_db
+def test_delete_page_page_not_exist(api_client, data_fixture):
+    user, token = data_fixture.create_user_and_token()
+    builder = data_fixture.create_builder_application(user=user)
+
+    url = reverse(
+        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": 99999}
+    )
+    response = api_client.delete(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=f"JWT {token}",
+    )
+
+    assert response.status_code == HTTP_404_NOT_FOUND
+    assert response.json()["error"] == "ERROR_PAGE_DOES_NOT_EXIST"

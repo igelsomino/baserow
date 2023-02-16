@@ -22,6 +22,10 @@ const mutations = {
   UPDATE_ITEM(state, { page, values }) {
     Object.assign(page, page, values)
   },
+  DELETE_ITEM(state, { builder, id }) {
+    const index = builder.pages.findIndex((item) => item.id === id)
+    builder.pages.splice(index, 1)
+  },
   SET_SELECTED(state, { builder, page }) {
     Object.values(builder.pages).forEach((item) => {
       item._.selected = false
@@ -68,6 +72,14 @@ const actions = {
 
     return { builder, page }
   },
+  forceDelete({ commit }, { builder, page }) {
+    if (page._.selected) {
+      // Redirect back to the dashboard because the page doesn't exist anymore.
+      this.$router.push({ name: 'dashboard' })
+    }
+
+    commit('DELETE_ITEM', { builder, id: page.id })
+  },
   async add({ commit, dispatch }, { builder, name }) {
     const { data: page } = await PageService(this.$client).create(
       builder.id,
@@ -91,6 +103,11 @@ const actions = {
     }, {})
 
     dispatch('forceUpdate', { builder, page, values: update })
+  },
+  async delete({ dispatch }, { builder, page }) {
+    await PageService(this.$client).delete(builder.id, page.id)
+
+    dispatch('forceDelete', { builder, page })
   },
   async order(
     { commit, getters },

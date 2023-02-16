@@ -102,7 +102,9 @@ class PageView(APIView):
                     "ERROR_REQUEST_BODY_VALIDATION",
                 ]
             ),
-            404: get_error_schema(["ERROR_APPLICATION_DOES_NOT_EXIST"]),
+            404: get_error_schema(
+                ["ERROR_APPLICATION_DOES_NOT_EXIST", "ERROR_PAGE_DOES_NOT_EXIST"]
+            ),
         },
     )
     @transaction.atomic
@@ -123,6 +125,56 @@ class PageView(APIView):
 
         serializer = PageSerializer(page_updated)
         return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="builder_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+                description="The builder the application belongs to",
+            ),
+            OpenApiParameter(
+                name="page_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+                description="The id of the page",
+            ),
+            CLIENT_SESSION_ID_SCHEMA_PARAMETER,
+        ],
+        tags=["Builder pages"],
+        operation_id="delete_builder_page",
+        description="Deletes an existing page of an application builder",
+        responses={
+            204: None,
+            400: get_error_schema(
+                [
+                    "ERROR_USER_NOT_IN_GROUP",
+                    "ERROR_REQUEST_BODY_VALIDATION",
+                ]
+            ),
+            404: get_error_schema(
+                ["ERROR_APPLICATION_DOES_NOT_EXIST", "ERROR_PAGE_DOES_NOT_EXIST"]
+            ),
+        },
+    )
+    @transaction.atomic
+    @map_exceptions(
+        {
+            ApplicationDoesNotExist: ERROR_APPLICATION_DOES_NOT_EXIST,
+            PageDoesNotExist: ERROR_PAGE_DOES_NOT_EXIST,
+            UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
+        }
+    )
+    @transaction.atomic
+    def delete(self, request, builder_id: int, page_id: int):
+        builder = BuilderHandler().get_builder(builder_id).specific
+
+        page = PageHandler().get_page(request.user, builder, page_id)
+
+        PageHandler().delete_page(request.user, page)
+
+        return Response(status=204)
 
 
 class OrderPagesView(APIView):

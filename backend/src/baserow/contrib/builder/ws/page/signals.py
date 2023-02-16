@@ -11,7 +11,7 @@ from baserow.contrib.builder.page.model import Page
 from baserow.contrib.builder.page.object_scopes import BuilderPageObjectScopeType
 from baserow.contrib.builder.page.operations import ReadPageOperationType
 from baserow.core.utils import generate_hash
-from baserow.ws.tasks import broadcast_to_permitted_users, broadcast_to_group
+from baserow.ws.tasks import broadcast_to_group, broadcast_to_permitted_users
 
 
 @receiver(page_signals.page_created)

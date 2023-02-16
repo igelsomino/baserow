@@ -1,6 +1,6 @@
 from django.urls import re_path
 
-from baserow.contrib.builder.api.pages.views import PagesView, PageView, OrderPagesView
+from baserow.contrib.builder.api.pages.views import OrderPagesView, PagesView, PageView
 
 app_name = "baserow.contrib.builder.api.pages"
 

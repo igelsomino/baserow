@@ -18,8 +18,8 @@ from baserow.contrib.builder.api.pages.errors import (
 )
 from baserow.contrib.builder.api.pages.serializers import (
     CreatePageSerializer,
-    PageSerializer,
     OrderPagesSerializer,
+    PageSerializer,
 )
 from baserow.contrib.builder.handler import BuilderHandler
 from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder

@@ -149,7 +149,9 @@ class OrderPagesView(APIView):
                     "ERROR_PAGE_NOT_IN_BUILDER",
                 ]
             ),
-            404: get_error_schema(["ERROR_APPLICATION_DOES_NOT_EXIST"]),
+            404: get_error_schema(
+                ["ERROR_APPLICATION_DOES_NOT_EXIST", "ERROR_PAGE_DOES_NOT_EXIST"]
+            ),
         },
     )
     @transaction.atomic

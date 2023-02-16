@@ -2,6 +2,7 @@ from django.db import IntegrityError
 
 import pytest
 
+from baserow.contrib.builder.page.exceptions import PageNotInBuilder
 from baserow.contrib.builder.page.handler import PageHandler
 from baserow.contrib.builder.page.model import Page
 from baserow.core.exceptions import UserNotInGroup
@@ -121,3 +122,40 @@ def test_update_page_invalid_values(data_fixture):
     page_updated = PageHandler().update_page(user, page, {"nonsense": "hello"})
 
     assert hasattr(page_updated, "nonsense") is False
+
+
+@pytest.mark.django_db
+def test_order_pages(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application(user=user)
+    page_one = data_fixture.create_builder_page(builder=builder, order=1)
+    page_two = data_fixture.create_builder_page(builder=builder, order=2)
+
+    PageHandler().order_pages(user, builder, [page_two.id, page_one.id])
+
+    page_one.refresh_from_db()
+    page_two.refresh_from_db()
+
+    assert page_one.order > page_two.order
+
+
+@pytest.mark.django_db
+def test_order_pages_user_not_in_group(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application()
+    page_one = data_fixture.create_builder_page(builder=builder, order=1)
+    page_two = data_fixture.create_builder_page(builder=builder, order=2)
+
+    with pytest.raises(UserNotInGroup):
+        PageHandler().order_pages(user, builder, [page_two.id, page_one.id])
+
+
+@pytest.mark.django_db
+def test_order_pages_page_not_in_builder(data_fixture):
+    user = data_fixture.create_user()
+    builder = data_fixture.create_builder_application(user=user)
+    page_one = data_fixture.create_builder_page(builder=builder, order=1)
+    page_two = data_fixture.create_builder_page(order=2)
+
+    with pytest.raises(PageNotInBuilder):
+        PageHandler().order_pages(user, builder, [page_two.id, page_one.id])

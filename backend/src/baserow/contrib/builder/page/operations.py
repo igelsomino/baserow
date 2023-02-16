@@ -8,7 +8,7 @@ class BuilderPageOperationType(BuilderOperationType, ABC):
 
 
 class CreatePageOperationType(BuilderOperationType):
-    type = "builder.page.create"
+    type = "builder.create_page"
 
 
 class DeletePageOperationType(BuilderPageOperationType):

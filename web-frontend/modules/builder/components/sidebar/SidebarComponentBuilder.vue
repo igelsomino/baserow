@@ -46,7 +46,7 @@
         <a
           v-if="
             $hasPermission(
-              'builder.page.create',
+              'builder.create_page',
               application,
               application.group.id
             )

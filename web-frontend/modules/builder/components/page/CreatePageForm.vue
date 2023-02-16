@@ -58,7 +58,7 @@ export default {
   },
   computed: {
     pageNames() {
-      return this.builder.pages.map((table) => table.name)
+      return this.builder.pages.map((page) => page.name)
     },
     defaultName() {
       const baseName = this.$t('createPageForm.defaultName')

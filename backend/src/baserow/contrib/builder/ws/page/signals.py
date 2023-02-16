@@ -71,7 +71,7 @@ def page_reordered(
             builder.group_id,
             {
                 "type": "pages_reordered",
-                # A user might also not have access to the database itself
+                # A user might also not have access to the builder itself
                 "builder_id": generate_hash(builder.id),
                 "order": order,
             },

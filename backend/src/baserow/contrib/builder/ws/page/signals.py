@@ -1,3 +1,5 @@
+from typing import List
+
 from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 from django.dispatch import receiver
@@ -8,7 +10,8 @@ from baserow.contrib.builder.page import signals as page_signals
 from baserow.contrib.builder.page.model import Page
 from baserow.contrib.builder.page.object_scopes import BuilderPageObjectScopeType
 from baserow.contrib.builder.page.operations import ReadPageOperationType
-from baserow.ws.tasks import broadcast_to_permitted_users
+from baserow.core.utils import generate_hash
+from baserow.ws.tasks import broadcast_to_permitted_users, broadcast_to_group
 
 
 @receiver(page_signals.page_created)
@@ -51,6 +54,27 @@ def page_deleted(sender, builder: Builder, page_id: int, user: AbstractUser, **k
             BuilderPageObjectScopeType.type,
             page_id,
             {"type": "page_deleted", "page_id": page_id, "builder_id": builder.id},
+            getattr(user, "web_socket_id", None),
+        )
+    )
+
+
+@receiver(page_signals.pages_reordered)
+def page_reordered(
+    sender, builder: Builder, order: List[int], user: AbstractUser, **kwargs
+):
+    # Hashing all values here to not expose real ids of pages a user might not have
+    # access to
+    order = [generate_hash(o) for o in order]
+    transaction.on_commit(
+        lambda: broadcast_to_group.delay(
+            builder.group_id,
+            {
+                "type": "pages_reordered",
+                # A user might also not have access to the database itself
+                "builder_id": generate_hash(builder.id),
+                "order": order,
+            },
             getattr(user, "web_socket_id", None),
         )
     )

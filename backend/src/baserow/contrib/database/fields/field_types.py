@@ -673,7 +673,7 @@ class BooleanFieldType(FieldType):
 
 
 def valid_utc_offset_value_validator(value):
-    if value % 30 != 0:
+    if value != 0 and value % 30 != 0:
         raise serializers.ValidationError(
             "The UTC offset must be different from 0 and a multiple of 30 minutes."
         )

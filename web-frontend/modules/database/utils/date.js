@@ -57,17 +57,20 @@ export const getTimeHumanReadableFormat = (type) => {
 export const getTimezone = (field, value) => {
   if (value === null || value === undefined) {
     return ''
-  } else if (!field.date_include_time) {
-    return 'GMT'
   }
-  return localizeMoment(field, moment(value)).format('z')
+  return localizeMoment(field, value).format('z')
 }
 
-export const localizeMoment = (field, value, format = undefined) => {
-  const momentValue = moment(value, format)
-  if (!field.date_include_time) {
-    return momentValue
-  }
-  const timezone = field.date_force_timezone || moment.tz.guess()
-  return momentValue.tz(timezone)
+export const localizeMoment = (
+  field,
+  value,
+  format = undefined,
+  replace = false
+) => {
+  return field.date_include_time
+    ? moment(value, format).tz(
+        field.date_force_timezone || moment.tz.guess(),
+        replace
+      )
+    : moment(value, format).utc()
 }

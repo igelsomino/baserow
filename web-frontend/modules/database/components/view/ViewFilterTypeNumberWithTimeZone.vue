@@ -22,6 +22,7 @@
 <script>
 import viewFilter from '@baserow/modules/database/mixins/viewFilter'
 import { integer } from 'vuelidate/lib/validators'
+import moment from 'moment'
 
 import filterTypeInput from '@baserow/modules/database/mixins/filterTypeInput'
 
@@ -30,8 +31,11 @@ export default {
   mixins: [filterTypeInput, viewFilter],
   computed: {
     timezoneValue() {
+      if (!this.field?.date_include_time) {
+        return 'GMT'
+      }
       const [timezone] = this.splitCombinedValue(this.filter.value)
-      return timezone
+      return moment().tz(timezone).format('z')
     },
   },
   watch: {
@@ -55,12 +59,12 @@ export default {
       const [, daysAgo] = this.splitCombinedValue(value)
       return daysAgo
     },
-    prepareValue(timezoneValue, daysAgo) {
+    prepareValue(daysAgo, field) {
       const separator = this.getSeparator()
-      return `${timezoneValue}${separator}${daysAgo}`
+      return `${this.timezoneValue}${separator}${daysAgo}`
     },
     combinedDelayedUpdate(value, immediately = false) {
-      const preparedValue = this.prepareValue(this.timezoneValue, value)
+      const preparedValue = this.prepareValue(value)
       return this.delayedUpdate(preparedValue, immediately)
     },
     focus() {

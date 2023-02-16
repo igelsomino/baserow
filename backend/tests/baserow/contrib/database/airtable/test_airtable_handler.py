@@ -10,8 +10,7 @@ from django.core.files.storage import FileSystemStorage
 
 import pytest
 import responses
-from pytz import UTC, UnknownTimeZoneError
-from pytz import timezone as pytz_timezone
+from pytz import UnknownTimeZoneError
 
 from baserow.contrib.database.airtable.exceptions import AirtableShareIsNotABase
 from baserow.contrib.database.airtable.handler import AirtableHandler
@@ -182,7 +181,7 @@ def test_to_baserow_database_export():
 
     schema, tables = AirtableHandler.extract_schema([user_table_json, data_table_json])
     baserow_database_export, files_buffer = AirtableHandler.to_baserow_database_export(
-        init_data, schema, tables, pytz_timezone("Europe/Amsterdam")
+        init_data, schema, tables
     )
 
     with ZipFile(files_buffer, "r", ZIP_DEFLATED, False) as zip_file:
@@ -259,7 +258,7 @@ def test_to_baserow_database_export():
     }
     assert (
         baserow_database_export["tables"][1]["rows"][0]["field_fldEB5dp0mNjVZu0VJI"]
-        == "2022-01-21T01:00:00+00:00"
+        == "2022-01-21T00:00:00+00:00"
     )
     assert baserow_database_export["tables"][0]["views"] == [
         {
@@ -312,14 +311,14 @@ def test_to_baserow_database_export_without_primary_value():
 
     schema, tables = AirtableHandler.extract_schema(deepcopy([user_table_json]))
     baserow_database_export, files_buffer = AirtableHandler.to_baserow_database_export(
-        init_data, schema, tables, UTC
+        init_data, schema, tables
     )
     assert baserow_database_export["tables"][0]["fields"][0]["primary"] is True
 
     user_table_json["data"]["tableSchemas"][0]["columns"] = []
     schema, tables = AirtableHandler.extract_schema(deepcopy([user_table_json]))
     baserow_database_export, files_buffer = AirtableHandler.to_baserow_database_export(
-        init_data, schema, tables, UTC
+        init_data, schema, tables
     )
     assert baserow_database_export["tables"][0]["fields"] == [
         {
@@ -394,7 +393,6 @@ def test_import_from_airtable_to_group(data_fixture, tmpdir):
     database = AirtableHandler.import_from_airtable_to_group(
         group,
         "shrXxmp0WmqsTkFWTzv",
-        timezone=UTC,
         storage=storage,
         progress_builder=progress.create_child_builder(represents_progress=1000),
     )
@@ -451,7 +449,7 @@ def test_import_unsupported_publicly_shared_view(data_fixture, tmpdir):
 
     with pytest.raises(AirtableShareIsNotABase):
         AirtableHandler.import_from_airtable_to_group(
-            group, "shrXxmp0WmqsTkFWTzv", timezone=UTC, storage=storage
+            group, "shrXxmp0WmqsTkFWTzv", storage=storage
         )
 
 

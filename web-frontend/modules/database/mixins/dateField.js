@@ -51,7 +51,7 @@ export default {
      */
     updateDate(field, value) {
       const dateFormat = getDateMomentFormat(field.date_format)
-      const newDate = localizeMoment(field, value, dateFormat)
+      const newDate = localizeMoment(field, value, dateFormat, true)
       this.updateCopy(
         field,
         {
@@ -68,7 +68,7 @@ export default {
      * value that is actually going to be saved.
      */
     updateTime(field, value) {
-      const newTime = localizeMoment(field, value, ['h:m a', 'H:m'])
+      const newTime = localizeMoment(field, value, ['h:m a', 'H:m'], true)
       this.updateCopy(
         field,
         {
@@ -85,7 +85,9 @@ export default {
      */
     chooseDate(field, value) {
       const dateFormat = getDateMomentFormat(field.date_format)
-      value = localizeMoment(field, moment(value)).format(dateFormat)
+      value = moment(value)
+        .tz(getTimezone(field, value), true)
+        .format(dateFormat)
       this.date = value
       this.updateDate(field, value)
     },

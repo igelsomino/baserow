@@ -190,7 +190,7 @@ export default {
      * because some filter types are not compatible with certain field types.
      */
     updateFilter(filter, values) {
-      const field = Object.prototype.hasOwnProperty.call(values, 'field')
+      const fieldId = Object.prototype.hasOwnProperty.call(values, 'field')
         ? values.field
         : filter.field
       const type = Object.prototype.hasOwnProperty.call(values, 'type')
@@ -206,7 +206,7 @@ export default {
         const allowedFilterTypes = this.allowedFilters(
           this.filterTypes,
           this.fields,
-          field
+          fieldId
         ).map((filter) => filter.type)
         if (!allowedFilterTypes.includes(type)) {
           values.type = allowedFilterTypes[0]
@@ -220,7 +220,8 @@ export default {
         Object.prototype.hasOwnProperty.call(values, 'value')
       ) {
         const filterType = this.$registry.get('viewFilter', type)
-        values.value = filterType.prepareValue(value)
+        const field = this.fields.find(({ id }) => id === fieldId)
+        values.value = filterType.prepareValue(value, field)
       }
 
       this.$emit('updateFilter', { filter, values })

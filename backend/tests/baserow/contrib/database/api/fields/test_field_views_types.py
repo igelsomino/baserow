@@ -1015,7 +1015,6 @@ def test_created_on_field_type(api_client, data_fixture):
             "name": "Create",
             "type": "created_on",
             "date_include_time": True,
-            "timezone": "Europe/Berlin",
         },
         format="json",
         HTTP_AUTHORIZATION=f"JWT {token}",

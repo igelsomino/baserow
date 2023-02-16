@@ -958,6 +958,8 @@ def test_can_type_a_valid_formula_field(data_fixture, api_client):
         "date_format": None,
         "date_include_time": None,
         "date_time_format": None,
+        "date_show_tzinfo": None,
+        "date_force_timezone": None,
         "error": None,
         "formula": "1+1",
         "formula_type": "number",

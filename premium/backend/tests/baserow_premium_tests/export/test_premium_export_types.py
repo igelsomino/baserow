@@ -52,13 +52,13 @@ def test_can_export_every_interesting_different_field_to_json(
     "date_us": "",
     "datetime_eu": "",
     "date_eu": "",
-    "last_modified_datetime_us": "01/02/2021 13:00",
+    "last_modified_datetime_us": "01/02/2021 12:00",
     "last_modified_date_us": "01/02/2021",
-    "last_modified_datetime_eu": "02/01/2021 13:00",
+    "last_modified_datetime_eu": "02/01/2021 12:00",
     "last_modified_date_eu": "02/01/2021",
-    "created_on_datetime_us": "01/02/2021 13:00",
+    "created_on_datetime_us": "01/02/2021 12:00",
     "created_on_date_us": "01/02/2021",
-    "created_on_datetime_eu": "02/01/2021 13:00",
+    "created_on_datetime_eu": "02/01/2021 12:00",
     "created_on_date_eu": "02/01/2021",
     "link_row": [],
     "self_link_row": [],
@@ -103,13 +103,13 @@ def test_can_export_every_interesting_different_field_to_json(
     "date_us": "02/01/2020",
     "datetime_eu": "01/02/2020 01:23",
     "date_eu": "01/02/2020",
-    "last_modified_datetime_us": "01/02/2021 13:00",
+    "last_modified_datetime_us": "01/02/2021 12:00",
     "last_modified_date_us": "01/02/2021",
-    "last_modified_datetime_eu": "02/01/2021 13:00",
+    "last_modified_datetime_eu": "02/01/2021 12:00",
     "last_modified_date_eu": "02/01/2021",
-    "created_on_datetime_us": "01/02/2021 13:00",
+    "created_on_datetime_us": "01/02/2021 12:00",
     "created_on_date_us": "01/02/2021",
-    "created_on_datetime_eu": "02/01/2021 13:00",
+    "created_on_datetime_eu": "02/01/2021 12:00",
     "created_on_date_eu": "02/01/2021",
     "link_row": [
         "linked_row_1",
@@ -273,13 +273,13 @@ def test_can_export_every_interesting_different_field_to_xml(
     <date-us/>
     <datetime-eu/>
     <date-eu/>
-    <last-modified-datetime-us>01/02/2021 13:00</last-modified-datetime-us>
+    <last-modified-datetime-us>01/02/2021 12:00</last-modified-datetime-us>
     <last-modified-date-us>01/02/2021</last-modified-date-us>
-    <last-modified-datetime-eu>02/01/2021 13:00</last-modified-datetime-eu>
+    <last-modified-datetime-eu>02/01/2021 12:00</last-modified-datetime-eu>
     <last-modified-date-eu>02/01/2021</last-modified-date-eu>
-    <created-on-datetime-us>01/02/2021 13:00</created-on-datetime-us>
+    <created-on-datetime-us>01/02/2021 12:00</created-on-datetime-us>
     <created-on-date-us>01/02/2021</created-on-date-us>
-    <created-on-datetime-eu>02/01/2021 13:00</created-on-datetime-eu>
+    <created-on-datetime-eu>02/01/2021 12:00</created-on-datetime-eu>
     <created-on-date-eu>02/01/2021</created-on-date-eu>
     <link-row/>
     <self-link-row/>
@@ -324,13 +324,13 @@ def test_can_export_every_interesting_different_field_to_xml(
     <date-us>02/01/2020</date-us>
     <datetime-eu>01/02/2020 01:23</datetime-eu>
     <date-eu>01/02/2020</date-eu>
-    <last-modified-datetime-us>01/02/2021 13:00</last-modified-datetime-us>
+    <last-modified-datetime-us>01/02/2021 12:00</last-modified-datetime-us>
     <last-modified-date-us>01/02/2021</last-modified-date-us>
-    <last-modified-datetime-eu>02/01/2021 13:00</last-modified-datetime-eu>
+    <last-modified-datetime-eu>02/01/2021 12:00</last-modified-datetime-eu>
     <last-modified-date-eu>02/01/2021</last-modified-date-eu>
-    <created-on-datetime-us>01/02/2021 13:00</created-on-datetime-us>
+    <created-on-datetime-us>01/02/2021 12:00</created-on-datetime-us>
     <created-on-date-us>01/02/2021</created-on-date-us>
-    <created-on-datetime-eu>02/01/2021 13:00</created-on-datetime-eu>
+    <created-on-datetime-eu>02/01/2021 12:00</created-on-datetime-eu>
     <created-on-date-eu>02/01/2021</created-on-date-eu>
     <link-row>
         <item>linked_row_1</item>

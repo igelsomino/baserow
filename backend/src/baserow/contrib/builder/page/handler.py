@@ -80,7 +80,7 @@ class PageHandler:
 
         page.save()
 
-        page_updated.send(page=page)
+        page_updated.send(self, page=page)
 
         return page
 

@@ -16,7 +16,9 @@ def test_create_page(api_client, data_fixture):
 
     name = "test"
 
-    url = reverse("api:builder:pages:list", kwargs={"builder_id": builder.id})
+    url = reverse(
+        "api:builder:builder_id:pages:list", kwargs={"builder_id": builder.id}
+    )
     response = api_client.post(
         url, {"name": name}, format="json", HTTP_AUTHORIZATION=f"JWT {token}"
     )
@@ -31,7 +33,9 @@ def test_create_page_user_not_in_group(api_client, data_fixture):
     user, token = data_fixture.create_user_and_token()
     builder = data_fixture.create_builder_application()
 
-    url = reverse("api:builder:pages:list", kwargs={"builder_id": builder.id})
+    url = reverse(
+        "api:builder:builder_id:pages:list", kwargs={"builder_id": builder.id}
+    )
     response = api_client.post(
         url, {"name": "test"}, format="json", HTTP_AUTHORIZATION=f"JWT {token}"
     )
@@ -44,7 +48,7 @@ def test_create_page_user_not_in_group(api_client, data_fixture):
 def test_create_page_application_does_not_exist(api_client, data_fixture):
     user, token = data_fixture.create_user_and_token()
 
-    url = reverse("api:builder:pages:list", kwargs={"builder_id": 9999})
+    url = reverse("api:builder:builder_id:pages:list", kwargs={"builder_id": 9999})
     response = api_client.post(
         url, {"name": "test"}, format="json", HTTP_AUTHORIZATION=f"JWT {token}"
     )
@@ -59,9 +63,7 @@ def test_update_page(api_client, data_fixture):
     builder = data_fixture.create_builder_application(user=user)
     page = data_fixture.create_builder_page(builder=builder, name="something")
 
-    url = reverse(
-        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": page.id}
-    )
+    url = reverse("api:builder:pages:item", kwargs={"page_id": page.id})
     response = api_client.patch(
         url, {"name": "test"}, format="json", HTTP_AUTHORIZATION=f"JWT {token}"
     )
@@ -71,30 +73,10 @@ def test_update_page(api_client, data_fixture):
 
 
 @pytest.mark.django_db
-def test_update_page_application_does_not_exist(api_client, data_fixture):
-    user, token = data_fixture.create_user_and_token()
-    builder = data_fixture.create_builder_application(user=user)
-    page = data_fixture.create_builder_page(builder=builder, name="something")
-
-    url = reverse(
-        "api:builder:pages:item", kwargs={"builder_id": 9999, "page_id": page.id}
-    )
-    response = api_client.patch(
-        url, {"name": "test"}, format="json", HTTP_AUTHORIZATION=f"JWT {token}"
-    )
-
-    assert response.status_code == HTTP_404_NOT_FOUND
-    assert response.json()["error"] == "ERROR_APPLICATION_DOES_NOT_EXIST"
-
-
-@pytest.mark.django_db
 def test_update_page_page_does_not_exist(api_client, data_fixture):
     user, token = data_fixture.create_user_and_token()
-    builder = data_fixture.create_builder_application(user=user)
 
-    url = reverse(
-        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": 9999}
-    )
+    url = reverse("api:builder:pages:item", kwargs={"page_id": 9999})
     response = api_client.patch(
         url, {"name": "test"}, format="json", HTTP_AUTHORIZATION=f"JWT {token}"
     )
@@ -110,7 +92,9 @@ def test_order_pages(api_client, data_fixture):
     page_one = data_fixture.create_builder_page(builder=builder, order=1)
     page_two = data_fixture.create_builder_page(builder=builder, order=2)
 
-    url = reverse("api:builder:pages:order", kwargs={"builder_id": builder.id})
+    url = reverse(
+        "api:builder:builder_id:pages:order", kwargs={"builder_id": builder.id}
+    )
     response = api_client.post(
         url,
         {"page_ids": [page_two.id, page_one.id]},
@@ -128,7 +112,9 @@ def test_order_pages_user_not_in_group(api_client, data_fixture):
     page_one = data_fixture.create_builder_page(builder=builder, order=1)
     page_two = data_fixture.create_builder_page(builder=builder, order=2)
 
-    url = reverse("api:builder:pages:order", kwargs={"builder_id": builder.id})
+    url = reverse(
+        "api:builder:builder_id:pages:order", kwargs={"builder_id": builder.id}
+    )
     response = api_client.post(
         url,
         {"page_ids": [page_two.id, page_one.id]},
@@ -147,7 +133,9 @@ def test_order_pages_page_not_in_builder(api_client, data_fixture):
     page_one = data_fixture.create_builder_page(builder=builder, order=1)
     page_two = data_fixture.create_builder_page(order=2)
 
-    url = reverse("api:builder:pages:order", kwargs={"builder_id": builder.id})
+    url = reverse(
+        "api:builder:builder_id:pages:order", kwargs={"builder_id": builder.id}
+    )
     response = api_client.post(
         url,
         {"page_ids": [page_two.id, page_one.id]},
@@ -166,7 +154,7 @@ def test_order_pages_application_does_not_exist(api_client, data_fixture):
     page_one = data_fixture.create_builder_page(builder=builder, order=1)
     page_two = data_fixture.create_builder_page(builder=builder, order=2)
 
-    url = reverse("api:builder:pages:order", kwargs={"builder_id": 99999})
+    url = reverse("api:builder:builder_id:pages:order", kwargs={"builder_id": 99999})
     response = api_client.post(
         url,
         {"page_ids": [page_two.id, page_one.id]},
@@ -184,9 +172,7 @@ def test_delete_page(api_client, data_fixture):
     builder = data_fixture.create_builder_application(user=user)
     page = data_fixture.create_builder_page(builder=builder, order=1)
 
-    url = reverse(
-        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": page.id}
-    )
+    url = reverse("api:builder:pages:item", kwargs={"page_id": page.id})
     response = api_client.delete(
         url,
         format="json",
@@ -202,9 +188,7 @@ def test_delete_page_user_not_in_group(api_client, data_fixture):
     builder = data_fixture.create_builder_application()
     page = data_fixture.create_builder_page(builder=builder, order=1)
 
-    url = reverse(
-        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": page.id}
-    )
+    url = reverse("api:builder:pages:item", kwargs={"page_id": page.id})
     response = api_client.delete(
         url,
         format="json",
@@ -216,32 +200,10 @@ def test_delete_page_user_not_in_group(api_client, data_fixture):
 
 
 @pytest.mark.django_db
-def test_delete_page_application_does_not_exist(api_client, data_fixture):
-    user, token = data_fixture.create_user_and_token()
-    builder = data_fixture.create_builder_application(user=user)
-    page = data_fixture.create_builder_page(builder=builder, order=1)
-
-    url = reverse(
-        "api:builder:pages:item", kwargs={"builder_id": 99999, "page_id": page.id}
-    )
-    response = api_client.delete(
-        url,
-        format="json",
-        HTTP_AUTHORIZATION=f"JWT {token}",
-    )
-
-    assert response.status_code == HTTP_404_NOT_FOUND
-    assert response.json()["error"] == "ERROR_APPLICATION_DOES_NOT_EXIST"
-
-
-@pytest.mark.django_db
 def test_delete_page_page_not_exist(api_client, data_fixture):
     user, token = data_fixture.create_user_and_token()
-    builder = data_fixture.create_builder_application(user=user)
 
-    url = reverse(
-        "api:builder:pages:item", kwargs={"builder_id": builder.id, "page_id": 99999}
-    )
+    url = reverse("api:builder:pages:item", kwargs={"page_id": 99999})
     response = api_client.delete(
         url,
         format="json",

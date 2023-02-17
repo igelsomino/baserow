@@ -96,15 +96,12 @@ class PageView(APIView):
                     "ERROR_REQUEST_BODY_VALIDATION",
                 ]
             ),
-            404: get_error_schema(
-                ["ERROR_APPLICATION_DOES_NOT_EXIST", "ERROR_PAGE_DOES_NOT_EXIST"]
-            ),
+            404: get_error_schema(["ERROR_PAGE_DOES_NOT_EXIST"]),
         },
     )
     @transaction.atomic
     @map_exceptions(
         {
-            ApplicationDoesNotExist: ERROR_APPLICATION_DOES_NOT_EXIST,
             PageDoesNotExist: ERROR_PAGE_DOES_NOT_EXIST,
             UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
         }
@@ -139,15 +136,12 @@ class PageView(APIView):
                     "ERROR_REQUEST_BODY_VALIDATION",
                 ]
             ),
-            404: get_error_schema(
-                ["ERROR_APPLICATION_DOES_NOT_EXIST", "ERROR_PAGE_DOES_NOT_EXIST"]
-            ),
+            404: get_error_schema(["ERROR_PAGE_DOES_NOT_EXIST"]),
         },
     )
     @transaction.atomic
     @map_exceptions(
         {
-            ApplicationDoesNotExist: ERROR_APPLICATION_DOES_NOT_EXIST,
             PageDoesNotExist: ERROR_PAGE_DOES_NOT_EXIST,
             UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
         }

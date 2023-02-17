@@ -1,9 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 from django.db.transaction import Atomic
+from django.urls import include, path
 from django.utils import translation
 from django.utils.translation import gettext as _
-from django.urls import include, path
 
 from baserow.contrib.builder.api.serializers import BuilderSerializer
 from baserow.contrib.builder.models import Builder

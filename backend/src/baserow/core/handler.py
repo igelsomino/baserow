@@ -92,6 +92,7 @@ from .signals import (
     group_user_updated,
     groups_reordered,
 )
+from .telemetry.utils import disable_instrumentation
 from .trash.handler import TrashHandler
 from .types import Actor, ContextObject, PermissionCheck, PermissionObjectResult
 from .utils import (
@@ -1524,6 +1525,10 @@ class CoreHandler:
         return template
 
     @transaction.atomic
+    # This single function generates a huge number of spans and events, we know it
+    # is slow, and so we disable instrumenting it to save significant resources in
+    # telemetry platforms receiving the instrumentation.
+    @disable_instrumentation
     def sync_templates(self, storage=None, template_search_glob="*.json"):
         """
         Synchronizes the JSON template files with the templates stored in the database.

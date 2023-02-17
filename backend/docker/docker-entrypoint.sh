@@ -214,7 +214,7 @@ run_backend_server(){
     "${EXTRA_GUNICORN_ARGS[@]}" \
     -b "${BASEROW_BACKEND_BIND_ADDRESS:-0.0.0.0}":"${BASEROW_BACKEND_PORT}" \
     --log-level="${BASEROW_BACKEND_LOG_LEVEL}" \
-    -c "../src/gunicorn.config.py" \
+    -c "./src/baserow/gunicorn.config.py" \
     "${STARTUP_ARGS[@]}" \
     "${@:2}"
 }

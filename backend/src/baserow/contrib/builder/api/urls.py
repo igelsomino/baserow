@@ -4,7 +4,7 @@ from .pages import urls as page_urls
 
 app_name = "baserow.contrib.builder.api"
 
-pages_paths_with_builder_id = [
+pages_with_builder_id = [
     path(
         "pages/",
         include(
@@ -29,7 +29,7 @@ urlpatterns = [
     re_path(
         "(?P<builder_id>[0-9]+)/",
         include(
-            (pages_paths_with_builder_id, app_name),
+            (pages_with_builder_id, app_name),
             namespace="builder_id",
         ),
     ),

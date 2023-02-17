@@ -43,7 +43,7 @@ export default {
     dateFields: {
       type: Array,
       required: true,
-    }
+    },
   },
   data() {
     return {

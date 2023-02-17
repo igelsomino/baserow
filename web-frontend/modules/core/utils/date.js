@@ -50,3 +50,9 @@ export const getHumanPeriodAgoCount = (dateTime) => {
     count: diffSeconds,
   }
 }
+
+export function getMonthName(dateTime) {
+  return moment(dateTime).format('MMMM YYYY')
+}
+
+export const weekDays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]

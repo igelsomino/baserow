@@ -6,7 +6,7 @@
     <Error :error="error"></Error>
     <DateFieldSelectForm
       ref="dateFieldSelectForm"
-      :dateFields="dateFields"
+      :date-fields="dateFields"
       :table="table"
       @submitted="submitted"
     >
@@ -59,29 +59,29 @@ export default {
     }
   },
   async fetch() {
-      this.loading = true
-      try {
-        const dataFieldTypes = Object.values(this.$registry.getAll('field'))
-          .filter((fieldType) => fieldType.isDateField() === true)
-          .map((fieldType) => fieldType.getType())
-        const { data } = await FieldService(this.$client).fetchAll(this.table.id)
-        this.dateFields = data
-          .filter((field) => dataFieldTypes.includes(field.type))
-      } catch (error) {
-        this.loading = false
-        this.handleError(error)
-      } finally {
-        this.loading = false
-      }
+    this.loading = true
+    try {
+      const dataFieldTypes = Object.values(this.$registry.getAll('field'))
+        .filter((fieldType) => fieldType.isDateField() === true)
+        .map((fieldType) => fieldType.getType())
+      const { data } = await FieldService(this.$client).fetchAll(this.table.id)
+      this.dateFields = data.filter((field) =>
+        dataFieldTypes.includes(field.type)
+      )
+    } catch (error) {
+      this.loading = false
+      this.handleError(error)
+    } finally {
+      this.loading = false
+    }
   },
   methods: {
     async submitted(values) {
       this.loading = true
       this.hideError()
       try {
-        await ViewService(this.$client).update(this.view.id,
-           {
-            date_field: values.dateField,
+        await ViewService(this.$client).update(this.view.id, {
+          date_field: values.dateField,
         })
         this.loading = false
         this.hide()
@@ -91,6 +91,6 @@ export default {
         this.loading = false
       }
     },
-  }
+  },
 }
 </script>

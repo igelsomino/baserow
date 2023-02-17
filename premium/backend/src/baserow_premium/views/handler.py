@@ -1,14 +1,15 @@
 from collections import defaultdict
 from typing import Dict, Optional, Union
-
+from datetime import datetime
 from django.db.models import Count, Q, QuerySet
-
+from django.utils import timezone
 from baserow_premium.views.models import OWNERSHIP_TYPE_PERSONAL
 
 from baserow.contrib.database.fields.models import SingleSelectField
 from baserow.contrib.database.table.models import GeneratedTableModel
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.contrib.database.views.models import View
+from baserow.contrib.database.fields.models import Field
 
 
 def get_rows_grouped_by_single_select_field(
@@ -126,6 +127,66 @@ def get_rows_grouped_by_single_select_field(
 
     for key, value in counts.items():
         rows[key]["count"] = value
+
+    return rows
+
+
+def get_rows_grouped_by_date_field(
+    view: View,
+    date_field: Field,
+    from_timestamp: datetime,
+    to_timestamp: datetime,
+    limit: int = 40,
+    offset: int = 0,
+    model: Optional[GeneratedTableModel] = None,
+    base_queryset: Optional[QuerySet] = None,
+) -> Dict[str, Dict[str, Union[int, list]]]:
+    """
+    TODO:
+    """
+    
+    table = view.table
+
+    if model is None:
+        model = table.get_model()
+
+    if base_queryset is None:
+        base_queryset = model.objects.all().enhance_by_fields().order_by(date_field.name, "order", "id")
+
+    base_option_queryset = ViewHandler().apply_filters(view, base_queryset)
+    all_filters = Q()
+
+    # count_aggregates = {}
+    
+    # TODO: convert/make sure from and to timestamps are the same as for
+    # the date field? make_aware?
+    # TODO: validate to is after from
+
+    span = (to_timestamp - from_timestamp).days + 1
+
+    dates_within_range = [from_timestamp + timezone.timedelta(days=x) for x in range(span)]
+
+    for date in dates_within_range:
+        date_filter = Q(**{f"field_{date_field.id}": date})
+
+        sub_queryset = base_option_queryset.filter(date_filter).values_list(
+            "id", flat=True
+        )[offset : offset + limit]
+        all_filters |= Q(id__in=sub_queryset)
+
+    queryset = list(base_queryset)
+
+    # counts = base_option_queryset.aggregate(**count_aggregates)
+
+    rows = defaultdict(lambda: {"count": 0, "results": []})
+
+    for row in queryset:
+        date_field = getattr(row, f"field_{date_field.id}_id")
+        date_value = date_field.date()
+        rows[date_value]["results"].append(row)
+
+    # for key, value in counts.items():
+    #     rows[key]["count"] = value
 
     return rows
 

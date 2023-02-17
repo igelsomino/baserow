@@ -1,23 +1,19 @@
 from baserow_premium.license.features import PREMIUM
 from baserow_premium.license.handler import LicenseHandler
-from baserow_premium.views.handler import get_rows_grouped_by_single_select_field
+from baserow_premium.views.handler import get_rows_grouped_by_date_field
 from baserow_premium.views.models import CalendarView
 from drf_spectacular.openapi import OpenApiParameter, OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from baserow.api.decorators import allowed_includes, map_exceptions
+from baserow.api.decorators import allowed_includes, validate_query_parameters
+from baserow.api.decorators import map_exceptions
 from baserow.api.errors import ERROR_USER_NOT_IN_GROUP
 from baserow.api.schemas import get_error_schema
 from baserow.contrib.database.api.rows.serializers import (
     RowSerializer,
     get_row_serializer_class,
-)
-from baserow.contrib.database.fields.field_filters import (
-    FILTER_TYPE_AND,
-    FILTER_TYPE_OR,
 )
 from baserow.contrib.database.table.operations import ListRowsDatabaseTableOperationType
 from baserow.contrib.database.views.exceptions import (
@@ -30,10 +26,9 @@ from baserow.core.handler import CoreHandler
 from baserow_premium.api.views.calendar.errors import ERROR_CALENDAR_VIEW_HAS_NO_DATE_FIELD
 from baserow.contrib.database.api.views.errors import (
     ERROR_VIEW_DOES_NOT_EXIST,
-    ERROR_VIEW_NOT_IN_TABLE,
 )
 from baserow_premium.views.exceptions import CalendarViewHasNoDateField
-from baserow_premium.license.exceptions import FeaturesNotAvailableError
+from baserow_premium.api.views.calendar.serializers import ListCalendarRowsQueryParamsSerializer
 
 
 class CalendarViewView(APIView):
@@ -59,16 +54,29 @@ class CalendarViewView(APIView):
                 name="limit",
                 location=OpenApiParameter.QUERY,
                 type=OpenApiTypes.INT,
-                description="Defines how many rows should be returned by default. "
-                "This value can be overwritten per select option.",
+                description="Defines how many rows should be returned by default."
             ),
             OpenApiParameter(
                 name="offset",
                 location=OpenApiParameter.QUERY,
                 type=OpenApiTypes.INT,
-                description="Defines from which offset the rows should be returned."
-                "This value can be overwritten per select option.",
+                description="Defines from which offset the rows should be returned.",
+                default=0,
             ),
+            OpenApiParameter(
+                name="from_timestamp",
+                location=OpenApiParameter.QUERY,
+                type=OpenApiTypes.DATETIME,
+                description="Restricts results based on the calendar date field.",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="to_timestamp",
+                location=OpenApiParameter.QUERY,
+                type=OpenApiTypes.DATETIME,
+                description="Restricts results based on the calendar date field.",
+                required=True,
+            )
         ],
         tags=["Database table calendar view"],
         operation_id="list_database_table_calendar_view_rows",
@@ -103,17 +111,14 @@ class CalendarViewView(APIView):
         }
     )
     @allowed_includes("field_options")
+    @validate_query_parameters(ListCalendarRowsQueryParamsSerializer)
     def get(self, request, view_id, field_options):
         # TODO: """Responds with the rows grouped by the view's select option field value."""
-
-        print("I am here")
 
         view_handler = ViewHandler()
         view = view_handler.get_view_as_user(request.user, view_id, CalendarView)
         group = view.table.database.group
 
-        # We don't want to check if there is an active premium license if the group
-        # is a template because that feature must then be available for demo purposes.
         if not group.has_template():
             LicenseHandler.raise_if_user_doesnt_have_feature(
                 PREMIUM, request.user, group
@@ -126,38 +131,36 @@ class CalendarViewView(APIView):
             context=view.table,
             allow_if_template=True,
         )
-        date_field = view.date_field
 
+        date_field = view.date_field
         if not date_field:
             raise CalendarViewHasNoDateField(
                 "The requested calendar view does not have a required date field."
             )
 
-        # (
-        #     included_select_options,
-        #     default_limit,
-        #     default_offset,
-        # ) = prepare_kanban_view_parameters(request)
-
+        from_timestamp = request.query_params.get('from_timestamp')
+        to_timestamp = request.query_params.get('to_timestamp')
+        
         model = view.table.get_model()
-        # serializer_class = get_row_serializer_class(
-        #     model, RowSerializer, is_response=True
-        # )
-        # rows = get_rows_grouped_by_single_select_field(
-        #     view=view,
-        #     single_select_field=single_select_option_field,
-        #     option_settings=included_select_options,
-        #     default_limit=default_limit,
-        #     default_offset=default_offset,
-        #     model=model,
-        # )
+        
+        rows = get_rows_grouped_by_date_field(
+            view=view,
+            date_field=date_field,
+            from_timestamp=from_timestamp,
+            to_timestamp=to_timestamp,
+            limit=request.query_params('limit', 40),
+            offset=request.query_params('limit', 0),
+            model=model,
+        )
 
-        # for key, value in rows.items():
-        #     rows[key]["results"] = serializer_class(value["results"], many=True).data
+        serializer_class = get_row_serializer_class(
+            model, RowSerializer, is_response=True
+        )
 
-        # response = {"rows": rows}
+        for key, value in rows.items():
+            rows[key]["results"] = serializer_class(value["results"], many=True).data
 
-        response = {}
+        response = {"rows": rows}
 
         if field_options:
             view_type = view_type_registry.get_by_model(view)

@@ -1,0 +1,37 @@
+.calendar-month-day {
+  position: relative;
+  min-height: 100px;
+  font-size: 16px;
+  color: black;
+  padding: 0;
+  border-top: 1px solid #EAECF0;
+  border-left: 1px solid #EAECF0;
+}
+
+.calendar-month-day--weekend {
+  background-color: #FAFAFA;
+}
+
+.calendar-month-day span {
+  padding: 5px;
+  width: 25px;
+  height: 25px;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.calendar-month-day--not-current {
+  color: #B5BAC1;
+}
+
+.calendar-month-day--today .calendar-month-day__date span {
+  background-color: #178DD6;
+  border-radius: 100%;
+  color: white;
+}
+
+.calendar-month-day__date {
+  padding-right: 10px;
+  text-align: right;
+  font-size: 13px;
+}

@@ -7,17 +7,19 @@
       :database="database"
     >
     </SelectDateFieldModal>
-    <button @click="showChooseDateFieldModal">click</button>
+    <CalendarMonth></CalendarMonth>
   </div>
 </template>
 <script>
 import { mapGetters } from 'vuex'
 import SelectDateFieldModal from '@baserow_premium/components/views/calendar/SelectDateFieldModal'
+import CalendarMonth from '@baserow_premium/components/views/calendar/CalendarMonth'
 
 export default {
   name: 'CalendarView',
   components: {
     SelectDateFieldModal,
+    CalendarMonth,
   },
   props: {
     database: {

@@ -1,9 +1,7 @@
 <template>
   <ul v-if="!tableLoading" class="header__filter header__filter--full-width">
     <li class="header__filter-item">
-      <a
-        class="header__filter-link"
-      >
+      <a class="header__filter-link">
         <i class="header__filter-icon fas fa-calendar-alt"></i>
         <span class="header__filter-name">
           <template v-if="view.date_field === null">{{
@@ -14,8 +12,7 @@
               fieldName: displayedByFieldName,
             })
           }}</template>
-        </span
-        >
+        </span>
       </a>
     </li>
     <li v-if="dateFieldId !== null" class="header__filter-item">
@@ -67,7 +64,7 @@ export default {
     storePrefix: {
       type: String,
       required: true,
-      default: ''
+      default: '',
     },
     database: {
       type: Object,
@@ -108,7 +105,8 @@ export default {
       ...(this.$options.computed || {}),
       ...mapGetters({
         fieldOptions:
-          this.$options.propsData.storePrefix + 'view/calendar/getAllFieldOptions',
+          this.$options.propsData.storePrefix +
+          'view/calendar/getAllFieldOptions',
         dateFieldId:
           this.$options.propsData.storePrefix + 'view/calendar/getDateFieldId',
       }),
@@ -169,6 +167,6 @@ export default {
         notifyIf(error, 'view')
       }
     },
-  }
+  },
 }
 </script>

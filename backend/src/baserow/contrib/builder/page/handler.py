@@ -23,16 +23,16 @@ from baserow.core.utils import extract_allowed
 
 
 class PageHandler:
-    def get_page(self, user: AbstractUser, builder: Builder, page_id: int):
+    def get_page(self, user: AbstractUser, page_id: int):
         try:
-            page = Page.objects.get(builder=builder, id=page_id)
+            page = Page.objects.get(id=page_id)
         except Page.DoesNotExist:
             raise PageDoesNotExist()
 
         CoreHandler().check_permissions(
             user,
             ReadPageOperationType.type,
-            group=builder.group,
+            group=page.builder.group,
             context=page,
         )
 

@@ -8,19 +8,29 @@ pages_paths_with_builder_id = [
     path(
         "pages/",
         include(
-            page_urls,
+            (page_urls.urlpatterns_with_builder_id, page_urls.app_name),
             namespace="pages",
         ),
     )
 ]
 
+paths_without_builder_id = [
+    path(
+        "pages/",
+        include(
+            (page_urls.urlpatterns_without_builder_id, page_urls.app_name),
+            namespace="pages",
+        ),
+    ),
+]
+
 
 urlpatterns = [
     re_path(
-        "builder/(?P<builder_id>[0-9]+)/",
+        "(?P<builder_id>[0-9]+)/",
         include(
             (pages_paths_with_builder_id, app_name),
-            namespace="builder",
+            namespace="builder_id",
         ),
-    )
-]
+    ),
+] + paths_without_builder_id

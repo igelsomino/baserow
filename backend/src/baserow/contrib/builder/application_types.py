@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.transaction import Atomic
 from django.utils import translation
 from django.utils.translation import gettext as _
+from django.urls import include, path
 
 from baserow.contrib.builder.api.serializers import BuilderSerializer
 from baserow.contrib.builder.models import Builder
@@ -19,7 +20,9 @@ class BuilderApplicationType(ApplicationType):
     def get_api_urls(self):
         from .api import urls as api_urls
 
-        return api_urls.urlpatterns
+        return [
+            path("builder/", include(api_urls, namespace=self.type)),
+        ]
 
     def export_safe_transaction_context(self, application: Application) -> Atomic:
         return transaction.atomic()

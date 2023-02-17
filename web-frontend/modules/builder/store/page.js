@@ -94,11 +94,7 @@ const actions = {
     dispatch('selectById', { builderId: builder.id, pageId: page.id })
   },
   async update({ dispatch }, { builder, page, values }) {
-    const { data } = await PageService(this.$client).update(
-      builder.id,
-      page.id,
-      values
-    )
+    const { data } = await PageService(this.$client).update(page.id, values)
 
     const update = Object.keys(values).reduce((result, key) => {
       result[key] = data[key]
@@ -108,7 +104,7 @@ const actions = {
     dispatch('forceUpdate', { builder, page, values: update })
   },
   async delete({ dispatch }, { builder, page }) {
-    await PageService(this.$client).delete(builder.id, page.id)
+    await PageService(this.$client).delete(page.id)
 
     dispatch('forceDelete', { builder, page })
   },
@@ -119,7 +115,7 @@ const actions = {
     commit('ORDER_PAGES', { builder, order, isHashed })
 
     try {
-      await PageService(this.$client).order(builder.id, order)
+      await PageService(this.$client).order(order)
     } catch (error) {
       commit('ORDER_PAGES', { builder, order: oldOrder, isHashed })
       throw error

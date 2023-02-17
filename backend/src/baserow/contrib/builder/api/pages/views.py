@@ -77,12 +77,6 @@ class PageView(APIView):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="builder_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-                description="The builder the application belongs to",
-            ),
-            OpenApiParameter(
                 name="page_id",
                 location=OpenApiParameter.PATH,
                 type=OpenApiTypes.INT,
@@ -116,10 +110,8 @@ class PageView(APIView):
         }
     )
     @validate_body(CreatePageSerializer)
-    def patch(self, request, data: Dict, builder_id: int, page_id: int):
-        builder = BuilderHandler().get_builder(builder_id).specific
-
-        page = PageHandler().get_page(request.user, builder, page_id)
+    def patch(self, request, data: Dict, page_id: int):
+        page = PageHandler().get_page(request.user, page_id)
 
         page_updated = PageHandler().update_page(request.user, page, data)
 
@@ -128,12 +120,6 @@ class PageView(APIView):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(
-                name="builder_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-                description="The builder the application belongs to",
-            ),
             OpenApiParameter(
                 name="page_id",
                 location=OpenApiParameter.PATH,
@@ -167,10 +153,8 @@ class PageView(APIView):
         }
     )
     @transaction.atomic
-    def delete(self, request, builder_id: int, page_id: int):
-        builder = BuilderHandler().get_builder(builder_id).specific
-
-        page = PageHandler().get_page(request.user, builder, page_id)
+    def delete(self, request, page_id: int):
+        page = PageHandler().get_page(request.user, page_id)
 
         PageHandler().delete_page(request.user, page)
 

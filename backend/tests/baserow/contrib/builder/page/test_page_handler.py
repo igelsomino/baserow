@@ -77,7 +77,7 @@ def test_get_page(data_fixture):
     builder = data_fixture.create_builder_application(user=user)
     page = data_fixture.create_builder_page(builder=builder)
 
-    assert PageHandler().get_page(user, builder, page.id).id == page.id
+    assert PageHandler().get_page(user, page.id).id == page.id
 
 
 @pytest.mark.django_db
@@ -87,7 +87,7 @@ def test_get_page_user_not_in_group(data_fixture):
     page = data_fixture.create_builder_page(builder=builder)
 
     with pytest.raises(UserNotInGroup):
-        PageHandler().get_page(user, builder, page.id)
+        PageHandler().get_page(user, page.id)
 
 
 @pytest.mark.django_db

@@ -23,7 +23,7 @@ from baserow.contrib.builder.api.pages.serializers import (
 )
 from baserow.contrib.builder.handler import BuilderHandler
 from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.handler import PageHandler
+from baserow.contrib.builder.page.serivce import PageService
 from baserow.core.exceptions import ApplicationDoesNotExist, UserNotInGroup
 
 
@@ -67,7 +67,7 @@ class PagesView(APIView):
     def post(self, request, data: Dict, builder_id: int):
         builder = BuilderHandler().get_builder(builder_id).specific
 
-        page = PageHandler().create_page(request.user, builder, data["name"])
+        page = PageService().create_page(request.user, builder, data["name"])
 
         serializer = PageSerializer(page)
         return Response(serializer.data)
@@ -108,9 +108,9 @@ class PageView(APIView):
     )
     @validate_body(CreatePageSerializer)
     def patch(self, request, data: Dict, page_id: int):
-        page = PageHandler().get_page(request.user, page_id)
+        page = PageService().get_page(request.user, page_id)
 
-        page_updated = PageHandler().update_page(request.user, page, data)
+        page_updated = PageService().update_page(request.user, page, data)
 
         serializer = PageSerializer(page_updated)
         return Response(serializer.data)
@@ -148,9 +148,9 @@ class PageView(APIView):
     )
     @transaction.atomic
     def delete(self, request, page_id: int):
-        page = PageHandler().get_page(request.user, page_id)
+        page = PageService().get_page(request.user, page_id)
 
-        PageHandler().delete_page(request.user, page)
+        PageService().delete_page(request.user, page)
 
         return Response(status=204)
 
@@ -197,6 +197,6 @@ class OrderPagesView(APIView):
     def post(self, request, data: Dict, builder_id: int):
         builder = BuilderHandler().get_builder(builder_id).specific
 
-        PageHandler().order_pages(request.user, builder, data["page_ids"])
+        PageService().order_pages(request.user, builder, data["page_ids"])
 
         return Response(status=204)

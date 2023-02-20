@@ -1,9 +1,6 @@
 <template>
   <ol class="calendar-week-days">
-    <li
-      v-for="weekday in weekDays"
-      :key="weekday"
-    >
+    <li v-for="weekday in weekDays" :key="weekday">
       {{ weekday }}
     </li>
   </ol>
@@ -18,7 +15,7 @@ export default {
   computed: {
     weekDays() {
       return weekDays
-    }
-  }
+    },
+  },
 }
 </script>

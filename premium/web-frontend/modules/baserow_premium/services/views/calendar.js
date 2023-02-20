@@ -5,6 +5,8 @@ export default (client) => {
       limit = 100,
       offset = null,
       includeFieldOptions = false,
+      fromTimestamp = null,
+      toTimestamp = null
     }) {
       const include = []
       const params = new URLSearchParams()
@@ -21,6 +23,9 @@ export default (client) => {
       if (include.length > 0) {
         params.append('include', include.join(','))
       }
+
+      params.append('from_timestamp', fromTimestamp)
+      params.append('to_timestamp', toTimestamp)
 
       const config = { params }
 

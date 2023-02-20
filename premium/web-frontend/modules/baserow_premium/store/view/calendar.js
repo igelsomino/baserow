@@ -94,6 +94,8 @@ export const actions = {
       limit: getters.getBufferRequestSize,
       offset: 0,
       includeFieldOptions,
+      fromTimestamp: '2023-02-01 00:00',
+      toTimestamp: '2023-03-01 00:00',
       // selectOptions: [],
       // publicUrl: rootGetters['page/view/public/getIsPublic'],
       // publicAuthToken: rootGetters['page/view/public/getAuthToken'],

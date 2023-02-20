@@ -4,10 +4,12 @@
     :class="{
       'calendar-month-day--not-current': !isCurrentMonth,
       'calendar-month-day--today': isToday,
-      'calendar-month-day--weekend': isWeekend
+      'calendar-month-day--weekend': isWeekend,
     }"
   >
-    <div class="calendar-month-day__date"><span>{{ label }}</span></div>
+    <div class="calendar-month-day__date">
+      <span>{{ label }}</span>
+    </div>
   </li>
 </template>
 
@@ -19,15 +21,15 @@ export default {
   props: {
     day: {
       type: Object,
-      required: true
+      required: true,
     },
     isCurrentMonth: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isToday: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isWeekend: {
       type: Boolean,
@@ -36,8 +38,8 @@ export default {
   },
   computed: {
     label() {
-      return moment(this.day.date).format("D")
-    }
-  }
+      return moment(this.day.date).format('D')
+    },
+  },
 }
 </script>

@@ -111,7 +111,7 @@ class CalendarViewView(APIView):
         }
     )
     @allowed_includes("field_options")
-    @validate_query_parameters(ListCalendarRowsQueryParamsSerializer)
+    # @validate_query_parameters(ListCalendarRowsQueryParamsSerializer)
     def get(self, request, view_id, field_options):
         # TODO: """Responds with the rows grouped by the view's select option field value."""
 
@@ -138,29 +138,31 @@ class CalendarViewView(APIView):
                 "The requested calendar view does not have a required date field."
             )
 
-        from_timestamp = request.query_params.get('from_timestamp')
-        to_timestamp = request.query_params.get('to_timestamp')
+        # from_timestamp = request.query_params.get('from_timestamp')
+        # to_timestamp = request.query_params.get('to_timestamp')
         
         model = view.table.get_model()
         
-        rows = get_rows_grouped_by_date_field(
-            view=view,
-            date_field=date_field,
-            from_timestamp=from_timestamp,
-            to_timestamp=to_timestamp,
-            limit=request.query_params('limit', 40),
-            offset=request.query_params('limit', 0),
-            model=model,
-        )
+        # rows = get_rows_grouped_by_date_field(
+        #     view=view,
+        #     date_field=date_field,
+        #     from_timestamp=from_timestamp,
+        #     to_timestamp=to_timestamp,
+        #     limit=request.query_params('limit', 40),
+        #     offset=request.query_params('limit', 0),
+        #     model=model,
+        # )
 
-        serializer_class = get_row_serializer_class(
-            model, RowSerializer, is_response=True
-        )
+        # serializer_class = get_row_serializer_class(
+        #     model, RowSerializer, is_response=True
+        # )
 
-        for key, value in rows.items():
-            rows[key]["results"] = serializer_class(value["results"], many=True).data
+        # for key, value in rows.items():
+        #     rows[key]["results"] = serializer_class(value["results"], many=True).data
 
-        response = {"rows": rows}
+        # response = {"rows": rows}
+
+        response = {}
 
         if field_options:
             view_type = view_type_registry.get_by_model(view)

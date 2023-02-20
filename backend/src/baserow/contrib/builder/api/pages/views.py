@@ -10,7 +10,6 @@ from rest_framework.views import APIView
 
 from baserow.api.applications.errors import ERROR_APPLICATION_DOES_NOT_EXIST
 from baserow.api.decorators import map_exceptions, validate_body
-from baserow.api.errors import ERROR_USER_NOT_IN_GROUP
 from baserow.api.schemas import CLIENT_SESSION_ID_SCHEMA_PARAMETER, get_error_schema
 from baserow.contrib.builder.api.pages.errors import (
     ERROR_PAGE_DOES_NOT_EXIST,
@@ -24,7 +23,7 @@ from baserow.contrib.builder.api.pages.serializers import (
 from baserow.contrib.builder.handler import BuilderHandler
 from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
 from baserow.contrib.builder.page.serivce import PageService
-from baserow.core.exceptions import ApplicationDoesNotExist, UserNotInGroup
+from baserow.core.exceptions import ApplicationDoesNotExist
 
 
 class PagesView(APIView):
@@ -60,7 +59,6 @@ class PagesView(APIView):
     @map_exceptions(
         {
             ApplicationDoesNotExist: ERROR_APPLICATION_DOES_NOT_EXIST,
-            UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
         }
     )
     @validate_body(CreatePageSerializer)
@@ -103,7 +101,6 @@ class PageView(APIView):
     @map_exceptions(
         {
             PageDoesNotExist: ERROR_PAGE_DOES_NOT_EXIST,
-            UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
         }
     )
     @validate_body(CreatePageSerializer)
@@ -143,7 +140,6 @@ class PageView(APIView):
     @map_exceptions(
         {
             PageDoesNotExist: ERROR_PAGE_DOES_NOT_EXIST,
-            UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
         }
     )
     @transaction.atomic
@@ -190,7 +186,6 @@ class OrderPagesView(APIView):
             ApplicationDoesNotExist: ERROR_APPLICATION_DOES_NOT_EXIST,
             PageDoesNotExist: ERROR_PAGE_DOES_NOT_EXIST,
             PageNotInBuilder: ERROR_PAGE_NOT_IN_BUILDER,
-            UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
         }
     )
     @validate_body(OrderPagesSerializer)

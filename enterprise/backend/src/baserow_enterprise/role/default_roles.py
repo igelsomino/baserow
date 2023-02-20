@@ -12,6 +12,7 @@ from baserow.contrib.builder.page.operations import (
     DeletePageOperationType,
     ReadPageOperationType,
     UpdatePageOperationType,
+    DuplicatePageOperationType,
 )
 from baserow.contrib.database.airtable.operations import (
     RunAirtableImportJobOperationType,
@@ -214,6 +215,7 @@ BUILDER_OPS = EDITOR_OPS + [
     CreatePageOperationType,
     DeletePageOperationType,
     UpdatePageOperationType,
+    DuplicatePageOperationType,
     CreateTableDatabaseTableOperationType,
     UpdateDatabaseTableOperationType,
     DeleteDatabaseTableOperationType,

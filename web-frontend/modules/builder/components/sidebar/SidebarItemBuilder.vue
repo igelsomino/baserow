@@ -34,6 +34,22 @@
           </a>
         </li>
         <li
+          v-if="
+            $hasPermission('builder.page.duplicate', page, builder.group.id)
+          "
+        >
+          <a
+            :class="{
+              'context__menu-item--loading': duplicateLoading,
+              disabled: deleteLoading || duplicateLoading,
+            }"
+            @click="duplicatePage()"
+          >
+            <i class="context__menu-icon fas fa-fw fa-copy"></i>
+            {{ $t('action.duplicate') }}
+          </a>
+        </li>
+        <li
           v-if="$hasPermission('builder.page.delete', page, builder.group.id)"
         >
           <a
@@ -67,6 +83,7 @@ export default {
   data() {
     return {
       deleteLoading: false,
+      duplicateLoading: false,
     }
   },
   computed: {
@@ -160,6 +177,13 @@ export default {
       }
 
       this.deleteLoading = false
+    },
+    duplicatePage() {
+      this.duplicateLoading = true
+
+      // TODO
+
+      this.duplicateLoading = false
     },
   },
 }

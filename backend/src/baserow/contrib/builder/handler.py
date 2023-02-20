@@ -9,4 +9,4 @@ class BuilderHandler:
         return cast(
             Builder,
             CoreHandler().get_application(builder_id),
-        )
+        ).specific

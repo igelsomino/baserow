@@ -65,7 +65,7 @@ class PagesView(APIView):
     )
     @validate_body(CreatePageSerializer)
     def post(self, request, data: Dict, builder_id: int):
-        builder = BuilderHandler().get_builder(builder_id).specific
+        builder = BuilderHandler().get_builder(builder_id)
 
         page = PageService().create_page(request.user, builder, data["name"])
 
@@ -195,7 +195,7 @@ class OrderPagesView(APIView):
     )
     @validate_body(OrderPagesSerializer)
     def post(self, request, data: Dict, builder_id: int):
-        builder = BuilderHandler().get_builder(builder_id).specific
+        builder = BuilderHandler().get_builder(builder_id)
 
         PageService().order_pages(request.user, builder, data["page_ids"])
 

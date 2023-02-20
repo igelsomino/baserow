@@ -1,4 +1,4 @@
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 
 
 class PageFixtures:

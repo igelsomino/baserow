@@ -1,7 +1,7 @@
 import pytest
 
 from baserow.contrib.builder.application_types import BuilderApplicationType
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 
 
 @pytest.mark.django_db

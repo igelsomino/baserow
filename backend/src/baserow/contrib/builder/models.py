@@ -1,4 +1,4 @@
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 from baserow.core.models import Application
 
 __all__ = ["Builder", "Page"]

@@ -3,7 +3,7 @@ from django.db import IntegrityError
 import pytest
 
 from baserow.contrib.builder.page.exceptions import PageNotInBuilder
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 from baserow.contrib.builder.page.serivce import PageService
 from baserow.core.exceptions import UserNotInGroup
 

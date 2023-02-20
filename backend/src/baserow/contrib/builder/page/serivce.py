@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.operations import OrderPagesBuilderOperationType
 from baserow.contrib.builder.page.handler import PageHandler
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 from baserow.contrib.builder.page.operations import (
     CreatePageOperationType,
     DeletePageOperationType,

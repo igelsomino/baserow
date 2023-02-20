@@ -2,7 +2,7 @@ from typing import Dict, List
 
 from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 
 
 class PageHandler:

@@ -143,7 +143,7 @@ class CalendarViewView(APIView):
         
         model = view.table.get_model()
 
-        rows = get_rows_grouped_by_date_field(
+        grouped_rows = get_rows_grouped_by_date_field(
             view=view,
             date_field=date_field,
             from_timestamp=from_timestamp,
@@ -157,10 +157,10 @@ class CalendarViewView(APIView):
             model, RowSerializer, is_response=True
         )
 
-        for key, value in rows.items():
-            rows[key]["results"] = serializer_class(value["results"], many=True).data
+        for key, value in grouped_rows.items():
+            grouped_rows[key]["results"] = serializer_class(value["results"], many=True).data
 
-        response = {"rows": rows}
+        response = {"rows": grouped_rows}
 
         if field_options:
             view_type = view_type_registry.get_by_model(view)

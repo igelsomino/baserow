@@ -17,10 +17,21 @@ export function populateRow(row) {
   return row
 }
 
+export function populateDateStack(stack) {
+  Object.assign(stack, {
+    loading: false,
+  })
+  stack.results.forEach((row) => {
+    populateRow(row)
+  })
+  return stack
+}
+
 export const state = () => ({
   lastCalendarId: null,
   dateFieldId: null,
   fieldOptions: {},
+  dateStacks: {},
 })
 
 export const mutations = {
@@ -33,6 +44,9 @@ export const mutations = {
   },
   SET_DATE_FIELD_ID(state, dateFieldId) {
     state.dateFieldId = dateFieldId
+  },
+  REPLACE_ALL_DATE_STACKS(state, stacks) {
+    state.dateStacks = stacks
   },
   REPLACE_ALL_FIELD_OPTIONS(state, fieldOptions) {
     state.fieldOptions = fieldOptions
@@ -83,7 +97,7 @@ export const actions = {
     commit('RESET')
   },
   /**
-   * Fetches an initial set of rows and adds that data to the store. TODO:
+   * Fetches an initial set of rows and adds that data to the store.
    */
   async fetchInitial(
     { dispatch, commit, getters, rootGetters },
@@ -94,20 +108,16 @@ export const actions = {
       limit: getters.getBufferRequestSize,
       offset: 0,
       includeFieldOptions,
+      // TODO: set correct datetimes
       fromTimestamp: '2023-02-01 00:00',
       toTimestamp: '2023-03-01 00:00',
-      // selectOptions: [],
-      // publicUrl: rootGetters['page/view/public/getIsPublic'],
-      // publicAuthToken: rootGetters['page/view/public/getAuthToken'],
-      // filters: getFilters(rootGetters, kanbanId),
     })
-    // Object.keys(data.rows).forEach((key) => {
-    //   populateStack(data.rows[key])
-    // })
-    console.log(data)
+    Object.keys(data.rows).forEach((key) => {
+      populateDateStack(data.rows[key])
+    })
     commit('SET_LAST_CALENDAR_ID', calendarId)
     commit('SET_DATE_FIELD_ID', dateFieldId)
-    // commit('REPLACE_ALL_STACKS', data.rows)
+    commit('REPLACE_ALL_DATE_STACKS', data.rows)
     if (includeFieldOptions) {
       commit('REPLACE_ALL_FIELD_OPTIONS', data.field_options)
     }
@@ -489,6 +499,9 @@ export const getters = {
   getAllFieldOptions(state) {
     return state.fieldOptions
   },
+  getDateStack: (state) => (date) => {
+    return state.dateStacks[date] ? state.dateStacks[date] : {'results': []}
+  }
 }
 
 export default {

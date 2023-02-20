@@ -17,9 +17,11 @@
         v-for="day in days"
         :key="day.date"
         :day="day"
+        :date="day.date"
         :is-today="day.date === today"
         :is-current-month="day.isCurrentMonth"
         :is-weekend="isWeekendDay(day.date)"
+        :store-prefix="storePrefix"
       >
       </CalendarMonthDay>
     </ol>
@@ -40,6 +42,12 @@ export default {
     CalendarDateSelector,
     CalendarMonthDay,
     CalendarWeekdays,
+  },
+  props: {
+    storePrefix: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {

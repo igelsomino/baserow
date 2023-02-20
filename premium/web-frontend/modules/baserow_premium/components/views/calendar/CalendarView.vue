@@ -7,7 +7,7 @@
       :database="database"
     >
     </SelectDateFieldModal>
-    <CalendarMonth></CalendarMonth>
+    <CalendarMonth :store-prefix="storePrefix"></CalendarMonth>
   </div>
 </template>
 <script>
@@ -40,6 +40,10 @@ export default {
     },
     readOnly: {
       type: Boolean,
+      required: true,
+    },
+    storePrefix: {
+      type: String,
       required: true,
     },
   },

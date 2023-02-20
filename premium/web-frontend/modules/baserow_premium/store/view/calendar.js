@@ -104,6 +104,7 @@ export const actions = {
     // Object.keys(data.rows).forEach((key) => {
     //   populateStack(data.rows[key])
     // })
+    console.log(data)
     commit('SET_LAST_CALENDAR_ID', calendarId)
     commit('SET_DATE_FIELD_ID', dateFieldId)
     // commit('REPLACE_ALL_STACKS', data.rows)

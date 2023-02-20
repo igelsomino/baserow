@@ -170,6 +170,9 @@
         "displayedBy": "Displayed by “{fieldName}” field",
         "labels": "Labels"
     },
+    "calendarDateSelector": {
+        "today": "Today"
+    },
     "dashboard": {
         "title": "Dashboard",
         "totals": "Totals",

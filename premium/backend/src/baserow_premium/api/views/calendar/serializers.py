@@ -9,5 +9,8 @@ class CalendarViewFieldOptionsSerializer(serializers.ModelSerializer):
 
 
 class ListCalendarRowsQueryParamsSerializer(serializers.Serializer):
+    # TODO: validations
     from_timestamp = serializers.DateTimeField(required=True)
     to_timestamp = serializers.DateTimeField(required=True)
+    offset = serializers.IntegerField(default=0)
+    limit = serializers.IntegerField(default=40)

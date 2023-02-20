@@ -111,8 +111,8 @@ class CalendarViewView(APIView):
         }
     )
     @allowed_includes("field_options")
-    # @validate_query_parameters(ListCalendarRowsQueryParamsSerializer)
-    def get(self, request, view_id, field_options):
+    @validate_query_parameters(ListCalendarRowsQueryParamsSerializer, return_validated=True)
+    def get(self, request, view_id, field_options, query_params):
         # TODO: """Responds with the rows grouped by the view's select option field value."""
 
         view_handler = ViewHandler()
@@ -137,32 +137,30 @@ class CalendarViewView(APIView):
             raise CalendarViewHasNoDateField(
                 "The requested calendar view does not have a required date field."
             )
-
-        # from_timestamp = request.query_params.get('from_timestamp')
-        # to_timestamp = request.query_params.get('to_timestamp')
+        
+        from_timestamp = query_params.get('from_timestamp')
+        to_timestamp = query_params.get('to_timestamp')
         
         model = view.table.get_model()
-        
-        # rows = get_rows_grouped_by_date_field(
-        #     view=view,
-        #     date_field=date_field,
-        #     from_timestamp=from_timestamp,
-        #     to_timestamp=to_timestamp,
-        #     limit=request.query_params('limit', 40),
-        #     offset=request.query_params('limit', 0),
-        #     model=model,
-        # )
 
-        # serializer_class = get_row_serializer_class(
-        #     model, RowSerializer, is_response=True
-        # )
+        rows = get_rows_grouped_by_date_field(
+            view=view,
+            date_field=date_field,
+            from_timestamp=from_timestamp,
+            to_timestamp=to_timestamp,
+            limit=query_params.get('limit'),
+            offset=query_params.get('offset'),
+            model=model,
+        )
 
-        # for key, value in rows.items():
-        #     rows[key]["results"] = serializer_class(value["results"], many=True).data
+        serializer_class = get_row_serializer_class(
+            model, RowSerializer, is_response=True
+        )
 
-        # response = {"rows": rows}
+        for key, value in rows.items():
+            rows[key]["results"] = serializer_class(value["results"], many=True).data
 
-        response = {}
+        response = {"rows": rows}
 
         if field_options:
             view_type = view_type_registry.get_by_model(view)

@@ -134,6 +134,9 @@ export default {
   methods: {
     selectDate(newSelectedDate) {
       this.selectedDate = newSelectedDate
+      this.$store.dispatch(this.storePrefix + 'view/calendar/fetchMonthly', {
+        dateTime: newSelectedDate
+      })
     },
     getWeekDay(date) {
       return moment(date).isoWeekday()

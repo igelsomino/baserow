@@ -115,15 +115,15 @@ export const mutations = {
 function getMonthlyTimestamps(dateTime) {
     const firstDayOfMonth = moment(`${dateTime.year()}-${dateTime.month() + 1}-01`)
     const firstDayOfMonthWeekday = firstDayOfMonth.isoWeekday()
-    const firstDayPreviosMonth = firstDayOfMonth.subtract(1, 'month')
+    const firstDayPreviousMonth = firstDayOfMonth.subtract(1, 'month')
     const visibleNumberOfDaysFromPreviousMonth = firstDayOfMonthWeekday
         ? firstDayOfMonthWeekday - 1
         : 6
-    const previousMonthLastMondayDayOfMonth = moment(firstDayOfMonth)
+    const previousMonthLastMondayDayOfMonth = firstDayOfMonth
           .subtract(visibleNumberOfDaysFromPreviousMonth, 'day')
           .date()
     const fromTimestamp = moment(
-      `${firstDayPreviosMonth.year()}-${firstDayPreviosMonth.month() + 1}-${
+      `${firstDayPreviousMonth.year()}-${firstDayPreviousMonth.month() + 1}-${
         previousMonthLastMondayDayOfMonth
       }`
     )
@@ -158,10 +158,10 @@ export const actions = {
     { dispatch, commit, getters, rootGetters },
     { calendarId, dateFieldId, includeFieldOptions = true }
   ) {
-    const selectedDate = moment()
-    commit('SET_SELECTED_DATE', selectedDate)
+    const now = moment()
+    commit('SET_SELECTED_DATE', now)
     // const dateField = rootGetters['field/get'](dateFieldId)
-    const { fromTimestamp, toTimestamp } = getMonthlyTimestamps(selectedDate)
+    const { fromTimestamp, toTimestamp } = getMonthlyTimestamps(now)
     const { data } = await CalendarService(this.$client).fetchRows({
       calendarId,
       limit: getters.getBufferRequestSize,
@@ -181,27 +181,28 @@ export const actions = {
     }
   },
   /**
-   * Fetches a set of rows based on from and to timestamps
-   * and adds that data to the store.
+   * Fetches a set of rows based on the provided datetime.
    */
-  // async fetchForDateTimeRange(
-  //   { dispatch, commit, getters, rootGetters },
-  //   { calendarId }
-  // ) {
-  //   const { data } = await CalendarService(this.$client).fetchRows({
-  //     calendarId,
-  //     limit: getters.getBufferRequestSize,
-  //     offset: 0,
-  //     includeFieldOptions: false,
-  //     // TODO: set correct datetimes
-  //     fromTimestamp: '2023-02-01 00:00',
-  //     toTimestamp: '2023-03-01 00:00',
-  //   })
-  //   Object.keys(data.rows).forEach((key) => {
-  //     populateDateStack(data.rows[key])
-  //   })
-  //   commit('REPLACE_ALL_DATE_STACKS', data.rows)
-  // },
+  async fetchMonthly(
+    { dispatch, commit, getters, rootGetters },
+    { dateTime }
+  ) {
+    commit('SET_SELECTED_DATE', dateTime)
+    const { fromTimestamp, toTimestamp } = getMonthlyTimestamps(dateTime)
+    console.log({ dateTime, fromTimestamp, toTimestamp})
+    const { data } = await CalendarService(this.$client).fetchRows({
+      calendarId: getters.getLastCalendarId,
+      limit: getters.getBufferRequestSize,
+      offset: 0,
+      includeFieldOptions: false,
+      fromTimestamp: fromTimestamp.format("YYYY-MM-DD hh:mm"),
+      toTimestamp: toTimestamp.format("YYYY-MM-DD hh:mm"),
+    })
+    Object.keys(data.rows).forEach((key) => {
+      populateDateStack(data.rows[key])
+    })
+    commit('REPLACE_ALL_DATE_STACKS', data.rows)
+  },
   /**
    * This action is called when the users scrolls to the end of the stack. Because
    * we don't fetch all the rows, the next set will be fetched when the user reaches

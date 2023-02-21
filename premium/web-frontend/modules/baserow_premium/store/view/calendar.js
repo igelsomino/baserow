@@ -106,6 +106,42 @@ export const mutations = {
   },
 }
 
+/**
+ * Given a datetime returns from and to timestamps for monthly calendar
+ * view surrounding the provided datetime, including days before and after the
+ * datetime's month.
+ * @param moment dateTime 
+ */
+function getMonthlyTimestamps(dateTime) {
+    const firstDayOfMonth = moment(`${dateTime.year()}-${dateTime.month() + 1}-01`)
+    const firstDayOfMonthWeekday = firstDayOfMonth.isoWeekday()
+    const firstDayPreviosMonth = firstDayOfMonth.subtract(1, 'month')
+    const visibleNumberOfDaysFromPreviousMonth = firstDayOfMonthWeekday
+        ? firstDayOfMonthWeekday - 1
+        : 6
+    const previousMonthLastMondayDayOfMonth = moment(firstDayOfMonth)
+          .subtract(visibleNumberOfDaysFromPreviousMonth, 'day')
+          .date()
+    const fromTimestamp = moment(
+      `${firstDayPreviosMonth.year()}-${firstDayPreviosMonth.month() + 1}-${
+        previousMonthLastMondayDayOfMonth
+      }`
+    )
+    const daysInMonth = moment(dateTime).daysInMonth()
+    const lastDayOfMonth = moment(`${dateTime.year()}-${dateTime.month() + 1}-${daysInMonth}`)    
+    const lastDayOfMonthWeekday = lastDayOfMonth.isoWeekday()
+    const firstDayNextMonth = moment(
+      `${dateTime.year()}-${dateTime.month() + 1}-01`
+    ).add(1, 'month')
+    const visibleNumberOfDaysFromNextMonth = lastDayOfMonthWeekday
+      ? 7 - lastDayOfMonthWeekday
+      : lastDayOfMonthWeekday
+    const toTimestamp = moment(
+      `${firstDayNextMonth.year()}-${firstDayNextMonth.month() + 1}-${visibleNumberOfDaysFromNextMonth}`
+    )
+    return { fromTimestamp, toTimestamp }
+}
+
 export const actions = {
   /**
    * This method is typically called when the view loads, but when it doesn't
@@ -124,23 +160,22 @@ export const actions = {
   ) {
     const selectedDate = moment()
     commit('SET_SELECTED_DATE', selectedDate)
-    const dateField = rootGetters['field/get'](dateFieldId)
-    console.log({dateField})
+    // const dateField = rootGetters['field/get'](dateFieldId)
+    const { fromTimestamp, toTimestamp } = getMonthlyTimestamps(selectedDate)
     const { data } = await CalendarService(this.$client).fetchRows({
       calendarId,
       limit: getters.getBufferRequestSize,
       offset: 0,
       includeFieldOptions,
-      // TODO: set correct datetimes based on dateFieldId and local time
-      fromTimestamp: '2023-02-01 00:00',
-      toTimestamp: '2023-03-01 00:00',
+      fromTimestamp: fromTimestamp.format("YYYY-MM-DD hh:mm"),
+      toTimestamp: toTimestamp.format("YYYY-MM-DD hh:mm"),
     })
     Object.keys(data.rows).forEach((key) => {
       populateDateStack(data.rows[key])
     })
+    commit('REPLACE_ALL_DATE_STACKS', data.rows)
     commit('SET_LAST_CALENDAR_ID', calendarId)
     commit('SET_DATE_FIELD_ID', dateFieldId)
-    commit('REPLACE_ALL_DATE_STACKS', data.rows)
     if (includeFieldOptions) {
       commit('REPLACE_ALL_FIELD_OPTIONS', data.field_options)
     }

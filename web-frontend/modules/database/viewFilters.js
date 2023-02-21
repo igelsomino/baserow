@@ -10,6 +10,7 @@ import ViewFilterTypeTimeZone from '@baserow/modules/database/components/view/Vi
 import ViewFilterTypeNumberWithTimeZone from '@baserow/modules/database/components/view/ViewFilterTypeNumberWithTimeZone'
 import ViewFilterTypeLinkRow from '@baserow/modules/database/components/view/ViewFilterTypeLinkRow'
 import { trueString } from '@baserow/modules/database/utils/constants'
+import { getFieldTimezone } from '@baserow/modules/database/utils/date'
 import { isNumeric } from '@baserow/modules/core/utils/string'
 import ViewFilterTypeFileTypeDropdown from '@baserow/modules/database/components/view/ViewFilterTypeFileTypeDropdown'
 import ViewFilterTypeCollaborators from '@baserow/modules/database/components/view/ViewFilterTypeCollaborators'
@@ -453,9 +454,7 @@ class LocalizedDateViewFilterType extends ViewFilterType {
   }
 
   getFieldTimezone(field) {
-    return field.date_include_time
-      ? field.date_force_timezone || moment.tz.guess()
-      : 'GMT'
+    return getFieldTimezone(field)
   }
 
   splitTimezoneAndValue(field, value) {
@@ -464,7 +463,7 @@ class LocalizedDateViewFilterType extends ViewFilterType {
     let filterValue
 
     if (!field.date_include_time) {
-      // For date fields without time, we use GMT as timezone
+      // For date fields without time, the timezone is UTC
       filterValue = value.split(separator).at(-1)
     } else if (value.includes(separator)) {
       // if the filter value already contains a timezone, use it
@@ -681,7 +680,7 @@ export class DateCompareTodayViewFilterType extends LocalizedDateViewFilterType 
   }
 
   prepareValue(value, field) {
-    return this.getDefaultValue(field)
+    return `${this.getDefaultValue(field)}?`
   }
 
   getExample() {
@@ -931,7 +930,7 @@ export class DateEqualsYearsAgoViewFilterType extends DateEqualsXAgoViewFilterTy
   }
 }
 
-export class DateEqualsDayOfMonthViewFilterType extends ViewFilterType {
+export class DateEqualsDayOfMonthViewFilterType extends LocalizedDateViewFilterType {
   static getType() {
     return 'date_equals_day_of_month'
   }
@@ -946,35 +945,19 @@ export class DateEqualsDayOfMonthViewFilterType extends ViewFilterType {
   }
 
   getInputComponent() {
-    return ViewFilterTypeNumber
+    return ViewFilterTypeNumberWithTimeZone
+  }
+
+  getLocalizedDateToCompare(filterValue, timezone) {
+    return moment().tz(timezone).month(0).date(filterValue)
+  }
+
+  isDateMatching(rowValue, dateToCompare) {
+    return rowValue.date() === dateToCompare.date()
   }
 
   getCompatibleFieldTypes() {
     return ['date', 'last_modified', 'created_on']
-  }
-
-  matches(rowValue, filterValue, field) {
-    // Check if the filter value is empty and immediately return true
-    if (filterValue === '') {
-      return true
-    }
-
-    let rowDate = moment.utc(rowValue)
-
-    if (field.timezone) {
-      rowDate = rowDate.tz(field.timezone)
-    }
-
-    // Check if the row's date matches the filter value
-    // in either the D (1) or DD (01) format for the day of month
-    if (
-      rowDate.format('D') === filterValue ||
-      rowDate.format('DD') === filterValue
-    ) {
-      return true
-    }
-
-    return false
   }
 }
 

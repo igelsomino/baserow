@@ -54,11 +54,14 @@ export const getTimeHumanReadableFormat = (type) => {
   return timeMapping[type].humanFormat
 }
 
-export const getTimezone = (field, value) => {
-  if (value === null || value === undefined) {
-    return ''
-  }
-  return localizeMoment(field, value).format('z')
+export const getFieldTimezone = (field) => {
+  if (!field.date_include_time) return 'UTC'
+  return field.date_force_timezone || moment.tz.guess()
+}
+
+export const getCellTimezoneAbbr = (field, value) => {
+  if (value === null || value === undefined) return ''
+  return moment(value).tz(getFieldTimezone(field)).format('z')
 }
 
 export const localizeMoment = (
@@ -67,10 +70,6 @@ export const localizeMoment = (
   format = undefined,
   replace = false
 ) => {
-  return field.date_include_time
-    ? moment(value, format).tz(
-        field.date_force_timezone || moment.tz.guess(),
-        replace
-      )
-    : moment(value, format).utc()
+  const timezone = getFieldTimezone(field)
+  return moment(value, format).tz(timezone, replace)
 }

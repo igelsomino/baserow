@@ -410,6 +410,7 @@ class FieldView(APIView):
             field_type_registry,
             request.data,
             base_serializer_class=UpdateFieldSerializer,
+            context={"field": field},
         )
 
         # Because each field type can raise custom exceptions at while updating the

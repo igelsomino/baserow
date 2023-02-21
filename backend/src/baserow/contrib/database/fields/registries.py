@@ -455,13 +455,18 @@ class FieldType(
         return values
 
     def get_request_kwargs_to_backup(
-        self, field: Field, kwargs, for_undo=False
+        self, field: Field, kwargs: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Returns a dict of attributes that should be backed up when the field is
-        updated. This attributes are sent in the update requests but are not
-        stored in the database. This is for example used by the DateField to
-        replace the timezone adding/removing the corresponding timedelta.
+        updated. These attributes are sent in the request body but are not
+        stored in the database field model. This is for example used by the
+        DateField to replace the timezone adding/subtracting the corresponding
+        timedelta.
+
+        :param field: The field to update.
+        :param kwargs: The kwargs that are passed to the update request.
+        :return: A dict of attributes that should be backed up.
         """
 
         return {}

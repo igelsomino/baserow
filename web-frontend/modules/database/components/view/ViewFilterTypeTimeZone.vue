@@ -1,21 +1,12 @@
 <template>
-  <div class="filters__value-timezone">{{ timezone }}</div>
+  <div class="filters__value-timezone">{{ getTimezoneAbbr() }}</div>
 </template>
 
 <script>
-import viewFilter from '@baserow/modules/database/mixins/viewFilter'
-import moment from '@baserow/modules/core/moment'
+import filterTypeDateInput from '@baserow/modules/database/mixins/filterTypeDateInput'
 
 export default {
   name: 'ViewFilterTypeTimeZone',
-  mixins: [viewFilter],
-  computed: {
-    timezone() {
-      if (!this.field?.date_include_time) {
-        return 'GMT'
-      }
-      return moment().tz(this.filter.value).format('z')
-    },
-  },
+  mixins: [filterTypeDateInput],
 }
 </script>

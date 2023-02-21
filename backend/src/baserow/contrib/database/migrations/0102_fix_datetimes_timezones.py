@@ -25,17 +25,16 @@ def forward(apps, schema_editor):
     # for the created_on and last_modified fields we need to set the
     # `date_force_timezone` to the timezone saved in in the field
     cursor = connection.cursor()
-    with connection.schema_editor():
-        for Field in [CreatedOnField, LastModifiedField]:
-            cursor.execute(
-                sql.SQL(
-                    "UPDATE {table_name} SET "
-                    "date_force_timezone = timezone, date_show_tzinfo = true "
-                    "WHERE date_include_time = true"
-                ).format(
-                    table_name=sql.Identifier(Field._meta.db_table),
-                )
+    for Field in [CreatedOnField, LastModifiedField]:
+        cursor.execute(
+            sql.SQL(
+                "UPDATE {table_name} SET "
+                "date_force_timezone = timezone, date_show_tzinfo = true "
+                "WHERE date_include_time = true"
+            ).format(
+                table_name=sql.Identifier(Field._meta.db_table),
             )
+        )
 
 
 class Migration(migrations.Migration):

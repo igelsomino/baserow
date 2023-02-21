@@ -4,7 +4,8 @@ import {
   getTimeMomentFormat,
   getDateHumanReadableFormat,
   getTimeHumanReadableFormat,
-  getTimezone,
+  getFieldTimezone,
+  getCellTimezoneAbbr,
   localizeMoment,
 } from '@baserow/modules/database/utils/date'
 
@@ -85,9 +86,7 @@ export default {
      */
     chooseDate(field, value) {
       const dateFormat = getDateMomentFormat(field.date_format)
-      value = moment(value)
-        .tz(getTimezone(field, value), true)
-        .format(dateFormat)
+      value = moment(value).tz(getFieldTimezone(field), true).format(dateFormat)
       this.date = value
       this.updateDate(field, value)
     },
@@ -129,7 +128,9 @@ export default {
 
       const existing = localizeMoment(
         field,
-        moment(value || undefined).seconds(0)
+        moment(value || undefined).seconds(0),
+        undefined,
+        !field.date_include_time
       )
 
       const dateFormat = getDateMomentFormat(this.field.date_format)
@@ -138,8 +139,8 @@ export default {
       this.date = existing.format(dateFormat)
       this.time = existing.format(timeFormat)
     },
-    getTimezone(field, value) {
-      return getTimezone(field, value)
+    getCellTimezoneAbbr(field, value) {
+      return getCellTimezoneAbbr(field, value)
     },
     /**
      * Returns a human readable date placeholder of the format for the input.

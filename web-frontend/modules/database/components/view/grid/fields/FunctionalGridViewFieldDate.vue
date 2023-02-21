@@ -22,7 +22,7 @@
           v-if="props.field.date_show_tzinfo"
           class="grid-field-date__tzinfo"
         >
-          {{ $options.methods.getTimezone(props.field, props.value) }}
+          {{ $options.methods.getCellTimezoneAbbr(props.field, props.value) }}
         </div>
       </div>
     </client-only>

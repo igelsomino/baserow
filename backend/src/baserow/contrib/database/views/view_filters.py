@@ -1,17 +1,16 @@
 import abc
 from collections import defaultdict
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from math import ceil, floor
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 from django.contrib.postgres.aggregates.general import ArrayAgg
-from django.db.models import DateTimeField, IntegerField, Q
+from django.db.models import IntegerField, Q
 from django.db.models.functions import Cast, Length
 
 import pytz
 from dateutil import parser
-from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
 
 from baserow.contrib.database.fields.field_filters import (
@@ -329,70 +328,83 @@ class TimezoneAwareDateViewFilterType(ViewFilterType):
         FormulaFieldType.compatible_with_formula_types(BaserowFormulaDateType.type),
     ]
 
-    @abc.abstractmethod
-    def get_localized_date_to_compare(
-        self, field, filter_value: Union[str, int, None], filter_timezone: str
-    ) -> Optional[Union[datetime, date]]:
-        """
-        Returns the localized date that should be used to compare with the field
-        value.
+    def is_empty_filter(self, filter_value: str) -> bool:
+        return filter_value == ""
 
-        :param field: The field that is being filtered.
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        """
+        Parses the provided filter value and returns a date or datetime object
+        that can be used to compare with the field value.
+
         :param filter_value: The value that has been provided by the user.
-        :param filter_timezone: The timezone that should be used to compare the
-            date with the field value.
-        :return: The date that should be used to compare with the field value or
-            null if not valid.
+        :param timezone: The timezone that should be used to convert the date to
+            an aware date.
+        :return: a date or an aware datetime that should be used to compare with
+            the field value.
         :raises ValueError: If the provided value is not valid.
         :raise OverflowError: If the provided value is out of range.
         :raise ParserError: If the provided value is not a valid date to parse.
         """
 
-        pass
+        try:
+            return parser.isoparser().parse_isodate(filter_value)
+        except ValueError:
+            datetime_value = parser.isoparse(filter_value)
+            if datetime_value.tzinfo is None:
+                return datetime_value.replace(tzinfo=timezone)
+            return datetime_value.astimezone(timezone)
 
     @abc.abstractmethod
-    def make_query_dict(
-        self, field_name: str, localized_filter_date: Union[datetime, date]
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[datetime, date]
     ) -> Dict:
         """
         Returns a dictionary that can be used to create a Q object.
 
         :param field_name: The name of the field that should be used in the query.
-        :param localized_filter_date: The date that should be used to compare with the
+        :param aware_filter_date: The date that should be used to compare with the
             field value.
         """
 
         pass
 
-    def split_timezone_and_value(
+    def split_timezone_and_filter_value(
         self, field, value, separator="?"
-    ) -> Tuple[str, Optional[str]]:
+    ) -> Tuple[pytz.BaseTzInfo, str]:
         """
         Splits the timezone and the value from the provided value. If the value
         does not contain a timezone then the default timezone will be used.
 
         :param field: The field that is being filtered.
-        :param value: The value that has been provided by the user.
+        :param filter_value: The value that has been provided by the user.
         :param separator: The separator that is used to split the timezone and
             the value.
-        :return: A tuple containing the timezone and the filter_value or None if
-            invalid.
+        :return: A tuple containing the timezone and the filter_value string.
         """
 
-        timezone_string = "GMT"
-        if separator in value:
+        timezone = pytz.UTC
+        empty_filter_value = ""
+
+        if separator in value:  # specific timezone provided by the filter
             try:
-                tzone, filter_value = value.split(separator)
+                timezone_value, filter_value = value.split(separator)
             except ValueError:
-                return timezone_string, None
+                return timezone, empty_filter_value
+        elif value in pytz.all_timezones:
+            timezone_value = value
+            filter_value = empty_filter_value
         else:
-            tzone = field.date_force_timezone
-            filter_value = value or None
+            timezone_value = field.date_force_timezone
+            filter_value = value or empty_filter_value
 
-        if field.date_include_time and tzone in pytz.all_timezones:
-            timezone_string = tzone
+        # if date_include_time is False, dates are compared in UTC
+        # if date_include_time is True, timezone aware datetimes are compared
+        if field.date_include_time and timezone_value in pytz.all_timezones:
+            timezone = pytz.timezone(timezone_value)
 
-        return timezone_string, filter_value
+        return timezone, filter_value
 
     def get_filter(
         self, field_name: str, value: str, model_field, field: Field
@@ -410,29 +422,31 @@ class TimezoneAwareDateViewFilterType(ViewFilterType):
         :return: A Q object that can be used to filter the provided field.
         """
 
-        timezone_string, filter_value = self.split_timezone_and_value(
+        timezone, filter_value = self.split_timezone_and_filter_value(
             field, value.strip()
         )
-        if filter_value is None:
+        if self.is_empty_filter(filter_value):
             return Q()
 
         try:
-            localized_filter_date = self.get_localized_date_to_compare(
-                field, filter_value, timezone_string
-            )
-        except (OverflowError, ValueError, ParserError):
-            localized_filter_date = None
-        # If the filter date is not valid we filter everything out.
-        if localized_filter_date is None:
+            filter_date = self.get_filter_date(filter_value, timezone)
+        except (OverflowError, ValueError, parser.ParserError):
             return Q(pk__in=[])
 
-        if field.date_include_time and type(localized_filter_date) is datetime:
-            field_name_as_tz = f"{field_name}_tz_{timezone_string}"
-            annotation = {f"{field_name_as_tz}": Timezone(field_name, timezone_string)}
-            query_dict = self.make_query_dict(field_name_as_tz, localized_filter_date)
+        if field.date_include_time:
+            aware_field_name = f"{field_name}_tz_{timezone}"
+            annotation = {aware_field_name: Timezone(field_name, str(timezone))}
+            if type(filter_date) is date:
+                aware_field_name = f"{aware_field_name}__date"
+            query_dict = self.get_filter_query_dict(aware_field_name, filter_date)
             return AnnotatedQ(annotation=annotation, q=query_dict)
         else:
-            query_dict = self.make_query_dict(field_name, localized_filter_date)
+            field_type = field_type_registry.get_by_model(field)
+            if type(filter_date) is datetime:
+                filter_date = filter_date.date()
+            if field_type.type in [LastModifiedFieldType.type, CreatedOnFieldType.type]:
+                field_name = f"{field_name}__date"
+            query_dict = self.get_filter_query_dict(field_name, filter_date)
             return Q(**query_dict)
 
 
@@ -445,117 +459,13 @@ class DateEqualViewFilterType(TimezoneAwareDateViewFilterType):
 
     type = "date_equal"
 
-    def get_localized_date_to_compare(self, field, filter_value, filter_timezone):
-        try:
-            return parser.isoparser().parse_isodate(filter_value)
-        except ValueError:
-            pass  # Try to parse as datetime instead.
-
-        filter_date = parser.isoparse(filter_value)
-        return filter_date.astimezone(pytz.timezone(filter_timezone))
-
-    def make_query_dict(
-        self, field_name: str, localized_filter_date: Union[date, datetime]
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
     ) -> Dict:
-        if type(localized_filter_date) is date:
-            return {f"{field_name}__startswith": localized_filter_date}
-        else:
-            return {f"{field_name}": localized_filter_date}
+        return {field_name: aware_filter_date}
 
 
-class BaseDateFieldLookupFilterType(ViewFilterType):
-    """
-    The base date field lookup filter serves as a base class for DateViewFilters.
-    With it a valid ISO date can be parsed into a date object which subsequently can
-    be used to filter a model.DateField or model.DateTimeField.
-    If the model field in question is a DateTimeField then the get_filter function
-    makes sure to only use the date part of the datetime in order to filter. This means
-    that the time part of a DateTimeField gets completely ignored.
-
-    The 'query_field_lookup' needs to be set on the deriving classes to something like
-    '__lt'
-    '__lte'
-    '__gt'
-    '__gte'
-    """
-
-    type = "base_date_field_lookup_type"
-    query_field_lookup = ""
-    query_date_lookup = ""
-    compatible_field_types = [
-        DateFieldType.type,
-        LastModifiedFieldType.type,
-        CreatedOnFieldType.type,
-        FormulaFieldType.compatible_with_formula_types(
-            BaserowFormulaDateType.type,
-        ),
-    ]
-
-    @staticmethod
-    def parse_date(value: str) -> Union[datetime.date, datetime]:
-        """
-        Parses the provided value string and converts it to a date object.
-        Raises an error if the provided value is an empty string or cannot be parsed
-        to a date object
-        """
-
-        value = value.strip()
-
-        if value == "":
-            raise ValueError
-
-        utc = pytz.timezone("UTC")
-
-        try:
-            parsed_datetime = parser.isoparse(value).astimezone(utc)
-            return parsed_datetime
-        except ValueError as e:
-            raise e
-
-    @staticmethod
-    def is_date(value: str) -> bool:
-        try:
-            datetime.strptime(value, "%Y-%m-%d")
-            return True
-        except ValueError:
-            return False
-
-    def get_filter(self, field_name, value, model_field, field):
-        # in order to only compare the date part of a datetime field
-        # we need to verify that we are in fact dealing with a datetime field
-        # if so the django query lookup '__date' gets appended to the field_name
-        # otherwise (i.e. it is a date field) nothing gets appended
-        query_date_lookup = self.query_date_lookup
-        if (
-            isinstance(model_field, DateTimeField)
-            and self.is_date(value)
-            and not query_date_lookup
-        ):
-            query_date_lookup = "__date"
-        try:
-            parsed_date = self.parse_date(value)
-            has_timezone = hasattr(field, "timezone")
-            field_key = f"{field_name}{query_date_lookup}{self.query_field_lookup}"
-            if has_timezone:
-                timezone_string = field.get_timezone()
-                tmp_field_name = f"{field_name}_timezone_{timezone_string}"
-                field_key = (
-                    f"{tmp_field_name}{query_date_lookup}{self.query_field_lookup}"
-                )
-
-                return AnnotatedQ(
-                    annotation={
-                        f"{tmp_field_name}": Timezone(field_name, timezone_string)
-                    },
-                    q={field_key: parsed_date},
-                )
-            else:
-                return Q(**{field_key: parsed_date})
-        except (ParserError, ValueError):
-            return Q()
-
-
-class DateBeforeViewFilterType(BaseDateFieldLookupFilterType):
+class DateBeforeViewFilterType(TimezoneAwareDateViewFilterType):
     """
     The date before filter parses the provided filter value as date and checks if the
     field value is before this date (lower than).
@@ -563,10 +473,14 @@ class DateBeforeViewFilterType(BaseDateFieldLookupFilterType):
     """
 
     type = "date_before"
-    query_field_lookup = "__lt"
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict[str, Any]:
+        return {f"{field_name}__lt": aware_filter_date}
 
 
-class DateAfterViewFilterType(BaseDateFieldLookupFilterType):
+class DateAfterViewFilterType(TimezoneAwareDateViewFilterType):
     """
     The after date filter parses the provided filter value as date and checks if
     the field value is after this date (greater than).
@@ -574,84 +488,104 @@ class DateAfterViewFilterType(BaseDateFieldLookupFilterType):
     """
 
     type = "date_after"
-    query_field_lookup = "__gt"
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict[str, Any]:
+        return {f"{field_name}__gt": aware_filter_date}
 
 
-class DateEqualsDayOfMonthViewFilterType(BaseDateFieldLookupFilterType):
+class DateEqualsDayOfMonthViewFilterType(TimezoneAwareDateViewFilterType):
     """
     The day of month filter checks if the field number value
     matches the date's day of the month value.
     """
 
     type = "date_equals_day_of_month"
-    query_date_lookup = "__day"
 
-    @staticmethod
-    def parse_date(value: str) -> str:
-        # Check if the value is a positive number
-        if not value.isdigit():
-            raise ValueError
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        day_of_month = int(filter_value)
+        if day_of_month < 1 or day_of_month > 31:
+            raise ValueError("Day of month must be between 1 and 31.")
 
-        # Check if the value is a valid day of the month
-        if int(value) < 1 or int(value) > 31:
-            raise ValueError
+        return datetime.now(tz=timezone).replace(day=day_of_month, month=1).date()
 
-        return value
-
-
-class DateCompareTodayViewFilterType(TimezoneAwareDateViewFilterType):
-    def get_localized_date_to_compare(
-        self, field, filter_value, filter_timezone
-    ) -> Optional[datetime]:
-        return datetime.now().astimezone(pytz.timezone(filter_timezone))
-
-    def split_timezone_and_value(self, field, value, separator="?"):
-        timezone_string, filter_value = value, ""
-        if not field.date_include_time:
-            timezone_string = "GMT"
-        return timezone_string, filter_value
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict[str, Any]:
+        return {f"{field_name}__day": aware_filter_date.day}
 
 
-class DateEqualsTodayViewFilterType(DateCompareTodayViewFilterType):
+class EmptyFilterValueMixin:
+    def is_empty_filter(self, filter_value: str) -> bool:
+        return False
+
+
+class DateEqualsTodayViewFilterType(
+    EmptyFilterValueMixin, TimezoneAwareDateViewFilterType
+):
     """
     The today filter checks if the field value matches with today's date.
     """
 
     type = "date_equals_today"
 
-    def make_query_dict(self, field_name: str, localized_filter_date: datetime) -> Dict:
-        return {
-            f"{field_name}__year": localized_filter_date.year,
-            f"{field_name}__month": localized_filter_date.month,
-            f"{field_name}__day": localized_filter_date.day,
-        }
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        return datetime.now(tz=timezone).date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        return {field_name: aware_filter_date}
 
 
-class DateBeforeTodayViewFilterType(DateCompareTodayViewFilterType):
+class DateBeforeTodayViewFilterType(
+    EmptyFilterValueMixin, TimezoneAwareDateViewFilterType
+):
     """
     The before today filter checks if the field value is before today's date.
     """
 
     type = "date_before_today"
 
-    def make_query_dict(self, field_name: str, localized_filter_date: datetime) -> Dict:
-        min_today = datetime.combine(localized_filter_date, time.min)
-        return {f"{field_name}__lt": min_today}
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        return (datetime.now(tz=timezone) - timedelta(days=1)).date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        return {f"{field_name}__lte": aware_filter_date}
 
 
-class DateAfterTodayViewFilterType(DateCompareTodayViewFilterType):
+class DateAfterTodayViewFilterType(
+    EmptyFilterValueMixin, TimezoneAwareDateViewFilterType
+):
     """
     The after today filter checks if the field value is after today's date.
     """
 
     type = "date_after_today"
 
-    def make_query_dict(self, field_name: str, localized_filter_date: datetime) -> Dict:
-        max_today = datetime.combine(localized_filter_date, time.max)
-        return {f"{field_name}__gt": max_today}
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        return (datetime.now(tz=timezone) + timedelta(days=1)).date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        return {f"{field_name}__gte": aware_filter_date}
 
 
-class DateEqualsCurrentWeekViewFilterType(DateCompareTodayViewFilterType):
+class DateEqualsCurrentWeekViewFilterType(
+    EmptyFilterValueMixin, TimezoneAwareDateViewFilterType
+):
     """
     The current week filter works as a subset of today filter and checks if the
     field value falls into current week.
@@ -659,15 +593,24 @@ class DateEqualsCurrentWeekViewFilterType(DateCompareTodayViewFilterType):
 
     type = "date_equals_week"
 
-    def make_query_dict(self, field_name: str, localized_filter_date: datetime) -> Dict:
-        week_of_year = localized_filter_date.isocalendar()[1]
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        return datetime.now(tz=timezone).date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        week_of_year = aware_filter_date.isocalendar().week
         return {
             f"{field_name}__week": week_of_year,
-            f"{field_name}__year": localized_filter_date.year,
+            f"{field_name}__year": aware_filter_date.year,
         }
 
 
-class DateEqualsCurrentMonthViewFilterType(DateCompareTodayViewFilterType):
+class DateEqualsCurrentMonthViewFilterType(
+    EmptyFilterValueMixin, TimezoneAwareDateViewFilterType
+):
     """
     The current month filter works as a subset of today filter and checks if the
     field value falls into current month.
@@ -675,14 +618,23 @@ class DateEqualsCurrentMonthViewFilterType(DateCompareTodayViewFilterType):
 
     type = "date_equals_month"
 
-    def make_query_dict(self, field_name: str, localized_filter_date: datetime) -> Dict:
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        return datetime.now(tz=timezone).date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
         return {
-            f"{field_name}__month": localized_filter_date.month,
-            f"{field_name}__year": localized_filter_date.year,
+            f"{field_name}__month": aware_filter_date.month,
+            f"{field_name}__year": aware_filter_date.year,
         }
 
 
-class DateEqualsCurrentYearViewFilterType(DateCompareTodayViewFilterType):
+class DateEqualsCurrentYearViewFilterType(
+    EmptyFilterValueMixin, TimezoneAwareDateViewFilterType
+):
     """
     The current month filter works as a subset of today filter and checks if the
     field value falls into current year.
@@ -690,42 +642,18 @@ class DateEqualsCurrentYearViewFilterType(DateCompareTodayViewFilterType):
 
     type = "date_equals_year"
 
-    def make_query_dict(self, field_name: str, localized_filter_date: datetime) -> Dict:
-        return {
-            f"{field_name}__year": localized_filter_date.year,
-        }
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        return datetime.now(tz=timezone).date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        return {f"{field_name}__year": aware_filter_date.year}
 
 
-class DateEqualsXAgoViewFilterType(TimezoneAwareDateViewFilterType):
-    """
-    Base class for is days, months, years ago filter.
-    """
-
-    query_for: List[str] = []
-
-    def split_timezone_and_value(self, field, value, separator="?"):
-        timezone_string, filter_value = super().split_timezone_and_value(
-            field, value, separator
-        )
-        try:
-            filter_value = int(filter_value)
-        except (ValueError, TypeError):
-            return timezone_string, None
-
-        return timezone_string, filter_value
-
-    def make_query_dict(self, field_name: str, localized_filter_date: datetime) -> Dict:
-        q = {}
-        if "year" in self.query_for:
-            q[f"{field_name}__year"] = localized_filter_date.year
-        if "month" in self.query_for:
-            q[f"{field_name}__month"] = localized_filter_date.month
-        if "day" in self.query_for:
-            q[f"{field_name}__day"] = localized_filter_date.day
-        return q
-
-
-class DateEqualsDaysAgoViewFilterType(DateEqualsXAgoViewFilterType):
+class DateEqualsDaysAgoViewFilterType(TimezoneAwareDateViewFilterType):
     """
     The "number of days ago" filter checks if the field value matches with today's
     date minus the specified number of days.
@@ -735,16 +663,20 @@ class DateEqualsDaysAgoViewFilterType(DateEqualsXAgoViewFilterType):
     """
 
     type = "date_equals_days_ago"
-    query_for = ["year", "month", "day"]
 
-    def get_localized_date_to_compare(
-        self, field, filter_value: Any, filter_timezone: str
-    ) -> Optional[datetime]:
-        now = datetime.now().astimezone(pytz.timezone(filter_timezone))
-        return now - timedelta(days=filter_value)
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        filter_date = datetime.now(tz=timezone) - timedelta(days=int(filter_value))
+        return filter_date.date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        return {field_name: aware_filter_date}
 
 
-class DateEqualsMonthsAgoViewFilterType(DateEqualsXAgoViewFilterType):
+class DateEqualsMonthsAgoViewFilterType(TimezoneAwareDateViewFilterType):
     """
     The "number of months ago" filter checks if the field value's month is within
     the specified "months ago" based on the current date.
@@ -754,16 +686,25 @@ class DateEqualsMonthsAgoViewFilterType(DateEqualsXAgoViewFilterType):
     """
 
     type = "date_equals_months_ago"
-    query_for = ["year", "month"]
 
-    def get_localized_date_to_compare(
-        self, field, filter_value: Any, filter_timezone: str
-    ) -> Optional[datetime]:
-        now = datetime.now().astimezone(pytz.timezone(filter_timezone))
-        return now + relativedelta(months=-filter_value)
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        filter_date = datetime.now(tz=timezone) + relativedelta(
+            months=-int(filter_value)
+        )
+        return filter_date.date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        return {
+            f"{field_name}__year": aware_filter_date.year,
+            f"{field_name}__month": aware_filter_date.month,
+        }
 
 
-class DateEqualsYearsAgoViewFilterType(DateEqualsXAgoViewFilterType):
+class DateEqualsYearsAgoViewFilterType(TimezoneAwareDateViewFilterType):
     """
     The "is years ago" filter checks if the field value's year is within
     the specified "years ago" based on the current date.
@@ -773,13 +714,19 @@ class DateEqualsYearsAgoViewFilterType(DateEqualsXAgoViewFilterType):
     """
 
     type = "date_equals_years_ago"
-    query_for = ["year"]
 
-    def get_localized_date_to_compare(
-        self, field, filter_value: Any, filter_timezone: str
-    ) -> Optional[datetime]:
-        now = datetime.now().astimezone(pytz.timezone(filter_timezone))
-        return now + relativedelta(years=-filter_value)
+    def get_filter_date(
+        self, filter_value: str, timezone: pytz.BaseTzInfo
+    ) -> Union[datetime, date]:
+        filter_date = datetime.now(tz=timezone) + relativedelta(
+            years=-int(filter_value)
+        )
+        return filter_date.date()
+
+    def get_filter_query_dict(
+        self, field_name: str, aware_filter_date: Union[date, datetime]
+    ) -> Dict:
+        return {f"{field_name}__year": aware_filter_date.year}
 
 
 class DateNotEqualViewFilterType(NotViewFilterTypeMixin, DateEqualViewFilterType):

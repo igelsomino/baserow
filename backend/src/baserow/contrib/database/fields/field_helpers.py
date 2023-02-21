@@ -47,8 +47,20 @@ def construct_all_possible_field_kwargs(
         "date": [
             {"name": "datetime_us", "date_include_time": True, "date_format": "US"},
             {"name": "date_us", "date_include_time": False, "date_format": "US"},
-            {"name": "datetime_eu", "date_include_time": True, "date_format": "EU"},
+            {
+                "name": "datetime_eu",
+                "date_include_time": True,
+                "date_format": "EU",
+                "date_show_timezone": True,
+            },
             {"name": "date_eu", "date_include_time": False, "date_format": "EU"},
+            {
+                "name": "datetime_eu_tzone",
+                "date_include_time": True,
+                "date_format": "EU",
+                "date_force_timezone": "Europe/Amsterdam",
+                "date_show_timezone": True,
+            },
         ],
         "last_modified": [
             {
@@ -65,11 +77,19 @@ def construct_all_possible_field_kwargs(
                 "name": "last_modified_datetime_eu",
                 "date_include_time": True,
                 "date_format": "EU",
+                "date_show_timezone": True,
             },
             {
                 "name": "last_modified_date_eu",
                 "date_include_time": False,
                 "date_format": "EU",
+            },
+            {
+                "name": "last_modified_datetime_eu_tzone",
+                "date_include_time": True,
+                "date_format": "EU",
+                "date_force_timezone": "Europe/Amsterdam",
+                "date_show_timezone": True,
             },
         ],
         "created_on": [
@@ -87,11 +107,19 @@ def construct_all_possible_field_kwargs(
                 "name": "created_on_datetime_eu",
                 "date_include_time": True,
                 "date_format": "EU",
+                "date_show_timezone": True,
             },
             {
                 "name": "created_on_date_eu",
                 "date_include_time": False,
                 "date_format": "EU",
+            },
+            {
+                "name": "created_on_datetime_eu_tzone",
+                "date_include_time": True,
+                "date_format": "EU",
+                "date_force_timezone": "Europe/Amsterdam",
+                "date_show_timezone": True,
             },
         ],
         "link_row": [

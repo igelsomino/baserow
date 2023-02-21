@@ -2,7 +2,7 @@ import moment from '@baserow/modules/core/moment'
 import {
   getDateMomentFormat,
   getTimeMomentFormat,
-  getTimezone,
+  getCellTimezoneAbbr,
   localizeMoment,
 } from '@baserow/modules/database/utils/date'
 
@@ -12,7 +12,12 @@ export default {
       if (value === null || value === undefined) {
         return ''
       }
-      const existing = localizeMoment(field, moment(value))
+      const existing = localizeMoment(
+        field,
+        moment(value),
+        undefined,
+        !field.date_include_time
+      )
       const dateFormat = getDateMomentFormat(field.date_format)
       return existing.format(dateFormat)
     },
@@ -25,8 +30,8 @@ export default {
       const timeFormat = getTimeMomentFormat(field.date_time_format)
       return existing.format(timeFormat)
     },
-    getTimezone(field, value) {
-      return getTimezone(field, value)
+    getCellTimezoneAbbr(field, value) {
+      return getCellTimezoneAbbr(field, value)
     },
   },
 }

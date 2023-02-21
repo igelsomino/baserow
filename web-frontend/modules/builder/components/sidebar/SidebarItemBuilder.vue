@@ -67,6 +67,7 @@
 
 <script>
 import { notifyIf } from '@baserow/modules/core/utils/error'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'SidebarItemBuilder',
@@ -105,6 +106,14 @@ export default {
           this.builder.group.id
         )
       )
+    },
+    ...mapGetters({ duplicateJob: 'page/getDuplicateJob' }),
+  },
+  watch: {
+    'duplicateJob.state'(newState) {
+      if (['finished', 'failed'].includes(newState)) {
+        this.duplicateLoading = false
+      }
     },
   },
   methods: {
@@ -179,12 +188,16 @@ export default {
       this.deleteLoading = false
     },
     async duplicatePage() {
+      if (this.duplicateLoading) {
+        return
+      }
+
       this.duplicateLoading = true
 
       // TODO add error handling
       await this.$store.dispatch('page/duplicate', { page: this.page })
 
-      this.duplicateLoading = false
+      this.$refs.context.hide()
     },
   },
 }

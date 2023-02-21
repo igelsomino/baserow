@@ -13,6 +13,7 @@ import {
 
 import pageStore from '@baserow/modules/builder/store/page'
 import { registerRealtimeEvents } from '@baserow/modules/builder/realtime'
+import { DuplicatePageJobType } from '@baserow/modules/builder/jobTypes'
 
 export default (context) => {
   const { store, app, isDev } = context
@@ -36,6 +37,7 @@ export default (context) => {
   app.$registry.registerNamespace('builderSettings')
 
   app.$registry.register('application', new BuilderApplicationType(context))
+  app.$registry.register('job', new DuplicatePageJobType(context))
 
   app.$registry.register(
     'builderSettings',

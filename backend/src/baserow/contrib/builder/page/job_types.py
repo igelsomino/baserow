@@ -50,7 +50,13 @@ class DuplicatePageJobType(JobType):
         return {"original_page": page}
 
     def run(self, job, progress):
-        new_page_clone = PageService().duplicate_page()
+        new_page_clone = PageService().duplicate_page(
+            job.user,
+            job.original_page,
+            progress_builder=progress.create_child_builder(
+                represents_progress=progress.total
+            ),
+        )
 
         job.duplicated_page = new_page_clone
         job.save(update_fields=("duplicated_page",))

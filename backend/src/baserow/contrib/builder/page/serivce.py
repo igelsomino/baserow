@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from django.contrib.auth.models import AbstractUser
 
@@ -11,6 +11,7 @@ from baserow.contrib.builder.page.operations import (
     DeletePageOperationType,
     ReadPageOperationType,
     UpdatePageOperationType,
+    DuplicatePageOperationType,
 )
 from baserow.contrib.builder.page.signals import (
     page_created,
@@ -19,7 +20,7 @@ from baserow.contrib.builder.page.signals import (
     pages_reordered,
 )
 from baserow.core.handler import CoreHandler
-from baserow.core.utils import extract_allowed
+from baserow.core.utils import extract_allowed, ChildProgressBuilder
 
 
 class PageService:
@@ -145,5 +146,28 @@ class PageService:
 
         return full_order
 
-    def duplicate_page(self):
-        pass
+    def duplicate_page(
+        self,
+        user: AbstractUser,
+        page: Page,
+        progress_builder: Optional[ChildProgressBuilder] = None,
+    ) -> Page:
+        """
+        Duplicates an existing page instance
+
+        :param user: The user initiating the page duplication
+        :param page: The page that is being duplicated
+        :param progress_builder: A progress object that can be used to report progress
+        :raises ValueError: When the provided page is not an instance of Page.
+        :return: The duplicated page
+        """
+
+        CoreHandler().check_permissions(
+            user, DuplicatePageOperationType.type, page.builder.group, context=page
+        )
+
+        page_clone = PageHandler().duplicate_page(page, progress_builder)
+
+        page_created.send(self, page=page, user=user)
+
+        return page_clone

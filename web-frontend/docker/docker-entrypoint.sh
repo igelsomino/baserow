@@ -66,32 +66,14 @@ setup_additional_modules(){
   export ADDITIONAL_MODULES
 }
 
-setup_otel_env_vars(){
-  export OTEL_SERVICE_NAME="web-frontend"
-
-  EXTRA_OTEL_RESOURCE_ATTRIBUTES="service.namespace=Baserow,"
-  EXTRA_OTEL_RESOURCE_ATTRIBUTES+="service.version=${BASEROW_VERSION},"
-  EXTRA_OTEL_RESOURCE_ATTRIBUTES+="deployment.environment=${BASEROW_DEPLOYMENT_ENV:-unknown}"
-
-  if [[ -n "${OTEL_RESOURCE_ATTRIBUTES:-}" ]]; then
-    OTEL_RESOURCE_ATTRIBUTES="${EXTRA_OTEL_RESOURCE_ATTRIBUTES},${OTEL_RESOURCE_ATTRIBUTES}"
-  else
-    OTEL_RESOURCE_ATTRIBUTES="$EXTRA_OTEL_RESOURCE_ATTRIBUTES"
-  fi
-  export OTEL_RESOURCE_ATTRIBUTES
-  echo "OTEL_RESOURCE_ATTRIBUTES=$OTEL_RESOURCE_ATTRIBUTES"
-}
-
 
 case "$1" in
     nuxt-dev)
-      setup_otel_env_vars
       startup_plugin_setup
       setup_additional_modules
       attachable_exec yarn run dev
     ;;
     nuxt-dev-no-attach)
-      setup_otel_env_vars
       startup_plugin_setup
       setup_additional_modules
       exec yarn run dev

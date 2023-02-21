@@ -1,11 +1,7 @@
-import logging
-
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
 from tqdm import tqdm
-
-logger = logging.getLogger(__name__)
 
 
 class BaserowEnterpriseConfig(AppConfig):

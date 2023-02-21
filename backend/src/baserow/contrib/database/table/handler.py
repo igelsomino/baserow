@@ -1,4 +1,3 @@
-import logging
 import traceback
 from typing import Any, Dict, List, NewType, Optional, Tuple, cast
 
@@ -8,6 +7,8 @@ from django.db import DatabaseError, ProgrammingError
 from django.db.models import QuerySet, Sum
 from django.utils import timezone, translation
 from django.utils.translation import gettext as _
+
+from loguru import logger
 
 from baserow.contrib.database.db.schema import safe_django_schema_editor
 from baserow.contrib.database.fields.constants import RESERVED_BASEROW_FIELD_NAMES
@@ -53,8 +54,6 @@ from .signals import table_created, table_deleted, table_updated, tables_reorder
 BATCH_SIZE = 1024
 
 TableForUpdate = NewType("TableForUpdate", Table)
-
-logger = logging.getLogger(__name__)
 
 
 class TableHandler:

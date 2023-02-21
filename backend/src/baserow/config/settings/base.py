@@ -1,6 +1,5 @@
 import datetime
 import importlib
-import logging
 import os
 import re
 from decimal import Decimal
@@ -729,6 +728,7 @@ LOGGING = {
     },
 }
 
+
 # Now incorrectly named old variable, previously we would run `sync_templates` prior
 # to starting the gunicorn server in Docker. This variable would prevent that from
 # happening. Now we sync_templates in an async job triggered after migration.
@@ -784,6 +784,5 @@ for plugin in [*BASEROW_BUILT_IN_PLUGINS, *BASEROW_BACKEND_PLUGIN_NAMES]:
         # plugin can access the Django settings and modify them prior to startup.
         result = mod.setup(AttrDict(vars()))
     except ImportError as e:
-        logger = logging.getLogger(__name__)
-        logger.warning("Could not import %s", plugin)
-        logger.warning(e)
+        print("Could not import %s", plugin)
+        print(e)

@@ -2,8 +2,6 @@
 import os
 import sys
 
-from baserow.core.telemetry.telemetry import setup_open_telemetry_instrumentation
-
 
 def enable_debugger():
     """Enable the debugger if the environment variable is set."""
@@ -30,8 +28,6 @@ def main():
 
     # Celery and Gunicorn have their own special hooks where they enable instrumentation
     # as they have a forking process structure.
-    if os.getenv("BASEROW_SERVICE_NAME", "unknown") == "backend-dev":
-        setup_open_telemetry_instrumentation(add_django_instrumentation=True)
 
     try:
         from django.core.management import execute_from_command_line

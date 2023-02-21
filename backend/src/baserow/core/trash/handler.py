@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
@@ -7,6 +6,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import IntegrityError, OperationalError, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
+
+from loguru import logger
 
 from baserow.core.exceptions import (
     ApplicationDoesNotExist,
@@ -32,7 +33,6 @@ from baserow.core.trash.operations import (
 from baserow.core.trash.registries import TrashableItemType, trash_item_type_registry
 from baserow.core.trash.signals import permanently_deleted
 
-logger = logging.getLogger(__name__)
 User = get_user_model()
 
 

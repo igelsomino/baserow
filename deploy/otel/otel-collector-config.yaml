@@ -14,19 +14,7 @@ processors:
       spanevent:
         - 'IsMatch(name, ".*sync_templates_task.*") == true'
   batch:
-    send_batch_size: 900
-    send_batch_max_size: 1000
-  # memory_limiter:
-  #   # 80% of maximum memory up to 2G
-  #   limit_mib: 1500
-  #   # 25% of limit up to 2G
-  #   spike_limit_mib: 512
-  #   check_interval: 5s
-  #
-  #   # 50% of the maximum memory
-  #   limit_percentage: 50
-  #   # 20% of max memory usage spike expected
-  #   spike_limit_percentage: 20
+    send_batch_size: 1000
 
 exporters:
   otlp:
@@ -37,18 +25,23 @@ exporters:
     endpoint: "api.honeycomb.io:443"
     headers:
       "x-honeycomb-team": "${env:HONEYCOMB_API_KEY}"
+  logging:
+    verbosity: detailed
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp]
+      exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/metrics]
+      exporters: [otlp/metrics,logging]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp]
+      exporters: [otlp,logging]
+
+extensions:
+  health_check:

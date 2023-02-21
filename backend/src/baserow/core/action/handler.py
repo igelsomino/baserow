@@ -1,4 +1,3 @@
-import logging
 import traceback
 from datetime import datetime
 from typing import List, Optional, Set, Tuple
@@ -9,6 +8,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
+from loguru import logger
+
 from baserow.core.exceptions import LockConflict
 
 from .models import Action
@@ -18,8 +19,6 @@ from .registries import (
     action_type_registry,
 )
 from .signals import ActionCommandType
-
-logger = logging.getLogger(__name__)
 
 
 def scopes_to_q_filter(scopes: List[ActionScopeStr]):

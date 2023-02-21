@@ -44,11 +44,11 @@ services:
     # Open stdin and tty so when attaching key input works as expected.
     stdin_open: true
     tty: true
+    depends_on:
+      - otel-collector
 
   web-frontend:
     image: baserow_web-frontend_dev:latest
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
     build:
       dockerfile: ./web-frontend/Dockerfile
       context: .
@@ -93,6 +93,8 @@ services:
     # Open stdin and tty so when attaching key input works as expected.
     stdin_open: true
     tty: true
+    depends_on:
+      - otel-collector
 
   celery-export-worker:
     image: baserow_backend_dev:latest
@@ -116,6 +118,8 @@ services:
     # Open stdin and tty so when attaching key input works as expected.
     stdin_open: true
     tty: true
+    depends_on:
+      - otel-collector
 
   celery-beat-worker:
     image: baserow_backend_dev:latest
@@ -188,3 +192,5 @@ services:
       - $PWD/deploy/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     networks:
       local:
+    ports:
+      - "4318:4318"

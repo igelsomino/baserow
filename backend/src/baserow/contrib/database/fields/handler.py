@@ -1,4 +1,3 @@
-import logging
 import traceback
 from copy import deepcopy
 from typing import (
@@ -20,6 +19,7 @@ from django.db import connection
 from django.db.models import QuerySet
 from django.db.utils import DatabaseError, DataError, ProgrammingError
 
+from loguru import logger
 from psycopg2 import sql
 
 from baserow.contrib.database.db.schema import (
@@ -84,8 +84,6 @@ from .signals import (
     field_restored,
     field_updated,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def _validate_field_name(

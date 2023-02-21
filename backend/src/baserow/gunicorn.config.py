@@ -1,5 +1,5 @@
-from baserow.core.telemetry.telemetry import setup_open_telemetry_instrumentation
+from baserow.core.telemetry.telemetry import setup_telemetry
 
 
 def post_fork(server, worker):
-    setup_open_telemetry_instrumentation(add_django_instrumentation=True)
+    setup_telemetry(add_django_instrumentation=True)

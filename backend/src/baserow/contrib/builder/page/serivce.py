@@ -144,3 +144,6 @@ class PageService:
         pages_reordered.send(self, builder=builder, order=full_order, user=user)
 
         return full_order
+
+    def duplicate_page(self):
+        pass

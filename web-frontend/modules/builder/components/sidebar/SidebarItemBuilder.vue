@@ -178,10 +178,11 @@ export default {
 
       this.deleteLoading = false
     },
-    duplicatePage() {
+    async duplicatePage() {
       this.duplicateLoading = true
 
-      // TODO
+      // TODO add error handling
+      await this.$store.dispatch('page/duplicate', { page: this.page })
 
       this.duplicateLoading = false
     },

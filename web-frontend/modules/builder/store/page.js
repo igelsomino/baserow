@@ -121,6 +121,9 @@ const actions = {
       throw error
     }
   },
+  duplicate({ commit }, { page }) {
+    PageService(this.$client).duplicate(page.id)
+  },
 }
 
 const getters = {}

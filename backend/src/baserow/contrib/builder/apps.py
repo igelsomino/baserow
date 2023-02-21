@@ -43,6 +43,12 @@ class BuilderConfig(AppConfig):
         operation_type_registry.register(ReadPageOperationType())
         operation_type_registry.register(DuplicatePageOperationType())
 
+        from baserow.core.jobs.registries import job_type_registry
+
+        from baserow.contrib.builder.page.job_types import DuplicatePageJobType
+
+        job_type_registry.register(DuplicatePageJobType())
+
         # The signals must always be imported last because they use the registries
         # which need to be filled first.
         import baserow.contrib.builder.ws.signals  # noqa: F403, F401

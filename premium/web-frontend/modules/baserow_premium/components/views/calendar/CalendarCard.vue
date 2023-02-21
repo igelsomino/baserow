@@ -8,7 +8,7 @@ export default {
   props: {
     row: {
       type: Object,
-      required: true
+      required: true,
     },
     storePrefix: {
       type: String,
@@ -16,8 +16,12 @@ export default {
     },
   },
   computed: {
+    // TODO: move up the component tree
     visibleFieldId() {
-      const options = this.$store.getters[this.storePrefix + 'view/calendar/getAllFieldOptions']
+      const options =
+        this.$store.getters[
+          this.storePrefix + 'view/calendar/getAllFieldOptions'
+        ]
       const keys = Object.keys(options)
       for (const key of keys) {
         if (options[key].hidden === false) {
@@ -25,6 +29,6 @@ export default {
         }
       }
     },
-  }
+  },
 }
 </script>

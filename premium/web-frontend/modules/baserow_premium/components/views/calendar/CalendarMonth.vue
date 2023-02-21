@@ -66,32 +66,60 @@ export default {
       return [...Array(this.numberOfDaysInMonth)].map((day, index) => {
         return {
           date: moment(
-            `${this.selectedDate.year()}-${this.selectedDate.month() + 1}-${index + 1}`
+            `${this.selectedDate.year()}-${this.selectedDate.month() + 1}-${
+              index + 1
+            }`
           ).format('YYYY-MM-DD'),
           isCurrentMonth: true,
         }
       })
     },
     previousMonthDays() {
-      const firstDayOfTheMonthWeekday = this.getWeekDay(this.currentMonthDays[0].date)
-      const previousMonth = moment(`${this.selectedDate.year()}-${this.selectedDate.month() + 1}-01`).subtract(1, "month")
-      const visibleNumberOfDaysFromPreviousMonth = firstDayOfTheMonthWeekday ? firstDayOfTheMonthWeekday - 1 : 6;
-      const previousMonthLastMondayDayOfMonth = moment(this.currentMonthDays[0].date).subtract(visibleNumberOfDaysFromPreviousMonth, "day").date()
-      return [...Array(visibleNumberOfDaysFromPreviousMonth)].map((day, index) => {
-        return {
-          date: moment(`${previousMonth.year()}-${previousMonth.month() + 1}-${previousMonthLastMondayDayOfMonth + index}`).format("YYYY-MM-DD"),
-          isCurrentMonth: false
+      const firstDayOfTheMonthWeekday = this.getWeekDay(
+        this.currentMonthDays[0].date
+      )
+      const previousMonth = moment(
+        `${this.selectedDate.year()}-${this.selectedDate.month() + 1}-01`
+      ).subtract(1, 'month')
+      const visibleNumberOfDaysFromPreviousMonth = firstDayOfTheMonthWeekday
+        ? firstDayOfTheMonthWeekday - 1
+        : 6
+      const previousMonthLastMondayDayOfMonth = moment(
+        this.currentMonthDays[0].date
+      )
+        .subtract(visibleNumberOfDaysFromPreviousMonth, 'day')
+        .date()
+      return [...Array(visibleNumberOfDaysFromPreviousMonth)].map(
+        (day, index) => {
+          return {
+            date: moment(
+              `${previousMonth.year()}-${previousMonth.month() + 1}-${
+                previousMonthLastMondayDayOfMonth + index
+              }`
+            ).format('YYYY-MM-DD'),
+            isCurrentMonth: false,
+          }
         }
-      })
+      )
     },
     nextMonthDays() {
-      const lastDayOfTheMonthWeekday = this.getWeekDay(`${this.selectedDate.year()}-${this.selectedDate.month() + 1}-${this.currentMonthDays.length}`)
-      const nextMonth = moment(`${this.selectedDate.year()}-${this.selectedDate.month() + 1}-01`).add(1, "month")
-      const visibleNumberOfDaysFromNextMonth = lastDayOfTheMonthWeekday ? 7 - lastDayOfTheMonthWeekday : lastDayOfTheMonthWeekday;
+      const lastDayOfTheMonthWeekday = this.getWeekDay(
+        `${this.selectedDate.year()}-${this.selectedDate.month() + 1}-${
+          this.currentMonthDays.length
+        }`
+      )
+      const nextMonth = moment(
+        `${this.selectedDate.year()}-${this.selectedDate.month() + 1}-01`
+      ).add(1, 'month')
+      const visibleNumberOfDaysFromNextMonth = lastDayOfTheMonthWeekday
+        ? 7 - lastDayOfTheMonthWeekday
+        : lastDayOfTheMonthWeekday
       return [...Array(visibleNumberOfDaysFromNextMonth)].map((day, index) => {
         return {
-          date: moment(`${nextMonth.year()}-${nextMonth.month() + 1}-${index + 1}`).format("YYYY-MM-DD"),
-          isCurrentMonth: false
+          date: moment(
+            `${nextMonth.year()}-${nextMonth.month() + 1}-${index + 1}`
+          ).format('YYYY-MM-DD'),
+          isCurrentMonth: false,
         }
       })
     },
@@ -112,9 +140,9 @@ export default {
     },
     isWeekendDay(date) {
       const dayOfWeek = moment(date).isoWeekday()
-      const isWeekend = (dayOfWeek === 6) || (dayOfWeek  === 7)
+      const isWeekend = dayOfWeek === 6 || dayOfWeek === 7
       return isWeekend
-    }
+    },
   },
 }
 </script>

@@ -6,7 +6,7 @@ export default (client) => {
       offset = null,
       includeFieldOptions = false,
       fromTimestamp = null,
-      toTimestamp = null
+      toTimestamp = null,
     }) {
       const include = []
       const params = new URLSearchParams()

@@ -10,11 +10,12 @@
     <div class="calendar-month-day__date">
       <span>{{ label }}</span>
     </div>
-    <CalendarCard 
+    <CalendarCard
       v-for="row in rows"
       :key="row.id"
       :row="row"
-      :store-prefix="storePrefix">
+      :store-prefix="storePrefix"
+    >
     </CalendarCard>
   </li>
 </template>
@@ -59,9 +60,11 @@ export default {
       return moment(this.day.date).format('D')
     },
     rows() {
-      const dayStack = this.$store.getters[this.storePrefix + 'view/calendar/getDateStack'](this.date)
+      const dayStack = this.$store.getters[
+        this.storePrefix + 'view/calendar/getDateStack'
+      ](this.date)
       return dayStack.results
-    }
+    },
   },
 }
 </script>

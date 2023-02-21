@@ -1,16 +1,13 @@
-import Vue from 'vue'
 import _ from 'lodash'
+import moment from '@baserow/modules/core/moment'
 import { clone } from '@baserow/modules/core/utils/object'
 import ViewService from '@baserow/modules/database/services/view'
 import CalendarService from '@baserow_premium/services/views/calendar'
 import {
   getRowSortFunction,
   matchSearchFilters,
-  getFilters,
 } from '@baserow/modules/database/utils/view'
 import RowService from '@baserow/modules/database/services/row'
-import FieldService from '@baserow/modules/database/services/field'
-import { prepareRowForRequest } from '@baserow/modules/database/utils/row'
 
 export function populateRow(row) {
   row._ = {}
@@ -28,10 +25,23 @@ export function populateDateStack(stack) {
 }
 
 export const state = () => ({
+  // The calendar view id that is being displayed
   lastCalendarId: null,
+  // The chosen date field that the 
+  // items will be organized by in the view
   dateFieldId: null,
   fieldOptions: {},
+  // dateStack organizes rows by dates (2023-02-21)
+  // based on the date field with dateFieldId
   dateStacks: {},
+  // How many items per date are fetched
+  bufferRequestSize: 10,
+  // Determines currently selected time period
+  // based on a specific date. For example, if selectedDate
+  // is today, the calendar view will be showing the 
+  // current month surrounding it.
+  // It is an instance of moment lib
+  selectedDate: null,
 })
 
 export const mutations = {
@@ -45,8 +55,17 @@ export const mutations = {
   SET_DATE_FIELD_ID(state, dateFieldId) {
     state.dateFieldId = dateFieldId
   },
+  SET_SELECTED_DATE(state, selectedDate) {
+    state.selectedDate = selectedDate
+  },
   REPLACE_ALL_DATE_STACKS(state, stacks) {
     state.dateStacks = stacks
+  },
+  ADD_ROWS_TO_STACK(state, { date, count, rows }) {
+    if (count) {
+      state.dateStacks[date].count = count
+    }
+    state.dateStacks[date].results.push(...rows)
   },
   REPLACE_ALL_FIELD_OPTIONS(state, fieldOptions) {
     state.fieldOptions = fieldOptions
@@ -103,12 +122,16 @@ export const actions = {
     { dispatch, commit, getters, rootGetters },
     { calendarId, dateFieldId, includeFieldOptions = true }
   ) {
+    const selectedDate = moment()
+    commit('SET_SELECTED_DATE', selectedDate)
+    const dateField = rootGetters['field/get'](dateFieldId)
+    console.log({dateField})
     const { data } = await CalendarService(this.$client).fetchRows({
       calendarId,
       limit: getters.getBufferRequestSize,
       offset: 0,
       includeFieldOptions,
-      // TODO: set correct datetimes
+      // TODO: set correct datetimes based on dateFieldId and local time
       fromTimestamp: '2023-02-01 00:00',
       toTimestamp: '2023-03-01 00:00',
     })
@@ -123,38 +146,53 @@ export const actions = {
     }
   },
   /**
+   * Fetches a set of rows based on from and to timestamps
+   * and adds that data to the store.
+   */
+  // async fetchForDateTimeRange(
+  //   { dispatch, commit, getters, rootGetters },
+  //   { calendarId }
+  // ) {
+  //   const { data } = await CalendarService(this.$client).fetchRows({
+  //     calendarId,
+  //     limit: getters.getBufferRequestSize,
+  //     offset: 0,
+  //     includeFieldOptions: false,
+  //     // TODO: set correct datetimes
+  //     fromTimestamp: '2023-02-01 00:00',
+  //     toTimestamp: '2023-03-01 00:00',
+  //   })
+  //   Object.keys(data.rows).forEach((key) => {
+  //     populateDateStack(data.rows[key])
+  //   })
+  //   commit('REPLACE_ALL_DATE_STACKS', data.rows)
+  // },
+  /**
    * This action is called when the users scrolls to the end of the stack. Because
    * we don't fetch all the rows, the next set will be fetched when the user reaches
    * the end. TODO:
    */
-  async fetchMore(
-    { dispatch, commit, getters, rootGetters },
-    { selectOptionId }
-  ) {
-    const stack = getters.getStack(selectOptionId)
-    const { data } = await KanbanService(this.$client).fetchRows({
-      kanbanId: getters.getLastCalendarId,
-      limit: getters.getBufferRequestSize,
-      offset: 0,
-      includeFieldOptions: false,
-      selectOptions: [
-        {
-          id: selectOptionId,
-          limit: getters.getBufferRequestSize,
-          offset: stack.results.length,
-        },
-      ],
-      publicUrl: rootGetters['page/view/public/getIsPublic'],
-      publicAuthToken: rootGetters['page/view/public/getAuthToken'],
-      filters: getFilters(rootGetters, getters.getLastCalendarId),
-    })
-    const count = data.rows[selectOptionId].count
-    const rows = data.rows[selectOptionId].results
-    rows.forEach((row) => {
-      populateRow(row)
-    })
-    commit('ADD_ROWS_TO_STACK', { selectOptionId, count, rows })
-  },
+  // async fetchMore(
+  //   { dispatch, commit, getters, rootGetters },
+  //   { date }
+  // ) {
+  //   const stack = getters.getDateStack(date)
+  //   const { data } = await CalendarService(this.$client).fetchRows({
+  //     calendarId: getters.getLastCalendarId,
+  //     limit: getters.getBufferRequestSize,
+  //     offset: 0,
+  //     includeFieldOptions: false,
+  //     // TODO: set correct datetimes
+  //     fromTimestamp: '2023-02-01 00:00',
+  //     toTimestamp: '2023-03-01 00:00',
+  //   })
+  //   const count = data.rows[date].count
+  //   const rows = data.rows[date].results
+  //   rows.forEach((row) => {
+  //     populateRow(row)
+  //   })
+  //   commit('ADD_ROWS_TO_STACK', { date, count, rows })
+  // },
   /**
    * Updates the field options of a given field in the store. So no API request to
    * the backend is made.
@@ -167,11 +205,11 @@ export const actions = {
   },
   /**
    * Replaces all field options with new values and also makes an API request to the
-   * backend with the changed values. If the request fails the action is reverted. TODO:
+   * backend with the changed values. If the request fails the action is reverted.
    */
   async updateAllFieldOptions(
     { dispatch, getters, rootGetters },
-    { kanban, newFieldOptions, oldFieldOptions, readOnly = false }
+    { newFieldOptions, oldFieldOptions, readOnly = false }
   ) {
     dispatch('forceUpdateAllFieldOptions', newFieldOptions)
 
@@ -501,6 +539,12 @@ export const getters = {
   },
   getDateStack: (state) => (date) => {
     return state.dateStacks[date] ? state.dateStacks[date] : {'results': []}
+  },
+  getBufferRequestSize(state) {
+    return state.bufferRequestSize
+  },
+  getSelectedDate(state) {
+    return state.selectedDate
   }
 }
 

@@ -253,7 +253,6 @@ class KanbanViewType(ViewType):
         return queryset.prefetch_related("kanbanviewfieldoptions_set")
 
 
-
 class CalendarViewType(ViewType):
     type = "calendar"
     model_class = CalendarView
@@ -387,7 +386,7 @@ class CalendarViewType(ViewType):
 
     def view_created(self, view: View):
         """
-        When a calendar view is created, we want to set the first three fields as visible.
+        When a calendar view is created, we want to set the first field as visible.
         """
 
         field_options = view.get_field_options(create_if_missing=True).order_by(

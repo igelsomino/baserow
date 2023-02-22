@@ -3,22 +3,30 @@
     <h2 class="box__title">
       {{ $t('createPageModal.header') }}
     </h2>
-    <CreatePageForm
-      :loading="loading"
-      :builder="builder"
-      @submit="addPage"
-    ></CreatePageForm>
+    <PageForm :creation="true" :builder="builder" @submit="addPage">
+      <FormElement>
+        <div class="actions actions--right">
+          <button
+            :class="{ 'button--loading': loading }"
+            class="button button--large"
+            type="submit"
+          >
+            {{ $t('createPageModal.submit') }}
+          </button>
+        </div>
+      </FormElement>
+    </PageForm>
   </Modal>
 </template>
 
 <script>
 import modal from '@baserow/modules/core/mixins/modal'
 import { notifyIf } from '@baserow/modules/core/utils/error'
-import CreatePageForm from '@baserow/modules/builder/components/page/CreatePageForm'
+import PageForm from '@baserow/modules/builder/components/page/PageForm'
 
 export default {
   name: 'CreatePageModal',
-  components: { CreatePageForm },
+  components: { PageForm },
   mixins: [modal],
   props: {
     builder: {

@@ -3,7 +3,7 @@
     <FormElement :error="fieldHasErrors('name')" class="control">
       <label class="control__label">
         <i class="fas fa-font"></i>
-        {{ $t('createPageForm.nameLabel') }}
+        {{ $t('pageForm.nameLabel') }}
       </label>
       <input
         ref="name"
@@ -24,20 +24,10 @@
         v-if="$v.values.name.$dirty && !$v.values.name.isUnique"
         class="error"
       >
-        {{ $t('createPageForm.errorNameNotUnique') }}
+        {{ $t('pageForm.errorNameNotUnique') }}
       </div>
     </FormElement>
-    <FormElement>
-      <div class="actions actions--right">
-        <button
-          :class="{ 'button--loading': loading }"
-          class="button button--large"
-          type="submit"
-        >
-          {{ $t('createPageForm.submit') }}
-        </button>
-      </div>
-    </FormElement>
+    <slot></slot>
   </form>
 </template>
 
@@ -47,16 +37,16 @@ import { required } from 'vuelidate/lib/validators'
 import { getNextAvailableNameInSequence } from '@baserow/modules/core/utils/string'
 
 export default {
-  name: 'CreatePageForm',
+  name: 'PageForm',
   mixins: [form],
   props: {
     builder: {
       type: Object,
       required: true,
     },
-    loading: {
+    creation: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   data() {
@@ -72,15 +62,19 @@ export default {
       return this.builder.pages.map((page) => page.name)
     },
     defaultName() {
-      const baseName = this.$t('createPageForm.defaultName')
+      const baseName = this.$t('pageForm.defaultName')
       return getNextAvailableNameInSequence(baseName, this.pageNames)
     },
   },
   created() {
-    this.values.name = this.defaultName
+    if (this.creation) {
+      this.values.name = this.defaultName
+    }
   },
   mounted() {
-    this.$refs.name.focus()
+    if (this.creation) {
+      this.$refs.name.focus()
+    }
   },
   methods: {
     submit() {

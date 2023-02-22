@@ -3,7 +3,7 @@ import { generateHash } from '@baserow/modules/core/utils/hashing'
 export const registerRealtimeEvents = (realtime) => {
   realtime.registerEvent('page_created', ({ store }, data) => {
     const builder = store.getters['application/get'](data.page.builder_id)
-    store.dispatch('page/forceAdd', { builder, page: data.page })
+    store.dispatch('page/forceCreate', { builder, page: data.page })
   })
 
   realtime.registerEvent('page_updated', ({ store }, data) => {

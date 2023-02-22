@@ -35,7 +35,7 @@ export default {
     async addPage({ name }) {
       this.loading = true
       try {
-        const page = await this.$store.dispatch('page/add', {
+        const page = await this.$store.dispatch('page/create', {
           builder: this.builder,
           name,
         })

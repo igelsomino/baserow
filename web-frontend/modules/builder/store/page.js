@@ -46,7 +46,7 @@ const actions = {
   forceUpdate({ commit }, { page, values }) {
     commit('UPDATE_ITEM', { page, values })
   },
-  forceAdd({ commit }, { builder, page }) {
+  forceCreate({ commit }, { builder, page }) {
     commit('ADD_ITEM', { builder, page })
   },
   async selectById({ commit, dispatch }, { builderId, pageId }) {
@@ -83,7 +83,7 @@ const actions = {
 
     commit('DELETE_ITEM', { builder, id: page.id })
   },
-  async add({ commit, dispatch }, { builder, name }) {
+  async create({ commit, dispatch }, { builder, name }) {
     const { data: page } = await PageService(this.$client).create(
       builder.id,
       name

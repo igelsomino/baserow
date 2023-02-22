@@ -5,7 +5,7 @@ import pytest
 from baserow.contrib.builder.page.exceptions import PageNotInBuilder
 from baserow.contrib.builder.page.models import Page
 from baserow.contrib.builder.page.service import PageService
-from baserow.core.exceptions import PermissionDenied, UserNotInGroup
+from baserow.core.exceptions import UserNotInGroup
 
 
 @pytest.mark.django_db
@@ -175,9 +175,9 @@ def test_duplicate_page(data_fixture):
 
 
 @pytest.mark.django_db
-def test_duplicate_page_permission_denied(data_fixture):
+def test_duplicate_page_user_not_in_group(data_fixture):
     user = data_fixture.create_user()
     page = data_fixture.create_builder_page()
 
-    with pytest.raises(PermissionDenied):
+    with pytest.raises(UserNotInGroup):
         PageService().duplicate_page(user, page)

@@ -3,9 +3,9 @@ import typing
 from django.db import models
 
 from baserow.core.jobs.mixins import (
+    JobWithUndoRedoIds,
     JobWithUserIpAddress,
     JobWithWebsocketId,
-    JobWithUndoRedoIds,
 )
 from baserow.core.jobs.models import Job
 from baserow.core.mixins import (

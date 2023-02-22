@@ -3,6 +3,8 @@ from typing import Any, Dict
 from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 
+from rest_framework import serializers
+
 from baserow.contrib.builder.api.pages.serializers import PageSerializer
 from baserow.contrib.builder.page.handler import PageHandler
 from baserow.contrib.builder.page.models import DuplicatePageJob
@@ -10,7 +12,6 @@ from baserow.contrib.builder.page.operations import DuplicatePageOperationType
 from baserow.contrib.builder.page.service import PageService
 from baserow.core.handler import CoreHandler
 from baserow.core.jobs.registries import JobType
-from rest_framework import serializers
 
 
 class DuplicatePageJobType(JobType):

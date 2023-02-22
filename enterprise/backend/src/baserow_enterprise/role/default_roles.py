@@ -10,9 +10,9 @@ from baserow.contrib.builder.operations import (
 from baserow.contrib.builder.page.operations import (
     CreatePageOperationType,
     DeletePageOperationType,
+    DuplicatePageOperationType,
     ReadPageOperationType,
     UpdatePageOperationType,
-    DuplicatePageOperationType,
 )
 from baserow.contrib.database.airtable.operations import (
     RunAirtableImportJobOperationType,

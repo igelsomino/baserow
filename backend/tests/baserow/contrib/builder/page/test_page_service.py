@@ -5,7 +5,7 @@ import pytest
 from baserow.contrib.builder.page.exceptions import PageNotInBuilder
 from baserow.contrib.builder.page.models import Page
 from baserow.contrib.builder.page.service import PageService
-from baserow.core.exceptions import UserNotInGroup, PermissionDenied
+from baserow.core.exceptions import PermissionDenied, UserNotInGroup
 
 
 @pytest.mark.django_db

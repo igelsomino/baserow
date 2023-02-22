@@ -32,9 +32,9 @@ class BuilderConfig(AppConfig):
         from baserow.contrib.builder.page.operations import (
             CreatePageOperationType,
             DeletePageOperationType,
+            DuplicatePageOperationType,
             ReadPageOperationType,
             UpdatePageOperationType,
-            DuplicatePageOperationType,
         )
 
         operation_type_registry.register(CreatePageOperationType())
@@ -43,9 +43,8 @@ class BuilderConfig(AppConfig):
         operation_type_registry.register(ReadPageOperationType())
         operation_type_registry.register(DuplicatePageOperationType())
 
-        from baserow.core.jobs.registries import job_type_registry
-
         from baserow.contrib.builder.page.job_types import DuplicatePageJobType
+        from baserow.core.jobs.registries import job_type_registry
 
         job_type_registry.register(DuplicatePageJobType())
 

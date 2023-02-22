@@ -1,10 +1,10 @@
 from django.urls import re_path
 
 from baserow.contrib.builder.api.pages.views import (
+    AsyncDuplicatePageView,
     OrderPagesView,
     PagesView,
     PageView,
-    AsyncDuplicatePageView,
 )
 
 app_name = "baserow.contrib.builder.api.pages"

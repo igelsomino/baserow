@@ -9,9 +9,9 @@ from baserow.contrib.builder.page.models import Page
 from baserow.contrib.builder.page.operations import (
     CreatePageOperationType,
     DeletePageOperationType,
+    DuplicatePageOperationType,
     ReadPageOperationType,
     UpdatePageOperationType,
-    DuplicatePageOperationType,
 )
 from baserow.contrib.builder.page.signals import (
     page_created,
@@ -20,7 +20,7 @@ from baserow.contrib.builder.page.signals import (
     pages_reordered,
 )
 from baserow.core.handler import CoreHandler
-from baserow.core.utils import extract_allowed, ChildProgressBuilder
+from baserow.core.utils import ChildProgressBuilder, extract_allowed
 
 
 class PageService:

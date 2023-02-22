@@ -115,7 +115,7 @@ const actions = {
     commit('ORDER_PAGES', { builder, order, isHashed })
 
     try {
-      await PageService(this.$client).order(order)
+      await PageService(this.$client).order(builder.id, order)
     } catch (error) {
       commit('ORDER_PAGES', { builder, order: oldOrder, isHashed })
       throw error

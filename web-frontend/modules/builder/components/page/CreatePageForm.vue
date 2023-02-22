@@ -28,7 +28,7 @@
       </div>
     </FormElement>
     <FormElement>
-      <div class="create-page-form__controls">
+      <div class="actions actions--right">
         <button class="button button--large" type="submit">
           {{ $t('createPageForm.submit') }}
         </button>

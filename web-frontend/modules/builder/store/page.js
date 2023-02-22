@@ -92,6 +92,8 @@ const actions = {
     commit('ADD_ITEM', { builder, page })
 
     dispatch('selectById', { builderId: builder.id, pageId: page.id })
+
+    return page
   },
   async update({ dispatch }, { builder, page, values }) {
     const { data } = await PageService(this.$client).update(page.id, values)

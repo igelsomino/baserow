@@ -29,7 +29,11 @@
     </FormElement>
     <FormElement>
       <div class="actions actions--right">
-        <button class="button button--large" type="submit">
+        <button
+          :class="{ 'button--loading': loading }"
+          class="button button--large"
+          type="submit"
+        >
           {{ $t('createPageForm.submit') }}
         </button>
       </div>
@@ -49,6 +53,10 @@ export default {
     builder: {
       type: Object,
       required: true,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

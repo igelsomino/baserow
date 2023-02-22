@@ -3,7 +3,11 @@
     <h2 class="box__title">
       {{ $t('createPageModal.header') }}
     </h2>
-    <CreatePageForm :builder="builder" @submit="addPage"></CreatePageForm>
+    <CreatePageForm
+      :loading="loading"
+      :builder="builder"
+      @submit="addPage"
+    ></CreatePageForm>
   </Modal>
 </template>
 
@@ -22,17 +26,28 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      loading: false,
+    }
+  },
   methods: {
-    addPage({ name }) {
+    async addPage({ name }) {
+      this.loading = true
       try {
-        this.$store.dispatch('page/add', {
+        const page = await this.$store.dispatch('page/add', {
           builder: this.builder,
           name,
+        })
+        await this.$router.push({
+          name: 'builder-page',
+          params: { builderId: this.builder.id, pageId: page.id },
         })
         this.hide()
       } catch (error) {
         notifyIf(error, 'application')
       }
+      this.loading = false
     },
   },
 }

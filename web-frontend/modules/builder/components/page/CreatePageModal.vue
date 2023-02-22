@@ -1,6 +1,6 @@
 <template>
   <Modal>
-    <h2 class="create-page-modal__header">
+    <h2 class="box__title">
       {{ $t('createPageModal.header') }}
     </h2>
     <CreatePageForm :builder="builder" @submit="addPage"></CreatePageForm>

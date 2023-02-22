@@ -84,7 +84,7 @@ class BaseEmailMessage(EmailMultiAlternatives):
         transaction.on_commit(lambda: s.send(fail_silently))
 
 
-class GroupInvitationEmail(BaseEmailMessage):
+class WorkspaceInvitationEmail(BaseEmailMessage):
     template_name = "baserow/core/group_invitation.html"
 
     def __init__(self, invitation, public_accept_url, *args, **kwargs):
@@ -93,9 +93,11 @@ class GroupInvitationEmail(BaseEmailMessage):
         super().__init__(*args, **kwargs)
 
     def get_subject(self):
+        # GroupDeprecation TODO: rename `group_name` in `group_invitation.html`
+        #  and the translation files.
         return _("%(by)s invited you to %(group_name)s - Baserow",) % {
             "by": self.invitation.invited_by.first_name,
-            "group_name": self.invitation.group.name,
+            "group_name": self.invitation.workspace.name,
         }
 
     def get_context(self):

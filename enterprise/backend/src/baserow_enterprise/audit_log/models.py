@@ -34,8 +34,8 @@ class AuditLogEntry(CreatedAndUpdatedOnMixin, models.Model):
     user_id = models.PositiveIntegerField(null=True)
     user_email = models.CharField(max_length=150, null=True, blank=True)
 
-    group_id = models.PositiveIntegerField(null=True)
-    group_name = models.CharField(max_length=160, null=True, blank=True)
+    workspace_id = models.PositiveIntegerField(null=True)
+    workspace_name = models.CharField(max_length=160, null=True, blank=True)
 
     action_type = models.TextField()
     action_timestamp = models.DateTimeField()
@@ -92,7 +92,7 @@ class AuditLogEntry(CreatedAndUpdatedOnMixin, models.Model):
         ordering = ["-action_timestamp"]
         indexes = [
             models.Index(
-                fields=["-action_timestamp", "user_id", "group_id", "action_type"]
+                fields=["-action_timestamp", "user_id", "workspace_id", "action_type"]
             )
         ]
 
@@ -122,9 +122,9 @@ class AuditLogExportJob(Job):
         null=True,
         help_text="Optional: The user to filter the audit log by.",
     )
-    filter_group_id = models.PositiveIntegerField(
+    filter_workspace_id = models.PositiveIntegerField(
         null=True,
-        help_text="Optional: The group to filter the audit log by.",
+        help_text="Optional: The workspace to filter the audit log by.",
     )
     filter_action_type = models.CharField(
         max_length=32,

@@ -60,7 +60,7 @@ class ActionHandler:
                 user,
                 action.params,
                 action.scope,
-                action.group,
+                action.workspace,
                 action.updated_on,
                 action_command_type,
             )

@@ -5,7 +5,7 @@ from rest_framework import serializers
 from baserow.core.registry import Instance, Registry
 
 if TYPE_CHECKING:
-    from baserow.core.models import Group
+    from baserow.core.models import Workspace
 
 
 class UserDataType(Instance):
@@ -93,14 +93,16 @@ class MemberDataType(Instance):
     def get_request_serializer_field(self) -> serializers.Field:
         """
         Should be given a `serializers.Field` object, which the `MemberDataType`
-        will annotate on `GroupUserSerializer`.
+        will annotate on `WorkspaceUserSerializer`.
         """
 
         raise NotImplementedError(
             "The get_request_serializer_field must be implemented and should return a Field."
         )
 
-    def annotate_serialized_data(self, group: "Group", serialized_data: dict) -> dict:
+    def annotate_serialized_data(
+        self, group: "Workspace", serialized_data: dict
+    ) -> dict:
         """
         Should be given a `Serializer.data` object, which the `MemberDataType`
         implementation will annotate with its own data. Should return the same

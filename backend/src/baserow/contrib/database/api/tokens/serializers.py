@@ -180,13 +180,15 @@ class TokenPermissionsFieldFix(OpenApiSerializerFieldExtension):
 
 class TokenSerializer(serializers.ModelSerializer):
     permissions = TokenPermissionsField()
+    group = serializers.IntegerField(source="group_id")  # GroupDeprecation
 
     class Meta:
         model = Token
         fields = (
             "id",
             "name",
-            "group",
+            "group",  # GroupDeprecation
+            "workspace",
             "key",
             "permissions",
         )
@@ -196,11 +198,14 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class TokenCreateSerializer(serializers.ModelSerializer):
+    group = serializers.IntegerField(source="group_id")  # GroupDeprecation
+
     class Meta:
         model = Token
         fields = (
             "name",
-            "group",
+            "group",  # GroupDeprecation
+            "workspace",
         )
 
 

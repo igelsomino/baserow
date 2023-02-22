@@ -75,7 +75,7 @@ class TableHandler:
             base_queryset = Table.objects
 
         try:
-            table = base_queryset.select_related("database__group").get(id=table_id)
+            table = base_queryset.select_related("database__workspace").get(id=table_id)
         except Table.DoesNotExist:
             raise TableDoesNotExist(f"The table with id {table_id} does not exist.")
 
@@ -156,7 +156,7 @@ class TableHandler:
         CoreHandler().check_permissions(
             user,
             CreateTableDatabaseTableOperationType.type,
-            group=database.group,
+            workspace=database.workspace,
             context=database,
         )
 
@@ -379,7 +379,7 @@ class TableHandler:
         CoreHandler().check_permissions(
             user,
             UpdateDatabaseTableOperationType.type,
-            group=table.database.group,
+            workspace=table.database.workspace,
             context=table,
         )
 
@@ -405,7 +405,7 @@ class TableHandler:
         CoreHandler().check_permissions(
             user,
             OrderTablesDatabaseTableOperationType.type,
-            group=database.group,
+            workspace=database.workspace,
             context=database,
         )
 
@@ -415,7 +415,7 @@ class TableHandler:
             user,
             OrderTablesDatabaseTableOperationType.type,
             all_tables,
-            group=database.group,
+            workspace=database.workspace,
             context=database,
         )
 
@@ -512,7 +512,7 @@ class TableHandler:
         CoreHandler().check_permissions(
             user,
             DuplicateDatabaseTableOperationType.type,
-            group=database.group,
+            workspace=database.workspace,
             context=table,
         )
 
@@ -553,7 +553,7 @@ class TableHandler:
     def delete_table_by_id(self, user: AbstractUser, table_id: int):
         """
         Moves to the trash an existing an existing table instance if the user
-        has access to the related group.
+        has access to the related workspace.
         The table deleted signals are also fired.
 
         :param user: The user on whose behalf the table is deleted.
@@ -567,7 +567,7 @@ class TableHandler:
     def delete_table(self, user: AbstractUser, table: Table):
         """
         Moves to the trash an existing table instance if the user has access
-        to the related group.
+        to the related workspace.
         The table deleted signals are also fired.
 
         :param user: The user on whose behalf the table is deleted.
@@ -581,11 +581,11 @@ class TableHandler:
         CoreHandler().check_permissions(
             user,
             DeleteDatabaseTableOperationType.type,
-            group=table.database.group,
+            workspace=table.database.workspace,
             context=table,
         )
 
-        TrashHandler.trash(user, table.database.group, table.database, table)
+        TrashHandler.trash(user, table.database.workspace, table.database, table)
 
         table_deleted.send(self, table_id=table.id, table=table, user=user)
 
@@ -602,7 +602,7 @@ class TableHandler:
         time = timezone.now()
         i = 0
         for table in Table.objects.filter(
-            database__group__template__isnull=True
+            database__workspace__template__isnull=True
         ).iterator(chunk_size=chunk_size):
             try:
                 count = table.get_model(field_ids=[]).objects.count()
@@ -631,16 +631,17 @@ class TableHandler:
         return i
 
     @classmethod
-    def get_total_row_count_of_group(cls, group_id: int) -> int:
+    def get_total_row_count_of_workspace(cls, workspace_id: int) -> int:
         """
-        Returns the total row count of all tables in the given group.
+        Returns the total row count of all tables in the given workspace.
 
-        :param group_id: The group of which the total row count needs to be calculated.
-        :return: The total row count of all tables in the given group.
+        :param workspace_id: The workspace which the total row count needs to be
+            calculated.
+        :return: The total row count of all tables in the given workspace.
         """
 
         return (
-            Table.objects.filter(database__group_id=group_id).aggregate(
+            Table.objects.filter(database__workspace_id=workspace_id).aggregate(
                 Sum("row_count")
             )["row_count__sum"]
             or 0

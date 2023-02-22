@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from baserow.api.user.registries import MemberDataType
-from baserow.core.models import Group
+from baserow.core.models import Workspace
 from baserow.core.registries import permission_manager_type_registry
 from baserow_enterprise.api.role.serializers import RoleField
 from baserow_enterprise.role.handler import RoleAssignmentHandler
@@ -21,22 +21,22 @@ class EnterpriseRolesDataType(MemberDataType):
             required=False,
             allow_null=True,
             help_text=(
-                "Enterprise only: the uid of the role that is assigned to this group user in this group."
+                "Enterprise only: the uid of the role that is assigned to this workspace user in this workspace."
             ),
         )
 
     def annotate_serialized_data(
-        self, group: Group, serialized_data: List[OrderedDict]
+        self, workspace: Workspace, serialized_data: List[OrderedDict]
     ) -> List[OrderedDict]:
         """
         Responsible for annotating team data on `GroupUser` responses.
-        Primarily used to inform API consumers of which teams group members
+        Primarily used to inform API consumers of which teams workspace members
         belong to.
         """
 
         if (
             "role" not in settings.PERMISSION_MANAGERS
-            or not permission_manager_type_registry.get("role").is_enabled(group)
+            or not permission_manager_type_registry.get("role").is_enabled(workspace)
         ):
             return serialized_data
 

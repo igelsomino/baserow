@@ -25,9 +25,31 @@ class SsoLoginRequestSerializer(serializers.Serializer):
     )
     group_invitation_token = serializers.CharField(
         required=False,
-        help_text="If provided and valid, the user accepts the group invitation and "
-        "will have access to the group after login or signing up.",
+        help_text="DEPRECATED: please use `workspace_invitation_token` as group is "
+        "being renamed to workspace.",
     )
+    workspace_invitation_token = serializers.CharField(
+        required=False,
+        help_text="If provided and valid, the user accepts the workspace invitation and"
+        " will have access to the workspace after login or signing up.",
+    )
+
+    def to_representation(self, instance):
+        group_token = instance.get("group_invitation_token", None)
+        workspace_token = instance.get("workspace_invitation_token", None)
+
+        if group_token and workspace_token:
+            raise serializers.ValidationError(
+                "A group_invitation_token and "
+                "workspace_invitation_token were "
+                "provided, please provide one."
+            )
+
+        if group_token:
+            instance["workspace_invitation_token"] = group_token
+        if "group_invitation_token" in instance:
+            del instance["group_invitation_token"]
+        return instance
 
     def validate_original(self, value):
         """Only relative URLs are allowed."""

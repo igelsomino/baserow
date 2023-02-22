@@ -10,12 +10,12 @@ from django.utils import timezone
 
 from baserow.core.exceptions import (
     ApplicationDoesNotExist,
-    ApplicationNotInGroup,
-    GroupDoesNotExist,
+    ApplicationNotInWorkspace,
     TrashItemDoesNotExist,
+    WorkspaceDoesNotExist,
     is_max_lock_exceeded_exception,
 )
-from baserow.core.models import Application, Group, TrashEntry
+from baserow.core.models import Application, TrashEntry, Workspace
 from baserow.core.trash.exceptions import (
     CannotDeleteAlreadyDeletedItem,
     CannotRestoreChildBeforeParent,
@@ -25,9 +25,9 @@ from baserow.core.trash.exceptions import (
 )
 from baserow.core.trash.operations import (
     EmptyApplicationTrashOperationType,
-    EmptyGroupTrashOperationType,
+    EmptyWorkspaceTrashOperationType,
     ReadApplicationTrashOperationType,
-    ReadGroupTrashOperationType,
+    ReadWorkspaceTrashOperationType,
 )
 from baserow.core.trash.registries import TrashableItemType, trash_item_type_registry
 from baserow.core.trash.signals import permanently_deleted
@@ -40,7 +40,7 @@ class TrashHandler:
     @staticmethod
     def trash(
         requesting_user: User,
-        group: Group,
+        workspace: Workspace,
         application: Optional[Application],
         trash_item,
         parent_id=None,
@@ -48,14 +48,14 @@ class TrashHandler:
     ) -> TrashEntry:
         """
         Marks the provided trashable item as trashed meaning it will no longer be
-        visible or usable in Baserow. However, any user with access to its group can
+        visible or usable in Baserow. However, any user with access to its workspace can
         restore the item after it is trashed to make it visible and usable again. After
         a configurable timeout period or when the user explicitly empties the
         trash trashed items will be permanently deleted.
 
         :param parent_id: The id of the parent object if known
         :param requesting_user: The user who is requesting that this item be trashed.
-        :param group: The group the trashed item is in.
+        :param workspace: The workspace the trashed item is in.
         :param application: If the item is in an application the application.
         :param trash_item: The item to be trashed.
         :param existing_trash_entry: An optional TrashEntry that the handler can
@@ -84,7 +84,7 @@ class TrashHandler:
                 try:
                     trash_entry = TrashEntry.objects.create(
                         user_who_trashed=requesting_user,
-                        group=group,
+                        workspace=workspace,
                         application=application,
                         trash_item_type=trash_item_type.type,
                         trash_item_id=trash_item.id,
@@ -141,7 +141,7 @@ class TrashHandler:
                 user,
                 trashable_item_type.get_restore_operation_type(),
                 include_trash=True,
-                group=trash_entry.group,
+                workspace=trash_entry.workspace,
                 context=trashable_item_type.get_restore_operation_context(
                     trash_entry, trash_item
                 ),
@@ -162,34 +162,34 @@ class TrashHandler:
     def get_trash_structure(user: User) -> Dict[str, Any]:
         """
         Returns the structure of the trash available to the user. This consists of the
-        groups and their applications the user has access to. Each group and application
-        indicates whether it itself has been trashed.
+        workspaces and their applications the user has access to. Each workspace and
+        application indicates whether it itself has been trashed.
 
         :param user: The user to return the trash structure for.
-        :return: An ordered list of groups and their applications which could possibly
-            have trash contents.
+        :return: An ordered list of workspaces and their applications which could
+            possibly have trash contents.
         """
 
-        structure = {"groups": []}
-        groups = _get_groups_excluding_perm_deleted(user)
+        structure = {"workspaces": []}
+        workspaces = _get_workspaces_excluding_perm_deleted(user)
         from baserow.core.handler import CoreHandler
 
-        for group in groups:
-            can_view_group = CoreHandler().check_permissions(
+        for workspace in workspaces:
+            can_view_workspace = CoreHandler().check_permissions(
                 user,
-                ReadGroupTrashOperationType.type,
-                group=group,
-                context=group,
+                ReadWorkspaceTrashOperationType.type,
+                workspace=workspace,
+                context=workspace,
                 raise_permission_exceptions=False,
                 include_trash=True,
             )
-            if can_view_group:
-                applications = _get_applications_excluding_perm_deleted(group, user)
-                structure["groups"].append(
+            if can_view_workspace:
+                applications = _get_applications_excluding_perm_deleted(workspace, user)
+                structure["workspaces"].append(
                     {
-                        "id": group.id,
-                        "trashed": group.trashed,
-                        "name": group.name,
+                        "id": workspace.id,
+                        "trashed": workspace.trashed,
+                        "name": workspace.name,
                         "applications": applications,
                     }
                 )
@@ -215,15 +215,15 @@ class TrashHandler:
         )
 
     @staticmethod
-    def empty(requesting_user: User, group_id: int, application_id: Optional[int]):
+    def empty(requesting_user: User, workspace_id: int, application_id: Optional[int]):
         """
-        Marks all items in the selected group (or application in the group if
+        Marks all items in the selected workspace (or application in the workspace if
         application_id is provided) as should be permanently deleted.
         """
 
         with transaction.atomic():
             trash_contents = TrashHandler.get_trash_contents_for_emptying(
-                requesting_user, group_id, application_id
+                requesting_user, workspace_id, application_id
             )
             trash_contents.update(should_be_permanently_deleted=True)
 
@@ -275,11 +275,11 @@ class TrashHandler:
         deleted_count = 0
         while True:
             with transaction.atomic():
-                # Perm deleting a group or application can cause cascading deletion of
-                # other trash entries hence we only look up one a time. If we instead
+                # Perm deleting a workspace or application can cause cascading deletion
+                # of other trash entries hence we only look up one a time. If we instead
                 # looped over a single queryset lookup of all TrashEntries then we could
                 # end up trying to delete TrashEntries which have already been deleted
-                # by a previous cascading delete of a group or application.
+                # by a previous cascading delete of a workspace or application.
                 trash_entry = TrashEntry.objects.filter(
                     should_be_permanently_deleted=True
                 ).first()
@@ -344,29 +344,28 @@ class TrashHandler:
 
     @staticmethod
     def get_trash_contents_for_emptying(
-        user: User, group_id: int, application_id: Optional[int]
+        user: User, workspace_id: int, application_id: Optional[int]
     ) -> QuerySet:
         """
-        Looks up the trash contents for a particular group optionally filtered by
+        Looks up the trash contents for a particular workspace optionally filtered by
         the provided application id.
         :param user: The user who is requesting to see the trash contents.
-        :param group_id: The group to lookup trash contents inside of.
+        :param workspace_id: The workspace to lookup trash contents inside of.
         :param application_id: The optional application to filter down the trash
-            contents to only this group.
-        :raises GroupDoesNotExist: If the group_id is for an non
-            existent group.
-        :raises ApplicationDoesNotExist: If the application_id is for an non
-            existent application.
+            contents to only this workspace.
+        :raises GroupDoesNotExist: If the workspace_id is for a nonexistent workspace.
+        :raises ApplicationDoesNotExist: If the application_id is for a nonexistent
+            application.
         :raises ApplicationNotInGroup: If the application_id is for an application
-            not in the requested group.
-        :raises UserNotInGroup: If the user does not belong to the group.
-        :return: a queryset of the trash items in the group optionally filtered by
+            not in the requested workspace.
+        :raises UserNotInGroup: If the user does not belong to the workspace.
+        :return: a queryset of the trash items in the workspace optionally filtered by
             the provided application.
         """
 
-        group = _get_group(group_id)
+        workspace = _get_workspace(workspace_id)
 
-        application = _get_application(application_id, group)
+        application = _get_application(application_id, workspace)
 
         from baserow.core.handler import CoreHandler
 
@@ -374,21 +373,21 @@ class TrashHandler:
             CoreHandler().check_permissions(
                 user,
                 EmptyApplicationTrashOperationType.type,
-                group=group,
+                workspace=workspace,
                 context=application,
                 include_trash=True,
             )
         else:
             CoreHandler().check_permissions(
                 user,
-                EmptyGroupTrashOperationType.type,
-                group=group,
-                context=group,
+                EmptyWorkspaceTrashOperationType.type,
+                workspace=workspace,
+                context=workspace,
                 include_trash=True,
             )
 
         trash_contents = TrashEntry.objects.filter(
-            group=group, should_be_permanently_deleted=False
+            workspace=workspace, should_be_permanently_deleted=False
         )
         if application:
             trash_contents = trash_contents.filter(application=application)
@@ -396,29 +395,28 @@ class TrashHandler:
 
     @staticmethod
     def get_trash_contents(
-        user: User, group_id: int, application_id: Optional[int]
+        user: User, workspace_id: int, application_id: Optional[int]
     ) -> QuerySet:
         """
-        Looks up the trash contents for a particular group optionally filtered by
+        Looks up the trash contents for a particular workspace optionally filtered by
         the provided application id.
         :param user: The user who is requesting to see the trash contents.
-        :param group_id: The group to lookup trash contents inside of.
+        :param workspace_id: The workspace to lookup trash contents inside of.
         :param application_id: The optional application to filter down the trash
-            contents to only this group.
-        :raises GroupDoesNotExist: If the group_id is for an non
-            existent group.
-        :raises ApplicationDoesNotExist: If the application_id is for an non
-            existent application.
+            contents to only this workspace.
+        :raises GroupDoesNotExist: If the workspace_id is for a nonexistent workspace.
+        :raises ApplicationDoesNotExist: If the application_id is for a nonexistent
+            application.
         :raises ApplicationNotInGroup: If the application_id is for an application
-            not in the requested group.
-        :raises UserNotInGroup: If the user does not belong to the group.
-        :return: a queryset of the trash items in the group optionally filtered by
+            not in the requested workspace.
+        :raises UserNotInGroup: If the user does not belong to the workspace.
+        :return: a queryset of the trash items in the workspace optionally filtered by
             the provided application.
         """
 
-        group = _get_group(group_id)
+        workspace = _get_workspace(workspace_id)
 
-        application = _get_application(application_id, group)
+        application = _get_application(application_id, workspace)
 
         from baserow.core.handler import CoreHandler
 
@@ -426,21 +424,21 @@ class TrashHandler:
             CoreHandler().check_permissions(
                 user,
                 ReadApplicationTrashOperationType.type,
-                group=group,
+                workspace=workspace,
                 context=application,
                 include_trash=True,
             )
         else:
             CoreHandler().check_permissions(
                 user,
-                ReadGroupTrashOperationType.type,
-                group=group,
-                context=group,
+                ReadWorkspaceTrashOperationType.type,
+                workspace=workspace,
+                context=workspace,
                 include_trash=True,
             )
 
         trash_contents = TrashEntry.objects.filter(
-            group=group, should_be_permanently_deleted=False
+            workspace=workspace, should_be_permanently_deleted=False
         )
         if application:
             trash_contents = trash_contents.filter(application=application)
@@ -484,23 +482,25 @@ class TrashHandler:
                 trash_item_type = trash_item_type_registry.get_by_model(item)
 
 
-def _get_group(group_id):
+def _get_workspace(workspace_id):
     try:
-        group = Group.objects_and_trash.get(id=group_id)
-    except Group.DoesNotExist:
-        raise GroupDoesNotExist
-    # Check that the group is not marked for perm deletion, if so we don't want
-    # to display it's contents anymore as it should be permanently deleted soon.
+        workspace = Workspace.objects_and_trash.get(id=workspace_id)
+    except Workspace.DoesNotExist:
+        raise WorkspaceDoesNotExist
+    # Check that the workspace is not marked for perm deletion, if so we don't want
+    # to display its contents anymore as it should be permanently deleted soon.
     try:
-        trash_entry = _get_trash_entry("group", None, group.id)
+        trash_entry = _get_trash_entry("workspace", None, workspace.id)
         if trash_entry.should_be_permanently_deleted:
-            raise GroupDoesNotExist
+            raise WorkspaceDoesNotExist
     except TrashItemDoesNotExist:
         pass
-    return group
+    return workspace
 
 
-def _get_application(application_id: int, group: Group) -> Optional[Application]:
+def _get_application(
+    application_id: int, workspace: Workspace
+) -> Optional[Application]:
     if application_id is not None:
         try:
             application = Application.objects_and_trash.get(id=application_id)
@@ -514,8 +514,8 @@ def _get_application(application_id: int, group: Group) -> Optional[Application]
         except TrashItemDoesNotExist:
             pass
 
-        if application.group != group:
-            raise ApplicationNotInGroup()
+        if application.workspace != workspace:
+            raise ApplicationNotInWorkspace()
     else:
         application = None
     return application
@@ -546,31 +546,33 @@ def _check_parent_id_valid(
         raise ParentIdMustNotBeProvidedException()
 
 
-def _get_groups_excluding_perm_deleted(user):
-    groups = Group.objects_and_trash.filter(groupuser__user=user)
-    perm_deleted_groups = TrashEntry.objects.filter(
-        trash_item_type="group",
+def _get_workspaces_excluding_perm_deleted(user):
+    workspaces = Workspace.objects_and_trash.filter(workspaceuser__user=user)
+    perm_deleted_workspaces = TrashEntry.objects.filter(
+        trash_item_type="workspace",
         should_be_permanently_deleted=True,
-        trash_item_id__in=groups.values_list("id", flat=True),
+        trash_item_id__in=workspaces.values_list("id", flat=True),
     ).values_list("trash_item_id", flat=True)
-    groups = groups.exclude(id__in=perm_deleted_groups).order_by("groupuser__order")
-    return groups
+    workspaces = workspaces.exclude(id__in=perm_deleted_workspaces).order_by(
+        "workspaceuser__order"
+    )
+    return workspaces
 
 
 def _get_applications_excluding_perm_deleted(
-    group: Group, user: AbstractUser
+    workspace: Workspace, user: AbstractUser
 ) -> List[Application]:
     from baserow.core.handler import CoreHandler
 
     perm_deleted_apps = TrashEntry.objects.filter(
         trash_item_type="application",
         should_be_permanently_deleted=True,
-        trash_item_id__in=group.application_set_including_trash().values_list(
+        trash_item_id__in=workspace.application_set_including_trash().values_list(
             "id", flat=True
         ),
     ).values_list("trash_item_id", flat=True)
     applications = (
-        group.application_set_including_trash()
+        workspace.application_set_including_trash()
         .exclude(id__in=perm_deleted_apps)
         .order_by("order", "id")
     )
@@ -579,7 +581,7 @@ def _get_applications_excluding_perm_deleted(
         can_view_application = CoreHandler().check_permissions(
             user,
             ReadApplicationTrashOperationType.type,
-            group=group,
+            workspace=workspace,
             context=application,
             raise_permission_exceptions=False,
             include_trash=True,
@@ -602,8 +604,8 @@ def _get_trash_entry(
         entry for.
     :param trash_item_type: The trashable type of the item.
     :returns The trash entry for the specified baserow item.
-    :raises UserNotInGroup: If the requesting_user is not in the trashed items
-        group.
+    :raises UserNotInGroup: If the requesting_user is not in the trashed item's
+        workspace.
     """
 
     try:

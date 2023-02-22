@@ -1,5 +1,6 @@
 import abc
-from typing import List
+import warnings
+from typing import Dict, List, Type
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -304,7 +305,37 @@ def make_trashable_mixin(parent):
     return TrashableMixin
 
 
-ParentGroupTrashableModelMixin = make_trashable_mixin("group")
+ParentWorkspaceTrashableModelMixin = make_trashable_mixin("workspace")
+
+
+def support_foreignkey_compat(compats: Dict[str, str]) -> Type[models.Model]:
+    """
+    Constructs a mixin class which easily allows us to traverse `ForeignKey`
+    when we've renamed them to something else.
+    """
+
+    class ForeignKeyCompatMixin(models.Model):
+        class Meta:
+            abstract = True
+
+    mixin = ForeignKeyCompatMixin
+    for from_fk, to_fk in compats.items():
+        # Return the `to_fk` when you access `from_fk`.
+        setattr(mixin, from_fk, property(lambda self: getattr(self, to_fk)))
+        # Return the `{to_fk}_id` FK ID when you access `{from_fk}_id`.
+        setattr(
+            mixin, f"{from_fk}_id", property(lambda self: getattr(self, f"{to_fk}_id"))
+        )
+        warnings.warn(
+            f"The `{from_fk}` field will be deprecated soon, please use `{to_fk}` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    return mixin
+
+
+GroupToWorkspaceCompatModelMixin = support_foreignkey_compat({"group": "workspace"})
 
 
 class TrashableModelMixin(models.Model):

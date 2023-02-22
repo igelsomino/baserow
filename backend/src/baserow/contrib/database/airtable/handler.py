@@ -31,7 +31,7 @@ from baserow.contrib.database.views.models import GridView
 from baserow.contrib.database.views.registries import view_type_registry
 from baserow.core.export_serialized import CoreExportSerializedStructure
 from baserow.core.handler import CoreHandler
-from baserow.core.models import Group
+from baserow.core.models import Workspace
 from baserow.core.utils import ChildProgressBuilder, remove_invalid_surrogate_characters
 
 from .exceptions import AirtableBaseNotPublic, AirtableShareIsNotABase
@@ -535,9 +535,9 @@ class AirtableHandler:
         return exported_database, user_files_zip
 
     @classmethod
-    def import_from_airtable_to_group(
+    def import_from_airtable_to_workspace(
         cls,
-        group: Group,
+        workspace: Workspace,
         share_id: str,
         timezone: BaseTzInfo = UTC,
         storage: Optional[Storage] = None,
@@ -547,9 +547,9 @@ class AirtableHandler:
         """
         Downloads all the data of the provided publicly shared Airtable base, converts
         it into Baserow export format, downloads the related files and imports that
-        converted base into the provided group.
+        converted base into the provided workspace.
 
-        :param group: The group where the copy of the Airtable must be added to.
+        :param workspace: The workspace where the copy of the Airtable must be added to.
         :param share_id: The shared Airtable ID that must be imported.
         :param timezone: The main timezone used for date conversions if needed.
         :param storage: The storage where the user files must be saved to.
@@ -608,8 +608,8 @@ class AirtableHandler:
         )
 
         # Import the converted data using the existing method to avoid duplicate code.
-        databases, _ = CoreHandler().import_applications_to_group(
-            group,
+        databases, _ = CoreHandler().import_applications_to_workspace(
+            workspace,
             [baserow_database_export],
             files_buffer,
             storage=storage,

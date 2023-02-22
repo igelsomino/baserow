@@ -156,7 +156,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "filter_group_id",
+                    "filter_workspace_id",
                     models.PositiveIntegerField(
                         help_text="Optional: The group to filter the audit log by.",
                         null=True,

@@ -16,7 +16,7 @@ from baserow.contrib.database.airtable.operations import (
 from baserow.contrib.database.airtable.utils import extract_share_id_from_url
 from baserow.contrib.database.airtable.validators import is_publicly_shared_airtable_url
 from baserow.core.action.registries import action_type_registry
-from baserow.core.exceptions import GroupDoesNotExist, UserNotInGroup
+from baserow.core.exceptions import UserNotInWorkspace, WorkspaceDoesNotExist
 from baserow.core.handler import CoreHandler
 from baserow.core.jobs.registries import JobType
 from baserow.core.signals import application_created
@@ -32,8 +32,8 @@ class AirtableImportJobType(JobType):
     max_count = 1
 
     api_exceptions_map = {
-        UserNotInGroup: ERROR_USER_NOT_IN_GROUP,
-        GroupDoesNotExist: ERROR_GROUP_DOES_NOT_EXIST,
+        UserNotInWorkspace: ERROR_USER_NOT_IN_GROUP,
+        WorkspaceDoesNotExist: ERROR_GROUP_DOES_NOT_EXIST,
     }
 
     job_exceptions_map = {
@@ -44,15 +44,20 @@ class AirtableImportJobType(JobType):
     }
 
     request_serializer_field_names = [
-        "group_id",
+        "group_id",  # GroupDeprecation
+        "workspace_id",
         "database_id",
         "timezone",
         "airtable_share_url",
     ]
 
     request_serializer_field_overrides = {
+        # GroupDeprecation
         "group_id": serializers.IntegerField(
-            help_text="The group ID where the Airtable base must be imported into.",
+            help_text="The workspace ID where the Airtable base must be imported into.",
+        ),
+        "workspace_id": serializers.IntegerField(
+            help_text="The workspace ID where the Airtable base must be imported into.",
         ),
         "airtable_share_url": serializers.URLField(
             validators=[is_publicly_shared_airtable_url],
@@ -69,15 +74,20 @@ class AirtableImportJobType(JobType):
     }
 
     serializer_field_names = [
-        "group_id",
+        "group_id",  # GroupDeprecation
+        "workspace_id",
         "database",
         "airtable_share_id",
         "timezone",
     ]
 
     serializer_field_overrides = {
+        # GroupDeprecation
         "group_id": serializers.IntegerField(
-            help_text="The group ID where the Airtable base must be imported into.",
+            help_text="The workspace ID where the Airtable base must be imported into.",
+        ),
+        "workspace_id": serializers.IntegerField(
+            help_text="The workspace ID where the Airtable base must be imported into.",
         ),
         "airtable_share_id": serializers.URLField(
             max_length=18,
@@ -93,9 +103,12 @@ class AirtableImportJobType(JobType):
 
     def prepare_values(self, values, user):
 
-        group = CoreHandler().get_group(values.pop("group_id"))
+        workspace = CoreHandler().get_workspace(values.pop("workspace_id"))
         CoreHandler().check_permissions(
-            user, RunAirtableImportJobOperationType.type, group=group, context=group
+            user,
+            RunAirtableImportJobOperationType.type,
+            workspace=workspace,
+            context=workspace,
         )
 
         airtable_share_id = extract_share_id_from_url(values["airtable_share_url"])
@@ -107,7 +120,7 @@ class AirtableImportJobType(JobType):
         return {
             "airtable_share_id": airtable_share_id,
             "timezone": timezone,
-            "group": group,
+            "workspace": workspace,
         }
 
     def run(self, job, progress):

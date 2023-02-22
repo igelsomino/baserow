@@ -1,5 +1,10 @@
 from django.urls import re_path
 
+from baserow.compat.api.applications.views import (
+    ApplicationsCompatView,
+    OrderApplicationsCompatView,
+)
+
 from .views import (
     AllApplicationsView,
     ApplicationsView,
@@ -8,13 +13,15 @@ from .views import (
     OrderApplicationsView,
 )
 
-app_name = "baserow.api.group"
+app_name = "baserow.api.workspace"
 
 
 urlpatterns = [
-    re_path(r"group/(?P<group_id>[0-9]+)/$", ApplicationsView.as_view(), name="list"),
     re_path(
-        r"group/(?P<group_id>[0-9]+)/order/$",
+        r"workspace/(?P<workspace_id>[0-9]+)/$", ApplicationsView.as_view(), name="list"
+    ),
+    re_path(
+        r"workspace/(?P<workspace_id>[0-9]+)/order/$",
         OrderApplicationsView.as_view(),
         name="order",
     ),
@@ -25,4 +32,16 @@ urlpatterns = [
         name="async_duplicate",
     ),
     re_path(r"$", AllApplicationsView.as_view(), name="list"),
+]
+
+# GroupDeprecation
+urlpatterns += [
+    re_path(
+        r"group/(?P<group_id>[0-9]+)/$", ApplicationsCompatView.as_view(), name="list"
+    ),
+    re_path(
+        r"group/(?P<group_id>[0-9]+)/order/$",
+        OrderApplicationsCompatView.as_view(),
+        name="order",
+    ),
 ]

@@ -206,7 +206,7 @@ class ViewHandler:
         CoreHandler().check_permissions(
             user,
             ReadViewOperationType.type,
-            group=view.table.database.group,
+            workspace=view.table.database.workspace,
             context=view,
             allow_if_template=True,
         )
@@ -240,7 +240,7 @@ class ViewHandler:
             base_queryset = view_model.objects.all()
 
         try:
-            view = base_queryset.select_related("table__database__group").get(
+            view = base_queryset.select_related("table__database__workspace").get(
                 pk=view_id
             )
         except View.DoesNotExist as exc:
@@ -305,9 +305,9 @@ class ViewHandler:
         :return: The created view instance.
         """
 
-        group = table.database.group
+        workspace = table.database.workspace
         CoreHandler().check_permissions(
-            user, CreateViewOperationType.type, group=group, context=table
+            user, CreateViewOperationType.type, workspace=workspace, context=table
         )
 
         # Figure out which model to use for the given view type.
@@ -364,9 +364,12 @@ class ViewHandler:
         :return: The created view instance.
         """
 
-        group = original_view.table.database.group
+        workspace = original_view.table.database.workspace
         CoreHandler().check_permissions(
-            user, DuplicateViewOperationType.type, group=group, context=original_view
+            user,
+            DuplicateViewOperationType.type,
+            workspace=workspace,
+            context=original_view,
         )
 
         view_type = view_type_registry.get_by_model(original_view)
@@ -446,9 +449,9 @@ class ViewHandler:
         if not isinstance(view, View):
             raise ValueError("The view is not an instance of View.")
 
-        group = view.table.database.group
+        workspace = view.table.database.workspace
         CoreHandler().check_permissions(
-            user, UpdateViewOperationType.type, group=group, context=view
+            user, UpdateViewOperationType.type, workspace=workspace, context=view
         )
 
         view_type = view_type_registry.get_by_model(view)
@@ -484,9 +487,9 @@ class ViewHandler:
             to the table.
         """
 
-        group = table.database.group
+        workspace = table.database.workspace
         CoreHandler().check_permissions(
-            user, OrderViewsOperationType.type, group=group, context=table
+            user, OrderViewsOperationType.type, workspace=workspace, context=table
         )
 
         try:
@@ -499,7 +502,7 @@ class ViewHandler:
         )
 
         user_views = CoreHandler().filter_queryset(
-            user, ListViewsOperationType.type, all_views, group=table.database.group
+            user, ListViewsOperationType.type, all_views, workspace=workspace
         )
 
         view_ids = user_views.values_list("id", flat=True)
@@ -527,19 +530,19 @@ class ViewHandler:
             to the table.
         """
 
+        workspace = table.database.workspace
         if ownership_type is None:
             ownership_type = OWNERSHIP_TYPE_COLLABORATIVE
 
-        group = table.database.group
         CoreHandler().check_permissions(
-            user, ReadViewsOrderOperationType.type, group=group, context=table
+            user, ReadViewsOrderOperationType.type, workspace=workspace, context=table
         )
 
         queryset = View.objects.filter(table_id=table.id).filter(
             ownership_type=ownership_type
         )
         queryset = CoreHandler().filter_queryset(
-            user, ListViewsOperationType.type, queryset, table.database.group
+            user, ListViewsOperationType.type, queryset, table.database.workspace
         )
 
         order = queryset.values_list("id", flat=True)
@@ -570,14 +573,14 @@ class ViewHandler:
         if not isinstance(view, View):
             raise ValueError("The view is not an instance of View")
 
-        group = view.table.database.group
+        workspace = view.table.database.workspace
         CoreHandler().check_permissions(
-            user, DeleteViewOperationType.type, group=group, context=view
+            user, DeleteViewOperationType.type, workspace=workspace, context=view
         )
 
         view_id = view.id
 
-        TrashHandler().trash(user, group, view.table.database, view)
+        TrashHandler().trash(user, workspace, view.table.database, view)
 
         view_deleted.send(self, view_id=view_id, view=view, user=user)
 
@@ -590,11 +593,11 @@ class ViewHandler:
         :returns: View type that has get_field_options_serializer_class().
         """
 
-        group = view.table.database.group
+        workspace = view.table.database.workspace
         CoreHandler().check_permissions(
             user,
             ReadViewFieldOptionsOperationType.type,
-            group=group,
+            workspace=workspace,
             context=view,
             allow_if_template=True,
         )
@@ -639,7 +642,7 @@ class ViewHandler:
             CoreHandler().check_permissions(
                 user,
                 UpdateViewFieldOptionsOperationType.type,
-                group=view.table.database.group,
+                workspace=view.table.database.workspace,
                 context=view,
             )
 
@@ -856,9 +859,9 @@ class ViewHandler:
         """
 
         view = self.get_view(view_id)
-        group = view.table.database.group
+        workspace = view.table.database.workspace
         CoreHandler().check_permissions(
-            user, ListViewFilterOperationType.type, group=group, context=view
+            user, ListViewFilterOperationType.type, workspace=workspace, context=view
         )
         filters = ViewFilter.objects.filter(view=view)
         return filters
@@ -885,7 +888,7 @@ class ViewHandler:
 
         try:
             view_filter = base_queryset.select_related(
-                "view__table__database__group"
+                "view__table__database__workspace"
             ).get(pk=view_filter_id)
         except ViewFilter.DoesNotExist:
             raise ViewFilterDoesNotExist(
@@ -899,11 +902,11 @@ class ViewHandler:
                 f"The view filter with id {view_filter_id} does not exist."
             )
 
-        group = view_filter.view.table.database.group
+        workspace = view_filter.view.table.database.workspace
         CoreHandler().check_permissions(
             user,
             ReadViewFilterOperationType.type,
-            group=group,
+            workspace=workspace,
             context=view_filter,
         )
 
@@ -938,9 +941,9 @@ class ViewHandler:
         :return: The created view filter instance.
         """
 
-        group = view.table.database.group
+        workspace = view.table.database.workspace
         CoreHandler().check_permissions(
-            user, CreateViewFilterOperationType.type, group=group, context=view
+            user, CreateViewFilterOperationType.type, workspace=workspace, context=view
         )
 
         # Check if view supports filtering
@@ -995,18 +998,18 @@ class ViewHandler:
         :param type_name: Indicates how the field's value must be compared
         to the filter's value.
         :param value: The filter value that must be compared to the field's value.
-        :raises ViewFilterTypeNotAllowedForField: When the field does not supports the
+        :raises ViewFilterTypeNotAllowedForField: When the field does not support the
             filter type.
         :raises FieldNotInTable: When the provided field does not belong to the
             view's table.
         :return: The updated view filter instance.
         """
 
-        group = view_filter.view.table.database.group
+        workspace = view_filter.view.table.database.workspace
         CoreHandler().check_permissions(
             user,
             UpdateViewFilterOperationType.type,
-            group=group,
+            workspace=workspace,
             context=view_filter,
         )
 
@@ -1051,11 +1054,11 @@ class ViewHandler:
         :param view_filter: The view filter instance that needs to be deleted.
         """
 
-        group = view_filter.view.table.database.group
+        workspace = view_filter.view.table.database.workspace
         CoreHandler().check_permissions(
             user,
             DeleteViewFilterOperationType.type,
-            group=group,
+            workspace=workspace,
             context=view_filter,
         )
 
@@ -1169,7 +1172,7 @@ class ViewHandler:
         CoreHandler().check_permissions(
             user,
             ListViewSortOperationType.type,
-            group=view.table.database.group,
+            workspace=view.table.database.workspace,
             context=view,
         )
         sortings = ViewSort.objects.filter(view=view)
@@ -1196,7 +1199,7 @@ class ViewHandler:
 
         try:
             view_sort = base_queryset.select_related(
-                "view__table__database__group"
+                "view__table__database__workspace"
             ).get(pk=view_sort_id)
         except ViewSort.DoesNotExist:
             raise ViewSortDoesNotExist(
@@ -1208,9 +1211,9 @@ class ViewHandler:
                 f"The view sort with id {view_sort_id} does not exist."
             )
 
-        group = view_sort.view.table.database.group
+        workspace = view_sort.view.table.database.workspace
         CoreHandler().check_permissions(
-            user, ReadViewSortOperationType.type, group=group, context=view_sort
+            user, ReadViewSortOperationType.type, workspace=workspace, context=view_sort
         )
 
         return view_sort
@@ -1238,12 +1241,12 @@ class ViewHandler:
         :return: The created view sort instance.
         """
 
-        group = view.table.database.group
+        workspace = view.table.database.workspace
         CoreHandler().check_permissions(
-            user, ReadFieldOperationType.type, group=group, context=field
+            user, ReadFieldOperationType.type, workspace=workspace, context=field
         )
         CoreHandler().check_permissions(
-            user, CreateViewSortOperationType.type, group=group, context=view
+            user, CreateViewSortOperationType.type, workspace=workspace, context=view
         )
 
         # Check if view supports sorting.
@@ -1304,15 +1307,18 @@ class ViewHandler:
         if view_sort.view.trashed:
             raise ViewSortDoesNotExist(f"The view {view_sort.view.id} is trashed.")
 
-        group = view_sort.view.table.database.group
+        workspace = view_sort.view.table.database.workspace
         field = field if field is not None else view_sort.field
         order = order if order is not None else view_sort.order
 
         CoreHandler().check_permissions(
-            user, ReadFieldOperationType.type, group=group, context=field
+            user, ReadFieldOperationType.type, workspace=workspace, context=field
         )
         CoreHandler().check_permissions(
-            user, UpdateViewSortOperationType.type, group=group, context=view_sort
+            user,
+            UpdateViewSortOperationType.type,
+            workspace=workspace,
+            context=view_sort,
         )
 
         # If the field has changed we need to check if the field belongs to the table.
@@ -1361,9 +1367,12 @@ class ViewHandler:
         :type view_sort: ViewSort
         """
 
-        group = view_sort.view.table.database.group
+        workspace = view_sort.view.table.database.workspace
         CoreHandler().check_permissions(
-            user, DeleteViewSortOperationType.type, group=group, context=view_sort
+            user,
+            DeleteViewSortOperationType.type,
+            workspace=workspace,
+            context=view_sort,
         )
 
         view_sort_id = view_sort.id
@@ -1399,11 +1408,11 @@ class ViewHandler:
         """
 
         if user:
-            group = view.table.database.group
+            workspace = view.table.database.workspace
             CoreHandler().check_permissions(
                 user,
                 CreateViewDecorationOperationType.type,
-                group=group,
+                workspace=workspace,
                 context=view,
             )
 
@@ -1460,7 +1469,7 @@ class ViewHandler:
         CoreHandler().check_permissions(
             user,
             ListViewDecorationOperationType.type,
-            group=view.table.database.group,
+            workspace=view.table.database.workspace,
             context=view,
         )
         decorations = ViewDecoration.objects.filter(view=view)
@@ -1489,13 +1498,13 @@ class ViewHandler:
 
         try:
             view_decoration = base_queryset.select_related(
-                "view__table__database__group"
+                "view__table__database__workspace"
             ).get(pk=view_decoration_id)
-            group = view_decoration.view.table.database.group
+            workspace = view_decoration.view.table.database.workspace
             CoreHandler().check_permissions(
                 user,
                 ReadViewDecorationOperationType.type,
-                group=group,
+                workspace=workspace,
                 context=view_decoration,
             )
         except ViewDecoration.DoesNotExist:
@@ -1540,11 +1549,11 @@ class ViewHandler:
         """
 
         if user:
-            group = view_decoration.view.table.database.group
+            workspace = view_decoration.view.table.database.workspace
             CoreHandler().check_permissions(
                 user,
                 UpdateViewDecorationOperationType.type,
-                group=group,
+                workspace=workspace,
                 context=view_decoration,
             )
 
@@ -1596,11 +1605,11 @@ class ViewHandler:
             exists.
         """
 
-        group = view_decoration.view.table.database.group
+        workspace = view_decoration.view.table.database.workspace
         CoreHandler().check_permissions(
             user,
             DeleteViewDecorationOperationType.type,
-            group=group,
+            workspace=workspace,
             context=view_decoration,
         )
 
@@ -1796,7 +1805,7 @@ class ViewHandler:
         CoreHandler().check_permissions(
             user,
             ListAggregationsViewOperationType.type,
-            group=view.table.database.group,
+            workspace=view.table.database.workspace,
             context=view,
             allow_if_template=True,
         )
@@ -1907,7 +1916,7 @@ class ViewHandler:
         CoreHandler().check_permissions(
             user,
             ReadAggregationsViewOperationType.type,
-            group=view.table.database.group,
+            workspace=view.table.database.workspace,
             context=view,
             allow_if_template=True,
         )
@@ -1986,9 +1995,9 @@ class ViewHandler:
         if not view_type.can_share:
             raise CannotShareViewTypeError()
 
-        group = view.table.database.group
+        workspace = view.table.database.workspace
         CoreHandler().check_permissions(
-            user, UpdateViewSlugOperationType.type, group=group, context=view
+            user, UpdateViewSlugOperationType.type, workspace=workspace, context=view
         )
 
         view.slug = slug
@@ -2008,7 +2017,7 @@ class ViewHandler:
     ) -> View:
         """
         Returns the view with the provided slug if it is public, if the user has
-        access to the views group or provided a valid token in case the view is
+        access to the views workspace or provided a valid token in case the view is
         password protected.
 
         :param user: The user on whose behalf the view is requested.
@@ -2017,14 +2026,15 @@ class ViewHandler:
             view. This can for example be useful when you want to select a GridView or
             other child of the View model.
         :param authorization_token: The token to use to access the view if the view is
-            password protected and the user does not belong to the correct group.
+            password protected and the user does not belong to the correct workspace.
         :param raise_authorization_error: Whether to raise an error if the user doesn't
-            have access to the password protected sahred view.
+            have access to the password protected shared view.
         :raises ViewDoesNotExist: Raised if the view does not exist, it has been
-            trashed or the view is not public and the user doesn't belong to the group.
+            trashed or the view is not public and the user doesn't belong to the
+            workspace.
         :raises NoAuthorizationToPubliclySharedView: raised if the view is public but
-            password protected and the user belongs to another group and doesn't provide
-            a valid permission_token.
+            password protected and the user belongs to another workspace and doesn't
+            provide a valid permission_token.
         :return: The requested view with matching slug.
         """
 
@@ -2032,7 +2042,7 @@ class ViewHandler:
             view_model = View
 
         try:
-            view = view_model.objects.select_related("table__database__group").get(
+            view = view_model.objects.select_related("table__database__workspace").get(
                 slug=slug
             )
         except (view_model.DoesNotExist, ValidationError) as exc:
@@ -2041,14 +2051,14 @@ class ViewHandler:
         if TrashHandler.item_has_a_trashed_parent(view.table, check_item_also=True):
             raise ViewDoesNotExist("The view does not exist.")
 
-        user_in_group = user and CoreHandler().check_permissions(
+        user_in_workspace = user and CoreHandler().check_permissions(
             user,
             ReadViewOperationType.type,
-            group=view.table.database.group,
+            workspace=view.table.database.workspace,
             context=view,
             raise_permission_exceptions=False,
         )
-        if not user_in_group:
+        if not user_in_workspace:
             if not view.public:
                 raise ViewDoesNotExist("The view does not exist.")
 
@@ -2274,7 +2284,7 @@ class ViewHandler:
         be visible on a public view plus any additional filters given as
         parameters.
 
-        It also returns the field_ids of the fields which are visibile and
+        It also returns the field_ids of the fields which are visible and
         the field_options.
         :param view: The public view to get rows for.
         :param search: A string to search for in the rows.

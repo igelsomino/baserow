@@ -94,7 +94,7 @@ class ExportHandler:
         CoreHandler().check_permissions(
             user,
             ExportTableOperationType.type,
-            group=table.database.group,
+            workspace=table.database.workspace,
             context=table,
         )
 
@@ -134,7 +134,7 @@ class ExportHandler:
         CoreHandler().check_permissions(
             job.user,
             ExportTableOperationType.type,
-            group=table.database.group,
+            workspace=table.database.workspace,
             context=table,
         )
         try:

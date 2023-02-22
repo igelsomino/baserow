@@ -1,6 +1,4 @@
 # noinspection PyPep8Naming
-from django.db import connection
-from django.db.migrations.executor import MigrationExecutor
 
 import pytest
 
@@ -10,8 +8,8 @@ migrate_to = [("core", "0019_trashentry_extra_description_to_names")]
 
 # noinspection PyPep8Naming
 @pytest.mark.django_db(transaction=True)
-def test_extra_description_to_names_conversion(data_fixture, reset_schema_after_module):
-    old_state = migrate(migrate_from)
+def test_extra_description_to_names_conversion(data_fixture, migrator):
+    old_state = migrator.migrate(migrate_from)
 
     Group = old_state.apps.get_model("core", "Group")
     group = Group.objects.create(name="Group")
@@ -29,7 +27,7 @@ def test_extra_description_to_names_conversion(data_fixture, reset_schema_after_
     )
     assert TrashEntry.objects.all().count() == 4
 
-    new_state = migrate(migrate_to)
+    new_state = migrator.migrate(migrate_to)
 
     MigrationTrashEntry = new_state.apps.get_model("core", "TrashEntry")
     entries = list(MigrationTrashEntry.objects.all().order_by("id"))
@@ -41,11 +39,3 @@ def test_extra_description_to_names_conversion(data_fixture, reset_schema_after_
     assert entries[2].names == ["Something,test"]
     assert entries[3].extra_description is None
     assert entries[3].names is None
-
-
-def migrate(target):
-    executor = MigrationExecutor(connection)
-    executor.loader.build_graph()  # reload.
-    executor.migrate(target)
-    new_state = executor.loader.project_state(target)
-    return new_state

@@ -43,7 +43,7 @@ export class DuplicatePageJobType extends JobType {
     const duplicatedPage = job.duplicated_page
     const builder = store.getters['application/get'](duplicatedPage.builder_id)
 
-    await store.dispatch('page/forceAdd', {
+    await store.dispatch('page/forceCreate', {
       builder,
       page: duplicatedPage,
     })

@@ -5,7 +5,6 @@ from django.db import connections
 
 import pytest
 import responses
-from pytz import BaseTzInfo
 
 from baserow.contrib.database.airtable.exceptions import AirtableShareIsNotABase
 from baserow.contrib.database.airtable.models import AirtableImportJob

@@ -194,8 +194,11 @@ export default {
 
       this.duplicateLoading = true
 
-      // TODO add error handling
-      await this.$store.dispatch('page/duplicate', { page: this.page })
+      try {
+        await this.$store.dispatch('page/duplicate', { page: this.page })
+      } catch (error) {
+        notifyIf(error, 'page')
+      }
 
       this.$refs.context.hide()
     },

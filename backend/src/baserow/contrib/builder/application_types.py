@@ -12,7 +12,7 @@ from baserow.contrib.builder.api.serializers import BuilderSerializer
 from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.page.handler import PageHandler
 from baserow.contrib.builder.page.models import Page
-from baserow.contrib.builder.page.serivce import PageService
+from baserow.contrib.builder.page.service import PageService
 from baserow.core.models import Application
 from baserow.core.registries import ApplicationType
 from baserow.core.utils import ChildProgressBuilder

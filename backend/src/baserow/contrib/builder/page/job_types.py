@@ -7,7 +7,7 @@ from baserow.contrib.builder.api.pages.serializers import PageSerializer
 from baserow.contrib.builder.page.handler import PageHandler
 from baserow.contrib.builder.page.models import DuplicatePageJob
 from baserow.contrib.builder.page.operations import DuplicatePageOperationType
-from baserow.contrib.builder.page.serivce import PageService
+from baserow.contrib.builder.page.service import PageService
 from baserow.core.handler import CoreHandler
 from baserow.core.jobs.registries import JobType
 from rest_framework import serializers

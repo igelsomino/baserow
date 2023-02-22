@@ -10,7 +10,6 @@ from django.core.files.storage import FileSystemStorage
 
 import pytest
 import responses
-from pytz import UnknownTimeZoneError
 
 from baserow.contrib.database.airtable.exceptions import AirtableShareIsNotABase
 from baserow.contrib.database.airtable.handler import AirtableHandler
@@ -479,44 +478,12 @@ def test_create_and_start_airtable_import_job(mock_run_async_job, data_fixture):
     assert job.group_id == group.id
     assert job.airtable_share_id == "shrXxmp0WmqsTkFWTz"
     assert job.progress_percentage == 0
-    assert job.timezone is None
     assert job.state == "pending"
     assert job.error == ""
 
     mock_run_async_job.delay.assert_called_once()
     args = mock_run_async_job.delay.call_args
     assert args[0][0] == job.id
-
-
-@pytest.mark.django_db(transaction=True)
-@responses.activate
-@patch("baserow.core.jobs.handler.run_async_job")
-def test_create_and_start_airtable_import_job_with_timezone(
-    mock_run_async_job, data_fixture
-):
-    user = data_fixture.create_user()
-    group = data_fixture.create_group(user=user)
-
-    with pytest.raises(UnknownTimeZoneError):
-        JobHandler().create_and_start_job(
-            user,
-            "airtable",
-            group_id=group.id,
-            airtable_share_url="https://airtable.com/shrXxmp0WmqsTkFWTz",
-            timezone="UNKNOWN",
-        )
-
-    assert AirtableImportJob.objects.all().count() == 0
-
-    job = JobHandler().create_and_start_job(
-        user,
-        "airtable",
-        group_id=group.id,
-        airtable_share_url="https://airtable.com/shrXxmp0WmqsTkFWTz",
-        timezone="Europe/Amsterdam",
-    )
-
-    assert job.timezone.zone == "Europe/Amsterdam"
 
 
 @pytest.mark.django_db

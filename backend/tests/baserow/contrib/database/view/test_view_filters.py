@@ -1,5 +1,5 @@
 import random
-from datetime import date, timedelta
+from datetime import date
 
 from django.db.models import Q
 from django.utils import timezone as django_timezone

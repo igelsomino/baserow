@@ -6,10 +6,13 @@
         {{ $t('createPageForm.nameLabel') }}
       </label>
       <input
+        ref="name"
         v-model="values.name"
         type="text"
         class="input input--large"
-        @blur="$v.$touch"
+        :class="{ 'input--error': fieldHasErrors('name') }"
+        @focus.once="$event.target.select()"
+        @blur="$v.values.name.$touch()"
       />
       <div
         v-if="$v.values.name.$dirty && !$v.values.name.required"
@@ -67,6 +70,9 @@ export default {
   },
   created() {
     this.values.name = this.defaultName
+  },
+  mounted() {
+    this.$refs.name.focus()
   },
   methods: {
     submit() {

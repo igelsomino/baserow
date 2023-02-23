@@ -11,6 +11,7 @@ class PageHandler:
         Gets a page by ID
 
         :param page_id: The ID of the page
+        :raises PageDoesNotExist: If the page doesn't exist
         :return: The model instance of the Page
         """
 

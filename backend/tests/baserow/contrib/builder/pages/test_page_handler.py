@@ -1,8 +1,8 @@
 import pytest
 
-from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.handler import PageHandler
-from baserow.contrib.builder.page.models import Page
+from baserow.contrib.builder.pages.exceptions import PageDoesNotExist, PageNotInBuilder
+from baserow.contrib.builder.pages.handler import PageHandler
+from baserow.contrib.builder.pages.models import Page
 
 
 @pytest.mark.django_db

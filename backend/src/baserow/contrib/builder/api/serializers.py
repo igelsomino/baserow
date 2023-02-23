@@ -6,7 +6,7 @@ from rest_framework import serializers
 from baserow.api.applications.serializers import ApplicationSerializer
 from baserow.contrib.builder.api.pages.serializers import PageSerializer
 from baserow.contrib.builder.operations import ListPagesBuilderOperationType
-from baserow.contrib.builder.page.models import Page
+from baserow.contrib.builder.pages.models import Page
 from baserow.core.handler import CoreHandler
 from baserow.core.models import Application
 

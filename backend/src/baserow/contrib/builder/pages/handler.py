@@ -3,8 +3,8 @@ from typing import List
 from django.db.models import QuerySet
 
 from baserow.contrib.builder.models import Builder
-from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.models import Page
+from baserow.contrib.builder.pages.exceptions import PageDoesNotExist, PageNotInBuilder
+from baserow.contrib.builder.pages.models import Page
 from baserow.core.exceptions import IdDoesNotExist
 
 

@@ -2,9 +2,9 @@ from django.db import IntegrityError
 
 import pytest
 
-from baserow.contrib.builder.page.exceptions import PageNotInBuilder
-from baserow.contrib.builder.page.models import Page
-from baserow.contrib.builder.page.service import PageService
+from baserow.contrib.builder.pages.exceptions import PageNotInBuilder
+from baserow.contrib.builder.pages.models import Page
+from baserow.contrib.builder.pages.service import PageService
 from baserow.core.exceptions import UserNotInGroup
 
 

@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 
 from baserow.contrib.builder.api.serializers import BuilderSerializer
 from baserow.contrib.builder.models import Builder
-from baserow.contrib.builder.page.service import PageService
+from baserow.contrib.builder.pages.service import PageService
 from baserow.core.models import Application
 from baserow.core.registries import ApplicationType
 

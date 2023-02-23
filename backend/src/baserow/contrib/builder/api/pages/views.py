@@ -21,8 +21,8 @@ from baserow.contrib.builder.api.pages.serializers import (
     PageSerializer,
 )
 from baserow.contrib.builder.handler import BuilderHandler
-from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.service import PageService
+from baserow.contrib.builder.pages.exceptions import PageDoesNotExist, PageNotInBuilder
+from baserow.contrib.builder.pages.service import PageService
 from baserow.core.exceptions import ApplicationDoesNotExist
 
 

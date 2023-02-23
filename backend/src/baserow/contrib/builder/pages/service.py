@@ -4,15 +4,15 @@ from django.contrib.auth.models import AbstractUser
 
 from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.operations import OrderPagesBuilderOperationType
-from baserow.contrib.builder.page.handler import PageHandler
-from baserow.contrib.builder.page.models import Page
-from baserow.contrib.builder.page.operations import (
+from baserow.contrib.builder.pages.handler import PageHandler
+from baserow.contrib.builder.pages.models import Page
+from baserow.contrib.builder.pages.operations import (
     CreatePageOperationType,
     DeletePageOperationType,
     ReadPageOperationType,
     UpdatePageOperationType,
 )
-from baserow.contrib.builder.page.signals import (
+from baserow.contrib.builder.pages.signals import (
     page_created,
     page_deleted,
     page_updated,

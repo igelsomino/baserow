@@ -91,7 +91,7 @@ const actions = {
 
     commit('ADD_ITEM', { builder, page })
 
-    dispatch('selectById', { builderId: builder.id, pageId: page.id })
+    await dispatch('selectById', { builderId: builder.id, pageId: page.id })
 
     return page
   },

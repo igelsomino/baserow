@@ -1084,7 +1084,7 @@ class BaserowIsBlank(OneArgumentBaserowFunction):
 
 
 class BaserowIsNull(OneArgumentBaserowFunction):
-    type = "isnull"
+    type = "is_null"
     arg_type = [BaserowFormulaValidType]
     try_coerce_nullable_args_to_not_null = False
 

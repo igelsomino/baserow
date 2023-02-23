@@ -438,7 +438,7 @@ export class BaserowIsBlank extends BaserowFunctionDefinition {
 
 export class BaserowIsNull extends BaserowFunctionDefinition {
   static getType() {
-    return 'isnull'
+    return 'is_null'
   }
 
   getDescription() {
@@ -447,11 +447,11 @@ export class BaserowIsNull extends BaserowFunctionDefinition {
   }
 
   getSyntaxUsage() {
-    return ['isnull(any)']
+    return ['is_null(any)']
   }
 
   getExamples() {
-    return ["isnull('10') "]
+    return ["is_null('10') "]
   }
 
   getFormulaType() {

@@ -76,6 +76,7 @@ class PageHandler:
         :param builder: The builder that the pages belong to
         :param order: The new order of the pages
         :param base_qs: A QS that can have filters already applied
+        :raises PageNotInBuilder: If the page is not part of the provided builder
         :return: The new order of the pages
         """
 

@@ -32,7 +32,7 @@ def forward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("database", "0091_view_show_logo"),
+        ("database", "0100_airtableimportjob_user_ip_address"),
     ]
 
     operations = [

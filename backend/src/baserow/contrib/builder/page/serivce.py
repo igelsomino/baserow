@@ -35,7 +35,8 @@ class PageService:
         :return: The model instance of the Page
         """
 
-        page = self.handler.get_page(page_id)
+        base_queryset = Page.objects.select_related("builder", "builder__group")
+        page = self.handler.get_page(page_id, base_queryset=base_queryset)
 
         CoreHandler().check_permissions(
             user,

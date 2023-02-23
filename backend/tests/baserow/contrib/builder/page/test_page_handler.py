@@ -18,6 +18,22 @@ def test_get_page_page_does_not_exist(data_fixture):
 
 
 @pytest.mark.django_db
+def test_get_page_base_queryset(data_fixture, django_assert_num_queries):
+    page = data_fixture.create_builder_page()
+
+    # Without selecting related
+    page = PageHandler().get_page(page.id)
+    with django_assert_num_queries(2):
+        group = page.builder.group
+
+    # With selecting related
+    base_queryset = Page.objects.select_related("builder", "builder__group")
+    page = PageHandler().get_page(page.id, base_queryset=base_queryset)
+    with django_assert_num_queries(0):
+        group = page.builder.group
+
+
+@pytest.mark.django_db
 def test_create_page(data_fixture):
     builder = data_fixture.create_builder_application()
     expected_order = Page.get_last_order(builder)

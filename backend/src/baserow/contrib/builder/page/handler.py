@@ -1,22 +1,29 @@
 from typing import Dict, List
 
+from django.db.models import QuerySet
+
 from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
 from baserow.contrib.builder.page.models import Page
 
 
 class PageHandler:
-    def get_page(self, page_id: int) -> Page:
+    def get_page(self, page_id: int, base_queryset: QuerySet = None) -> Page:
         """
         Gets a page by ID
 
         :param page_id: The ID of the page
+        :param base_queryset: Can be provided to already filter or apply performance
+            improvements to the queryset when it's being executed
         :raises PageDoesNotExist: If the page doesn't exist
         :return: The model instance of the Page
         """
 
+        if base_queryset is None:
+            base_queryset = Page.objects
+
         try:
-            return Page.objects.get(id=page_id)
+            return base_queryset.get(id=page_id)
         except Page.DoesNotExist:
             raise PageDoesNotExist()
 

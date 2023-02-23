@@ -114,7 +114,9 @@ class PageService:
 
         return page
 
-    def order_pages(self, user: AbstractUser, builder: Builder, order: List[int]):
+    def order_pages(
+        self, user: AbstractUser, builder: Builder, order: List[int]
+    ) -> List[int]:
         """
         Assigns a new order to the pages in a builder application.
 

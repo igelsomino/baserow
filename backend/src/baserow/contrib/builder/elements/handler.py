@@ -6,7 +6,7 @@ from baserow.contrib.builder.elements.registries import (
     ElementType,
     element_type_registry,
 )
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 from baserow.core.utils import extract_allowed
 
 

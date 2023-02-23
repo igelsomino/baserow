@@ -22,7 +22,7 @@ from baserow.contrib.builder.api.pages.serializers import (
 )
 from baserow.contrib.builder.handler import BuilderHandler
 from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.serivce import PageService
+from baserow.contrib.builder.page.service import PageService
 from baserow.core.exceptions import ApplicationDoesNotExist
 
 

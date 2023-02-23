@@ -7,6 +7,7 @@ from django.core.files.storage import Storage
 from django.db import models as django_models
 from django.db.models import BooleanField, DurationField, Q, QuerySet
 from django.db.models.fields.related import ForeignKey, ManyToManyField
+from opentelemetry import trace
 
 from baserow.contrib.database.fields.constants import UPSERT_OPTION_DICT_KEY
 from baserow.core.registry import (
@@ -42,6 +43,9 @@ if TYPE_CHECKING:
 StartingRowType = Union["GeneratedTableModel", List["GeneratedTableModel"]]
 
 
+tracer = trace.get_tracer(__name__)
+
+
 class FieldType(
     MapAPIExceptionsInstanceMixin,
     APIUrlsInstanceMixin,
@@ -50,6 +54,7 @@ class FieldType(
     ImportExportMixin,
     Instance,
 ):
+
     """
     This abstract class represents a custom field type that can be added to the
     field type registry. It must be extended so customisation can be done. Each field

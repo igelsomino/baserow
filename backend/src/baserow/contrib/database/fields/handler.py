@@ -20,6 +20,7 @@ from django.db.models import QuerySet
 from django.db.utils import DatabaseError, DataError, ProgrammingError
 
 from loguru import logger
+from opentelemetry import trace
 from psycopg2 import sql
 
 from baserow.contrib.database.db.schema import (
@@ -48,6 +49,7 @@ from baserow.contrib.database.table.models import Table
 from baserow.contrib.database.views.handler import ViewHandler
 from baserow.core.handler import CoreHandler
 from baserow.core.models import TrashEntry
+from baserow.core.telemetry.utils import baserow_trace_methods
 from baserow.core.trash.exceptions import RelatedTableTrashedException
 from baserow.core.trash.handler import TrashHandler
 from baserow.core.utils import (
@@ -84,6 +86,8 @@ from .signals import (
     field_restored,
     field_updated,
 )
+
+tracer = trace.get_tracer(__name__)
 
 
 def _validate_field_name(
@@ -139,7 +143,7 @@ def _validate_field_name(
 T = TypeVar("T", bound="Field")
 
 
-class FieldHandler:
+class FieldHandler(metaclass=baserow_trace_methods(tracer)):
     def get_field(
         self,
         field_id: int,

@@ -8,6 +8,7 @@ from django.db.models import QuerySet
 from django.utils import timezone
 
 from loguru import logger
+from opentelemetry import trace
 
 from baserow.core.exceptions import (
     ApplicationDoesNotExist,
@@ -17,6 +18,7 @@ from baserow.core.exceptions import (
     is_max_lock_exceeded_exception,
 )
 from baserow.core.models import Application, Group, TrashEntry
+from baserow.core.telemetry.utils import baserow_trace_methods
 from baserow.core.trash.exceptions import (
     CannotDeleteAlreadyDeletedItem,
     CannotRestoreChildBeforeParent,
@@ -35,8 +37,10 @@ from baserow.core.trash.signals import permanently_deleted
 
 User = get_user_model()
 
+tracer = trace.get_tracer(__name__)
 
-class TrashHandler:
+
+class TrashHandler(metaclass=baserow_trace_methods(tracer)):
     @staticmethod
     def trash(
         requesting_user: User,

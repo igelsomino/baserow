@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.utils import timezone
+from opentelemetry import trace
 
 from baserow.core.utils import Progress
 
@@ -16,6 +17,8 @@ from .models import Job
 from .registries import job_type_registry
 from .tasks import run_async_job
 from .types import AnyJob
+
+tracer = trace.get_tracer(__name__)
 
 
 class JobHandler:

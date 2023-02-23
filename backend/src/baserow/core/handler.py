@@ -16,6 +16,7 @@ from django.db.models import Count, Prefetch, Q, QuerySet
 from django.utils import translation
 
 from itsdangerous import URLSafeSerializer
+from opentelemetry import trace
 from tqdm import tqdm
 
 from baserow.core.user.utils import normalize_email_address
@@ -92,7 +93,7 @@ from .signals import (
     group_user_updated,
     groups_reordered,
 )
-from .telemetry.utils import disable_instrumentation
+from .telemetry.utils import disable_instrumentation, baserow_trace_methods
 from .trash.handler import TrashHandler
 from .types import Actor, ContextObject, PermissionCheck, PermissionObjectResult
 from .utils import (
@@ -106,8 +107,10 @@ User = get_user_model()
 
 GroupForUpdate = NewType("GroupForUpdate", Group)
 
+tracer = trace.get_tracer(__name__)
 
-class CoreHandler:
+
+class CoreHandler(metaclass=baserow_trace_methods(tracer)):
     def get_settings(self):
         """
         Returns a settings model instance containing all the admin configured settings.

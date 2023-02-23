@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import F, Max, Q, QuerySet
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils.encoding import force_str
+from opentelemetry import trace
 
 from baserow.contrib.database.fields.dependencies.handler import FieldDependencyHandler
 from baserow.contrib.database.fields.dependencies.update_collector import (
@@ -31,6 +32,7 @@ from baserow.contrib.database.table.operations import (
 )
 from baserow.contrib.database.trash.models import TrashedRows
 from baserow.core.handler import CoreHandler
+from baserow.core.telemetry.utils import baserow_trace_methods
 from baserow.core.trash.handler import TrashHandler
 from baserow.core.utils import Progress, get_non_unique_values, grouper
 
@@ -50,6 +52,8 @@ from .signals import (
     rows_deleted,
     rows_updated,
 )
+
+tracer = trace.get_tracer(__name__)
 
 GeneratedTableModelForUpdate = NewType(
     "GeneratedTableModelForUpdate", GeneratedTableModel
@@ -90,7 +94,7 @@ def prepare_field_errors(field_errors):
     }
 
 
-class RowHandler:
+class RowHandler(metaclass=baserow_trace_methods(tracer)):
     def prepare_values(self, fields, values):
         """
         Prepares a set of values so that they can be created or updated in the database.

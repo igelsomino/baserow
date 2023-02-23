@@ -1074,6 +1074,22 @@ class BaserowIsBlank(OneArgumentBaserowFunction):
         return arg
 
 
+class BaserowIsNull(OneArgumentBaserowFunction):
+    type = "isnull"
+    arg_type = [BaserowFormulaValidType]
+    try_coerce_nullable_args_to_not_null = False
+
+    def type_function(
+        self,
+        func_call: BaserowFunctionCall[UnTyped],
+        arg: BaserowExpression[BaserowFormulaValidType],
+    ) -> BaserowExpression[BaserowFormulaType]:
+        return func_call.with_valid_type(BaserowFormulaBooleanType())
+
+    def to_django_expression(self, arg: Expression) -> Expression:
+        return IsNullExpr(arg, output_field=fields.BooleanField())
+
+
 class BaserowNot(OneArgumentBaserowFunction):
     type = "not"
     arg_type = [BaserowFormulaBooleanType]

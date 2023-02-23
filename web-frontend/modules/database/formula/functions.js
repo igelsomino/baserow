@@ -436,6 +436,29 @@ export class BaserowIsBlank extends BaserowFunctionDefinition {
   }
 }
 
+export class BaserowIsNull extends BaserowFunctionDefinition {
+  static getType() {
+    return 'isnull'
+  }
+
+  getDescription() {
+    const { i18n } = this.app
+    return i18n.t('formulaFunctions.isNullDescription')
+  }
+
+  getSyntaxUsage() {
+    return ['isnull(any)']
+  }
+
+  getExamples() {
+    return ["isnull('10') "]
+  }
+
+  getFormulaType() {
+    return 'boolean'
+  }
+}
+
 export class BaserowT extends BaserowFunctionDefinition {
   static getType() {
     return 't'

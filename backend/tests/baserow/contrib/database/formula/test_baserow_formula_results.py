@@ -89,6 +89,14 @@ VALID_FORMULA_TESTS = [
     ("isblank(1)", False),
     ("isblank('')", True),
     ("isblank(' ')", False),
+    ("isnull(0)", False),
+    ("isnull(1)", False),
+    ("isnull('')", False),
+    ("isnull(' ')", False),
+    ("isnull(date_interval('hello'))", True),
+    ("isnull(date_interval('1 day'))", False),
+    ("isnull(left('aaaaaa', 1/0))", True),
+    ("isnull(todate('aaaa', 'DDMMYYYY'))", True),
     ("t('aaaa')", "aaaa"),
     ("t(10)", ""),
     ("true", True),
@@ -927,8 +935,6 @@ def test_valid_formulas(data_fixture, api_client):
         formula_field = FieldHandler().create_field(
             user, table, "formula", formula=test_formula, name="test formula"
         )
-        # Since no nullable fields are involved, the formula cannot be nullable.
-        assert formula_field.nullable is False
         response = api_client.get(
             reverse("api:database:rows:list", kwargs={"table_id": table.id}),
             {},

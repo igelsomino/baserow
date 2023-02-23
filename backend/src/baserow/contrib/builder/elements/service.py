@@ -29,6 +29,13 @@ class ElementService:
         self.handler = ElementHandler()
 
     def get_element(self, user: AbstractUser, element_id: int) -> Element:
+        """
+        Returns an element instance from the database
+
+        :param user: The user trying to get the element
+        :param element_id: The ID of the element
+        :return: The element instance
+        """
 
         element = self.handler.get_element(element_id)
 
@@ -42,6 +49,13 @@ class ElementService:
         return element
 
     def get_elements(self, user: AbstractUser, page: Page) -> List[Element]:
+        """
+        Gets all the elements of a given page.
+
+        :param user: The user trying to get the elements
+        :param page: The page that holds the elements
+        :return: The elements of that page
+        """
 
         CoreHandler().check_permissions(
             user,
@@ -65,6 +79,16 @@ class ElementService:
     def create_element(
         self, user: AbstractUser, element_type: ElementType, page: Page, **kwargs
     ) -> Element:
+        """
+        Creates a new element for a page
+
+        :param user: The user trying to create the element
+        :param element_type: The type of the element
+        :param page: The page the element exists in
+        :param kwargs: Additional attributes of the element
+        :return: The created element
+        """
+
         CoreHandler().check_permissions(
             user,
             CreateElementOperationType.type,
@@ -79,6 +103,13 @@ class ElementService:
         return element
 
     def delete_element(self, user: AbstractUser, element: Element):
+        """
+        Deletes an element
+
+        :param user: The user trying to delete the elemtn
+        :param element: The to-be-deleted element
+        """
+
         CoreHandler().check_permissions(
             user,
             DeleteElementOperationType.type,
@@ -93,6 +124,16 @@ class ElementService:
     def update_element(
         self, user: AbstractUser, element: Element, values: Dict[str, Any]
     ) -> Element:
+        """
+        Updates and element with values. Will also check if the values are allowed
+        to be set on the element first.
+
+        :param user: The user trying to update the element
+        :param element: The element that should be updated
+        :param values: The values that should be set on the element
+        :return: The updated element
+        """
+
         CoreHandler().check_permissions(
             user,
             UpdateElementOperationType.type,
@@ -109,6 +150,15 @@ class ElementService:
     def order_elements(
         self, user: AbstractUser, page: Page, new_order: List[int]
     ) -> List[int]:
+        """
+        Orders the elements of a page in a new order
+
+        :param user: The user trying to re-order the elements
+        :param page: The page the elements exist on
+        :param new_order: The new order which they should have
+        :return: The full order of all elements after they have been ordered
+        """
+
         CoreHandler().check_permissions(
             user,
             OrderElementsPageOperationType.type,

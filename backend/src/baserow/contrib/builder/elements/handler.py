@@ -62,6 +62,7 @@ class ElementHandler:
     def delete_element(self, element: Element):
         """
         Deletes an element
+
         :param element: The to-be-deleted element
         """
 

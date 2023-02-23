@@ -90,6 +90,9 @@ class AuditLogEntry(CreatedAndUpdatedOnMixin, models.Model):
 
     class Meta:
         ordering = ["-action_timestamp"]
+        # Note: the index name will be `baserow_ent_action__8db5d6_idx`
+        # (when `workspace_id` used to be called `group_id`), but its true name
+        # is `baserow_ent_action__ca13aa_idx`. See enterprise migration 0016.
         indexes = [
             models.Index(
                 fields=["-action_timestamp", "user_id", "workspace_id", "action_type"]

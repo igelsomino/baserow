@@ -11,7 +11,8 @@ from django.db import transaction
 from django.db.models import F, Max, Q, QuerySet
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils.encoding import force_str
-from opentelemetry import trace
+
+from opentelemetry import metrics, trace
 
 from baserow.contrib.database.fields.dependencies.handler import FieldDependencyHandler
 from baserow.contrib.database.fields.dependencies.update_collector import (
@@ -63,6 +64,23 @@ RowsForUpdate = NewType("RowsForUpdate", QuerySet)
 
 
 BATCH_SIZE = 1024
+
+meter = metrics.get_meter(__name__)
+rows_created_counter = meter.create_counter(
+    "baserow.rows_created",
+    unit="1",
+    description="The number of rows created in user tables.",
+)
+rows_updated_counter = meter.create_counter(
+    "baserow.rows_updated",
+    unit="1",
+    description="The number of rows updated in user tables.",
+)
+rows_deleted_counter = meter.create_counter(
+    "baserow.rows_deleted",
+    unit="1",
+    description="The number of rows deleted in user tables.",
+)
 
 
 def serialize_errors_recursive(error):
@@ -659,6 +677,13 @@ class RowHandler(metaclass=baserow_trace_methods(tracer)):
         values, manytomany_values = self.extract_manytomany_values(values, model)
         values["order"] = self.get_order_before_row(before, model)[0]
         instance = model.objects.create(**values)
+        rows_created_counter.add(
+            1,
+            {
+                "baserow.table_id": table.id,
+                "baserow.database_id": table.database_id,
+            },
+        )
 
         for name, value in manytomany_values.items():
             getattr(instance, name).set(value)
@@ -837,6 +862,13 @@ class RowHandler(metaclass=baserow_trace_methods(tracer)):
             getattr(row, name).set(value)
 
         row.save()
+        rows_updated_counter.add(
+            1,
+            {
+                "baserow.table_id": table.id,
+                "baserow.database_id": table.database_id,
+            },
+        )
 
         update_collector = FieldUpdateCollector(
             table,
@@ -945,6 +977,13 @@ class RowHandler(metaclass=baserow_trace_methods(tracer)):
 
         inserted_rows = model.objects.bulk_create(
             [row for (row, relations) in rows_relationships]
+        )
+        rows_created_counter.add(
+            len(rows_relationships),
+            {
+                "baserow.table_id": table.id,
+                "baserow.database_id": table.database_id,
+            },
         )
 
         many_to_many = defaultdict(list)
@@ -1476,6 +1515,13 @@ class RowHandler(metaclass=baserow_trace_methods(tracer)):
 
         if len(bulk_update_fields) > 0:
             model.objects.bulk_update(rows_to_update, bulk_update_fields)
+            rows_updated_counter.add(
+                len(rows_to_update),
+                {
+                    "baserow.table_id": table.id,
+                    "baserow.database_id": table.database_id,
+                },
+            )
 
         update_collector = FieldUpdateCollector(
             table,
@@ -1703,6 +1749,13 @@ class RowHandler(metaclass=baserow_trace_methods(tracer)):
         )
 
         TrashHandler.trash(user, group, table.database, row, parent_id=table.id)
+        rows_deleted_counter.add(
+            1,
+            {
+                "baserow.table_id": table.id,
+                "baserow.database_id": table.database_id,
+            },
+        )
 
         update_collector = FieldUpdateCollector(table, starting_row_ids=[row.id])
         field_cache = FieldCache()
@@ -1798,6 +1851,13 @@ class RowHandler(metaclass=baserow_trace_methods(tracer)):
 
         TrashHandler.trash(
             user, group, table.database, trashed_rows, parent_id=table.id
+        )
+        rows_deleted_counter.add(
+            len(row_ids),
+            {
+                "baserow.table_id": table.id,
+                "baserow.database_id": table.database_id,
+            },
         )
 
         updated_field_ids = []

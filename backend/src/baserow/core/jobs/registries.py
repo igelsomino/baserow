@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from django.contrib.auth.models import AbstractUser
+
 from opentelemetry import trace
 
 from baserow.core.db import transaction_atomic
@@ -13,12 +14,12 @@ from baserow.core.registry import (
     ModelRegistryMixin,
     Registry,
 )
+from baserow.core.telemetry.utils import baserow_trace_methods
 from baserow.core.utils import Progress
 
 from .exceptions import JobTypeAlreadyRegistered, JobTypeDoesNotExist
 from .models import Job
 from .types import AnyJob
-from baserow.core.telemetry.utils import baserow_trace_methods
 
 tracer = trace.get_tracer(__name__)
 

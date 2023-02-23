@@ -7,8 +7,8 @@ from typing import Any, Dict, NewType, Optional
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from opentelemetry import trace
 
+from opentelemetry import trace
 from rest_framework import serializers
 
 from baserow.api.sessions import (
@@ -17,10 +17,10 @@ from baserow.api.sessions import (
 )
 from baserow.core.models import Group
 from baserow.core.registry import Instance, Registry
+from baserow.core.telemetry.utils import add_baserow_trace_attrs, baserow_trace_methods
 
 from .models import Action
 from .signals import ActionCommandType, action_done
-from baserow.core.telemetry.utils import add_baserow_trace_attrs, baserow_trace_methods
 
 tracer = trace.get_tracer(__name__)
 
@@ -232,7 +232,7 @@ class ActionType(
         action_timestamp = timestamp if timestamp else timezone.now()
 
         add_baserow_trace_attrs(
-            action_user_uid=user.id,
+            action_user_id=user.id,
             group_id=getattr(group, "id", None),
             action_scope=scope,
             action_type=cls.type,

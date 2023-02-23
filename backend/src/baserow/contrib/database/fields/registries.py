@@ -7,6 +7,7 @@ from django.core.files.storage import Storage
 from django.db import models as django_models
 from django.db.models import BooleanField, DurationField, Q, QuerySet
 from django.db.models.fields.related import ForeignKey, ManyToManyField
+
 from opentelemetry import trace
 
 from baserow.contrib.database.fields.constants import UPSERT_OPTION_DICT_KEY

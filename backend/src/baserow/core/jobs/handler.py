@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.utils import timezone
+
 from opentelemetry import trace
 
 from baserow.core.utils import Progress

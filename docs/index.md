@@ -42,6 +42,8 @@ Baserow by following one the guides below:
   on a fresh Ubuntu install. Please use the guides above instead.
 * [Supported runtime dependencies and environments](installation/supported.md): Learn about
   the supported and recommended runtime dependencies.
+* [Monitoring Baserow](installation/monitoring.md): Learn how to monitor your Baserow
+  server using open telemetry.
 
 ## Baserow Tutorials
 
@@ -96,6 +98,8 @@ Everything related to contributing and developing for Baserow.
   well with Baserow for development purposes.
 * [Feature flags](./development/feature-flags.md): How Baserow uses basic feature flags for optionally
   enabling unfinished or unready features.
+* [Metrics and Logs](./development/metrics-and-logs.md): How to work with metrics and logs
+  to aid with monitoring Baserow as a developer.
 
 ## Plugins
 

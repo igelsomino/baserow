@@ -93,7 +93,7 @@ from .signals import (
     group_user_updated,
     groups_reordered,
 )
-from .telemetry.utils import disable_instrumentation, baserow_trace_methods
+from .telemetry.utils import baserow_trace_methods, disable_instrumentation
 from .trash.handler import TrashHandler
 from .types import Actor, ContextObject, PermissionCheck, PermissionObjectResult
 from .utils import (

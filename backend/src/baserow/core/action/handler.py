@@ -7,11 +7,13 @@ from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+
 from loguru import logger
 from opentelemetry import trace
 
 from baserow.core.exceptions import LockConflict
 from baserow.core.telemetry.utils import baserow_trace, baserow_trace_methods
+
 from .models import Action
 from .registries import (
     ActionScopeStr,

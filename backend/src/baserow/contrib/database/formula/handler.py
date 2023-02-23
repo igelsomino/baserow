@@ -2,6 +2,7 @@ import typing
 from typing import Dict, Optional, Set, Type
 
 from django.db.models import Expression, Model
+
 from opentelemetry import trace
 
 from baserow.contrib.database.fields.dependencies.types import FieldDependencies

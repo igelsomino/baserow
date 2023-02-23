@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone, translation
 from django.utils.translation import gettext as _
+
 from itsdangerous import URLSafeTimedSerializer
 from opentelemetry import trace
 
@@ -31,6 +32,8 @@ from baserow.core.signals import (
     user_updated,
 )
 from baserow.core.trash.handler import TrashHandler
+
+from ..telemetry.utils import baserow_trace_methods
 from .emails import (
     AccountDeleted,
     AccountDeletionCanceled,
@@ -48,7 +51,6 @@ from .exceptions import (
     UserNotFound,
 )
 from .utils import normalize_email_address
-from ..telemetry.utils import baserow_trace_methods
 
 User = get_user_model()
 

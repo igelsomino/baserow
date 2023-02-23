@@ -1,10 +1,10 @@
 import functools
 import inspect
 from abc import ABCMeta
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 from opentelemetry.context import attach, detach, set_value
-from opentelemetry.trace import get_current_span, Tracer
+from opentelemetry.trace import Status, StatusCode, Tracer, get_current_span
 
 
 def disable_instrumentation(wrapped_function):
@@ -18,23 +18,24 @@ def disable_instrumentation(wrapped_function):
     return _wrapper
 
 
-# traces are have the module name included so no need for io
-BASEROW_OTEL_TRACE_PREFIX = ".io."
 # attrs don't include the module name to keep them short and easier to see so we add
 # baserow manually.
-BASEROW_OTEL_TRACE_ATTR_PREFIX = ".io.baserow."
+BASEROW_OTEL_TRACE_ATTR_PREFIX = "baserow."
 
 
 def _baserow_trace_func(wrapped_func, tracer: Tracer):
     @functools.wraps(wrapped_func)
     def _wrapper(*args, **kwargs):
         with tracer.start_as_current_span(
-            BASEROW_OTEL_TRACE_PREFIX
-            + wrapped_func.__module__
-            + "."
-            + wrapped_func.__qualname__
-        ):
-            result = wrapped_func(*args, **kwargs)
+            wrapped_func.__module__ + "." + wrapped_func.__qualname__
+        ) as span:
+            try:
+                result = wrapped_func(*args, **kwargs)
+            except Exception as ex:
+                span.set_status(Status(StatusCode.ERROR))
+                span.record_exception(ex)
+                raise ex
+
         return result
 
     return _wrapper
@@ -122,10 +123,10 @@ def baserow_trace(tracer):
 def add_baserow_trace_attrs(**kwargs):
     """
     Simple helper function for quickly adding attributes to the current span. The
-    attribute names will be prefixed with the .io.baserow. to namespace them properly.
+    attribute names will be prefixed with the baserow. to namespace them properly.
 
     :param kwargs: Key value pairs, the key will be the attr name prefixed with
-        .io.baserow. and the value will be the span attribute value.
+        baserow. and the value will be the span attribute value.
     """
 
     span = get_current_span()

@@ -2,9 +2,10 @@ import logging
 import os
 import sys
 
-from opentelemetry import trace
+from opentelemetry import metrics, trace
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
 from opentelemetry.instrumentation.celery import CeleryInstrumentor
@@ -14,6 +15,8 @@ from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs._internal.export import BatchLogRecordProcessor
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics._internal.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import ProxyTracerProvider
@@ -22,14 +25,14 @@ from opentelemetry.trace import ProxyTracerProvider
 class LogGuruCompatibleLoggerHandler(LoggingHandler):
     def emit(self, record: logging.LogRecord) -> None:
         # The Otel exporter does not handle nested dictionaries. Loguru stores all of
-        # the extra log context developers can add on the extra dict. Here we set
+        # the extra log context developers can add on the extra dict. Here unnest
         # them as attributes on the record itself so otel can export them properly.
         for k, v in record.extra.items():
-            setattr(record, f"logattr_{k}", v)
+            setattr(record, f"baserow.{k}", v)
         del record.extra
 
         # by default otel doesn't send funcName, rename it so it does.
-        record.logattr_function = record.funcName
+        setattr(record, "python_function", record.funcName)
         super().emit(record)
 
 
@@ -62,8 +65,17 @@ def setup_logging():
     # Replace it with our format, loguru recommends sending application logs to stderr.
     logger.add(sys.stderr, format=loguru_format)
     logger.info("Logger setup.")
-    if bool(os.getenv("BASEROW_ENABLE_OTEL", False)):
+    if otel_is_enabled():
         _setup_log_exporting(logger)
+
+
+def otel_is_enabled():
+    env_var_set = bool(os.getenv("BASEROW_ENABLE_OTEL", False))
+    not_in_tests = (
+        os.getenv("DJANGO_SETTINGS_MODULE", "").strip()
+        != "baserow.config.settings.test"
+    )
+    return env_var_set and not_in_tests
 
 
 def setup_telemetry(add_django_instrumentation: bool):
@@ -78,7 +90,7 @@ def setup_telemetry(add_django_instrumentation: bool):
         process that is processing requests. Don't enable this for a celery process etc.
     """
 
-    if bool(os.getenv("BASEROW_ENABLE_OTEL", False)):
+    if otel_is_enabled():
         existing_provider = trace.get_tracer_provider()
         if not isinstance(existing_provider, ProxyTracerProvider):
             print("Provider already configured not reconfiguring...")
@@ -87,6 +99,12 @@ def setup_telemetry(add_django_instrumentation: bool):
             processor = BatchSpanProcessor(OTLPSpanExporter())
             provider.add_span_processor(processor)
             trace.set_tracer_provider(provider)
+
+            reader = PeriodicExportingMetricReader(OTLPMetricExporter())
+            provider = MeterProvider(
+                metric_readers=[reader],
+            )
+            metrics.set_meter_provider(provider)
 
             _setup_standard_backend_instrumentation()
 

@@ -6,13 +6,15 @@ receivers:
 
 processors:
   # Disable sending spans for the sync templates task as it contains a huge number
-  # which pointlessly uses up resource limits.
+  # which pointlessly uses up resource limits. Also disable silk spam.
   filter:
     traces:
       span:
         - 'IsMatch(name, ".*sync_templates_task.*") == true'
+        - 'IsMatch(attributes["db.statement"], ".*silk.*") == true'
       spanevent:
         - 'IsMatch(name, ".*sync_templates_task.*") == true'
+        - 'IsMatch(attributes["db.statement"], ".*silk.*") == true'
   batch:
     send_batch_size: 1000
 
@@ -25,8 +27,8 @@ exporters:
     endpoint: "api.honeycomb.io:443"
     headers:
       "x-honeycomb-team": "${env:HONEYCOMB_API_KEY}"
+      "x-honeycomb-dataset": "${env:HONEYCOMB_METRICS_DATASET}"
   logging:
-    verbosity: detailed
 
 service:
   pipelines:

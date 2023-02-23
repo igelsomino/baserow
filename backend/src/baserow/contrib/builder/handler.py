@@ -1,5 +1,3 @@
-from typing import cast
-
 from baserow.contrib.builder.models import Builder
 from baserow.core.handler import CoreHandler
 
@@ -13,7 +11,8 @@ class BuilderHandler:
         :return: The builder model instance
         """
 
-        return cast(
-            Builder,
-            CoreHandler().get_application(builder_id),
-        ).specific
+        return (
+            CoreHandler()
+            .get_application(builder_id, base_queryset=Builder.objects)
+            .specific
+        )

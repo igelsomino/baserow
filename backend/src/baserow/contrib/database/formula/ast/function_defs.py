@@ -1207,7 +1207,7 @@ class BaserowToDate(TwoArgumentBaserowFunction):
                 date_format="ISO",
                 date_include_time=False,
                 date_time_format="24",
-                nullable=arg1.expression_type.nullable,
+                nullable=True,
             )
         )
 

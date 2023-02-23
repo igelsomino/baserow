@@ -1167,11 +1167,11 @@ export class BaserowGetLinkLabel extends BaserowFunctionDefinition {
   }
 
   getSyntaxUsage() {
-    return ['get_link_label(link)']
+    return ['get_link_label(button)']
   }
 
   getExamples() {
-    return ["get_link_url(field('formula link field')) = 'your-label'"]
+    return ["get_link_label(field('formula button field')) = 'your-label'"]
   }
 
   getFormulaType() {

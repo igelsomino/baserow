@@ -1174,15 +1174,16 @@ NULLABLE_FORMULA_TESTS = [
     ([], "tonumber('a')", False),
     ([{"type": "text", "name": "txt"}], "tonumber(field('txt'))", False),
     # date
-    ([], "todate('01012023', 'DDMMYYYY')", False),
-    ([], "day(todate('01012023', 'DDMMYYYY'))", False),
-    ([], "month(todate('01012023', 'DDMMYYYY'))", False),
-    ([], "year(todate('01012023', 'DDMMYYYY'))", False),
+    ([], "todate('01012023', 'DDMMYYYY')", True),
+    ([], "day(todate('01012023', 'DDMMYYYY'))", True),
+    ([], "month(todate('01012023', 'DDMMYYYY'))", True),
+    ([], "year(todate('01012023', 'DDMMYYYY'))", True),
     ([{"type": "date", "name": "dt"}], "field('dt')", True),
     ([{"type": "date", "name": "dt"}], "day(field('dt'))", True),
     ([{"type": "date", "name": "dt"}], "month(field('dt'))", True),
     ([{"type": "date", "name": "dt"}], "year(field('dt'))", True),
     ([{"type": "date", "name": "dt"}], "isblank(field('dt'))", False),
+    ([{"type": "date", "name": "dt"}], "isnull(field('dt'))", False),
     ([{"type": "date", "name": "dt"}], "totext(field('dt'))", False),
     ([{"type": "date", "name": "dt"}], "field('dt') + date_interval('1d')", True),
     ([{"type": "date", "name": "dt"}], "field('dt') - date_interval('1d')", True),
@@ -1199,8 +1200,8 @@ NULLABLE_FORMULA_TESTS = [
         True,
     ),
     # date intervals
-    ([], "date_interval('1d')", False),
-    ([], "todate('02012023', 'DDMMYYYY') - todate('01012023', 'DDMMYYYY')", False),
+    ([], "date_interval('1d')", True),
+    ([], "todate('02012023', 'DDMMYYYY') - todate('01012023', 'DDMMYYYY')", True),
     (
         [{"type": "date", "name": "tick"}],
         "todate('02012023', 'DDMMYYYY') - field('tick')",
@@ -1253,7 +1254,7 @@ NULLABLE_FORMULA_TESTS = [
             },
         ],
         "field('diff') + date_interval('1d')",
-        False,
+        True,
     ),
 ]
 

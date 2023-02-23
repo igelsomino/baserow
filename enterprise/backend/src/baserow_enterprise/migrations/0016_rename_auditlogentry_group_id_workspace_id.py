@@ -28,14 +28,28 @@ class Migration(migrations.Migration):
         ("baserow_enterprise", "0015_alter_team_workspace"),
     ]
 
+    forwards = """
+        ALTER TABLE baserow_enterprise_auditlogentry
+        RENAME COLUMN group_id TO workspace_id;
+        ALTER TABLE baserow_enterprise_auditlogentry
+        RENAME CONSTRAINT baserow_enterprise_auditlogentry_group_id_check TO
+        baserow_enterprise_auditlogentry_workspace_id_check;
+    """
+
+    backwards = """
+        ALTER TABLE baserow_enterprise_auditlogentry
+        RENAME COLUMN workspace_id TO group_id;
+        ALTER TABLE baserow_enterprise_auditlogentry
+        RENAME CONSTRAINT baserow_enterprise_auditlogentry_workspace_id_check TO
+        baserow_enterprise_auditlogentry_group_id_check;
+    """
+
     operations = [
         migrations.SeparateDatabaseAndState(
             database_operations=[
                 migrations.RunSQL(
-                    sql="ALTER TABLE baserow_enterprise_auditlogentry "
-                    "RENAME COLUMN group_id TO workspace_id",
-                    reverse_sql="ALTER TABLE baserow_enterprise_auditlogentry "
-                    "RENAME COLUMN workspace_id TO group_id",
+                    sql=forwards,
+                    reverse_sql=backwards,
                 ),
             ],
             state_operations=[

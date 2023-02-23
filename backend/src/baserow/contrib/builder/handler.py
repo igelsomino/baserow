@@ -13,6 +13,8 @@ class BuilderHandler:
 
         return (
             CoreHandler()
-            .get_application(builder_id, base_queryset=Builder.objects)
+            .get_application(
+                builder_id, base_queryset=Builder.objects.select_related("group")
+            )
             .specific
         )

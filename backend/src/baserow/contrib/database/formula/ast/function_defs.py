@@ -1053,7 +1053,14 @@ class BaserowErrorToNull(OneArgumentBaserowFunction):
         func_call: BaserowFunctionCall[UnTyped],
         arg: BaserowExpression[BaserowFormulaValidType],
     ) -> BaserowExpression[BaserowFormulaType]:
-        return func_call.with_valid_type(arg.expression_type, nullable=True)
+
+        # FIXME: This function should set `nullable=True` on the resulting type,
+        # but since this is used as the most external wrapper function, don't
+        # want to loose the real nullable state of the expression. This should
+        # be fixed in the future (e.g. saving only the inner expression and wrapping
+        # at runtime somehow).
+
+        return func_call.with_valid_type(arg.expression_type)
 
     def to_django_expression(self, arg: Expression) -> Expression:
         return Func(

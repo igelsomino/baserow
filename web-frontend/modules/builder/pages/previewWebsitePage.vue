@@ -15,9 +15,18 @@ import { resolveApplicationRoute } from '@baserow/modules/builder/utils/routing'
 export default {
   components: { PageContent },
   async asyncData(context) {
-    const application = await publicSiteService(context.$client).fetchById(
-      context.route.params.id
-    )
+    let application
+
+    try {
+      application = await publicSiteService(context.$client).fetchById(
+        context.route.params.id
+      )
+    } catch (e) {
+      return context.error({
+        statusCode: 404,
+        message: 'Application not found.',
+      })
+    }
 
     const found = resolveApplicationRoute(
       application,
@@ -25,11 +34,10 @@ export default {
     )
     // Handle 404
     if (!found) {
-      context.error({
+      return context.error({
         statusCode: 404,
         message: 'Page not found.',
       })
-      return {}
     }
 
     const [page, path, params] = found

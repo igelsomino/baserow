@@ -19,19 +19,26 @@ export default {
       ? context.req.headers.host
       : window.location.host
     const hostname = new URL(`http://${host}`).hostname
+    let application
 
-    const application = await publicSiteService(
-      context.$client
-    ).fetchByHostname(hostname)
+    try {
+      application = await publicSiteService(context.$client).fetchByHostname(
+        hostname
+      )
+    } catch (e) {
+      return context.error({
+        statusCode: 404,
+        message: 'Domain not found.',
+      })
+    }
 
     const found = resolveApplicationRoute(application, context.route.path)
     // Handle 404
     if (!found) {
-      context.error({
+      return context.error({
         statusCode: 404,
         message: 'Page not found.',
       })
-      return {}
     }
 
     const [page, path, params] = found

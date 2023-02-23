@@ -21,16 +21,23 @@ const fakeApplicationData = [
 export default (client) => {
   return {
     fetchByHostname(hostname) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         for (const app of fakeApplicationData) {
           if (app.hostname === hostname) {
             return resolve(app)
           }
         }
+        reject(new Error('Application not found.'))
       })
     },
     fetchById(appId) {
-      return new Promise((resolve) => resolve(fakeApplicationData[appId]))
+      return new Promise((resolve, reject) => {
+        if (Object.prototype.hasOwnProperty.call(fakeApplicationData, appId)) {
+          resolve(fakeApplicationData[appId])
+        } else {
+          reject(new Error('Application not found.'))
+        }
+      })
     },
   }
 }

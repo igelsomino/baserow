@@ -83,8 +83,9 @@ class TeamResponseSerializer(serializers.ModelSerializer):
     )
     group = serializers.IntegerField(
         source="group_id",
-        help_text="The group that this team belongs to. "
-        "Deprecated, please use `workspace`.",
+        help_text="DEPRECATED: Please use the functionally identical "
+        "`workspace` instead as this field is "
+        "being removed in the future.",
     )  # GroupDeprecation
     subject_count = serializers.IntegerField(
         help_text="The amount of subjects (e.g. users) that are currently assigned to this team."

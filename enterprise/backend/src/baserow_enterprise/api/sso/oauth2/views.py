@@ -50,9 +50,9 @@ class OAuth2LoginView(APIView):
                 name="group_invitation_token",
                 location=OpenApiParameter.QUERY,
                 type=OpenApiTypes.STR,
-                description="The invitation token sent to the user to join a specific "
-                "group. Deprecated, please use "
-                "`workspace_invitation_token`.",
+                description="Please use the functionally identical "
+                "`workspace_invitation_token` instead as this querystring "
+                "is being removed in the future.",
             ),
             OpenApiParameter(
                 name="workspace_invitation_token",

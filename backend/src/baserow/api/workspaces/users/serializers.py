@@ -14,8 +14,9 @@ User = get_user_model()
 class WorkspaceUserSerializer(serializers.ModelSerializer):
     group = serializers.IntegerField(
         source="group_id",
-        help_text="The group that the user has access to. "
-        "Deprecated, please use `workspace`.",
+        help_text="DEPRECATED: Please use the functionally identical "
+        "`workspace` instead as this field is "
+        "being removed in the future.",
     )  # GroupDeprecation
     name = serializers.SerializerMethodField(help_text="User defined name.")
     email = serializers.SerializerMethodField(help_text="User email.")

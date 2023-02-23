@@ -7,15 +7,16 @@ class SettingsSerializer(serializers.ModelSerializer):
     allow_global_group_creation = serializers.BooleanField(
         required=False,
         source="allow_global_workspace_creation",
-        help_text="Indicates whether all users can create groups, or just staff. "
-        "Deprecated, please use `allow_global_workspace_creation`.",
+        help_text="DEPRECATED: Please use the functionally identical "
+        "`allow_global_workspace_creation` instead as this attribute is "
+        "being removed in the future.",
     )  # GroupDeprecation
     allow_signups_via_group_invitations = serializers.BooleanField(
         required=False,
         source="allow_signups_via_workspace_invitations",
-        help_text="Indicates whether invited users can create an account when signing "
-        "up, even if allow_new_signups is disabled. Deprecated, please use "
-        "`allow_signups_via_workspace_invitations`.",
+        help_text="DEPRECATED: Please use the functionally identical "
+        "`allow_signups_via_workspace_invitations` instead as this attribute "
+        "is being removed in the future.",
     )  # GroupDeprecation
 
     class Meta:

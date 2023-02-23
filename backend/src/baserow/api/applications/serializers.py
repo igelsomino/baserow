@@ -15,8 +15,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
     # GroupDeprecation
     group = WorkspaceSerializer(
         source="workspace",
-        help_text="The group that the application belongs to ("
-        "deprecated, please use `workspace`).",
+        help_text="DEPRECATED: Please use the functionally identical "
+        "`workspace` instead as this field is "
+        "being removed in the future.",
     )
     workspace = WorkspaceSerializer(
         help_text="The workspace that the application belongs to."

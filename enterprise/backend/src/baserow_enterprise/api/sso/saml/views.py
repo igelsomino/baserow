@@ -116,9 +116,9 @@ class BaserowInitiatedSingleSignOn(APIView):
                 location=OpenApiParameter.QUERY,
                 type=OpenApiTypes.STR,
                 description=(
-                    "If provided and valid, the user accepts the group invitation "
-                    "and will have access to the group after login or signing up. "
-                    "Deprecated, please use `workspace_invitation_token`."
+                    "Please use the functionally identical "
+                    "`workspace_invitation_token` instead as this querystring "
+                    "is being removed in the future"
                 ),
             ),
             OpenApiParameter(
@@ -199,9 +199,9 @@ class AdminAuthProvidersLoginUrlView(APIView):
                 location=OpenApiParameter.QUERY,
                 type=OpenApiTypes.STR,
                 description=(
-                    "If provided and valid, the user accepts the group invitation "
-                    "and will have access to the group after login or signing up. "
-                    "Deprecated, please use `workspace_invitation_token`."
+                    "Please use the functionally identical "
+                    "`workspace_invitation_token` instead as this querystring "
+                    "is being removed in the future."
                 ),
             ),
             OpenApiParameter(

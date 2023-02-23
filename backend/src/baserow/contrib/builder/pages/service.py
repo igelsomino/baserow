@@ -74,7 +74,7 @@ class PageService:
         """
         Deletes the page provided
 
-        :param user: The user trying to delte the page
+        :param user: The user trying to delete the page
         :param page: The page that's supposed to be deleted
         """
 

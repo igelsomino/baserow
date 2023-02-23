@@ -9,6 +9,7 @@ from baserow.contrib.builder.elements.operations import (
     ListElementsPageOperationType,
     ReadElementOperationType,
     UpdateElementOperationType,
+    OrderElementsPageOperationType,
 )
 from baserow.contrib.builder.operations import (
     ListPagesBuilderOperationType,
@@ -280,6 +281,7 @@ BUILDER_OPS = EDITOR_OPS + [
     DeleteElementOperationType,
     ReadElementOperationType,
     ListElementsPageOperationType,
+    OrderElementsPageOperationType,
 ]
 ADMIN_OPS = BUILDER_OPS + [
     UpdateGroupOperationType,

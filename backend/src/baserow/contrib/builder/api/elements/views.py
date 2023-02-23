@@ -83,10 +83,12 @@ class ElementsView(APIView):
         """Creates a new element."""
 
         type_name = data.pop("type")
-        page = PageHandler().get_page(page_id)
+        page = PageHandler().get_page_temp(page_id)
 
         element_type = element_type_registry.get(type_name)
-        element = ElementService().create_element(request.user, element_type, page)
+        element = ElementService().create_element(
+            request.user, element_type, page, **data
+        )
 
         serializer = element_type_registry.get_serializer(element, ElementSerializer)
         return Response(serializer.data)

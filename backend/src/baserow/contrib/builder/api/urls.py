@@ -27,7 +27,7 @@ paths_without_builder_id = [
         "",
         include(
             element_urls,
-            namespace="elements",
+            namespace="element",
         ),
     ),
 ]

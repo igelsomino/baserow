@@ -24,15 +24,13 @@ class ElementType(
 ):
     """Element type"""
 
-    # style_serializer_class: Type[serializers.Serializer] = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.serializer_field_overrides = {
             "config": self.get_config_serializer_class()(
                 required=False,
-                help_text="The configuration of the element",
+                help_text="The configuration of the element.",
             ),
         }
 
@@ -89,6 +87,14 @@ class ElementType(
     @abstractmethod
     def get_sample_params(self) -> Dict[str, Any]:
         ...
+
+    def get_serializer_class(self, *args, **kwargs):
+        # Add meta ref name to avoid name collision
+        return super().get_serializer_class(
+            *args,
+            meta_ref_name=f"Generated{self.type.capitalize()}{kwargs['base_class'].__name__}",
+            **kwargs,
+        )
 
 
 class ElementTypeRegistry(Registry, ModelRegistryMixin, CustomFieldsRegistryMixin):

@@ -28,29 +28,25 @@ class ElementSerializer(serializers.ModelSerializer):
 
 class CreateElementSerializer(serializers.ModelSerializer):
     type = serializers.ChoiceField(
-        choices=lazy(element_type_registry.get_types, list)(), required=True
+        choices=lazy(element_type_registry.get_types, list)(),
+        required=True,
+        help_text="The type of the element.",
     )
-    before_id = serializers.IntegerField()
+    before_id = serializers.IntegerField(
+        required=False,
+        help_text="If provided, creates the element before the element with the "
+        "given id.",
+    )
 
     class Meta:
         model = Element
         fields = ("type", "config", "before_id")
-        extra_kwargs = {
-            "before_id": {
-                "required": False,
-                "help_text": "If provided, creates the element before the element "
-                "with the given id.",
-            },
-        }
 
 
 class UpdateElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
         fields = ("config",)
-        extra_kwargs = {
-            "config": {"required": False},
-        }
 
 
 class OrderElementsSerializer(serializers.Serializer):

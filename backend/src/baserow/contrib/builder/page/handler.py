@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
 from baserow.contrib.builder.page.models import Page
+from baserow.core.exceptions import IdDoesNotExist
 
 
 class PageHandler:
@@ -83,12 +84,9 @@ class PageHandler:
         if base_qs is None:
             base_qs = Page.objects.filter(builder=builder)
 
-        page_ids = base_qs.values_list("id", flat=True)
-
-        for page_id in order:
-            if page_id not in page_ids:
-                raise PageNotInBuilder(page_id)
-
-        full_order = Page.order_objects(base_qs, order)
+        try:
+            full_order = Page.order_objects(base_qs, order)
+        except IdDoesNotExist as error:
+            raise PageNotInBuilder(error.not_existing_id)
 
         return full_order

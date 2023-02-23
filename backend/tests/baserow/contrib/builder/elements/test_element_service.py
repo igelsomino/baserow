@@ -151,7 +151,9 @@ def test_order_elements(data_fixture):
     element2 = data_fixture.create_builder_header_element(page=page)
     element3 = data_fixture.create_builder_header_element(page=page)
 
-    ElementService().order_elements(user, page, [element3.id, element1.id])
+    full_order = ElementService().order_elements(user, page, [element3.id, element1.id])
+
+    assert full_order == [element2.id, element3.id, element1.id]
 
     first, second, third = Element.objects.all()
 

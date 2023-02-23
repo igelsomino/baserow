@@ -38,7 +38,7 @@ class ElementHandler:
     def delete_element(self, element: Element):
         element.delete()
 
-    def update_element(self, element: Element, values: Dict[str, Any]):
+    def update_element(self, element: Element, values: Dict[str, Any]) -> Element:
 
         shared_allowed_fields = ["config"]
 
@@ -55,9 +55,9 @@ class ElementHandler:
 
         return element
 
-    def order_elements(self, page, newOrder: List[int]):
+    def order_elements(self, page: Page, new_order: List[int]) -> List[int]:
         all_elements = Element.objects.filter(page=page)
 
-        full_order = Element.order_objects(all_elements, newOrder)
+        full_order = Element.order_objects(all_elements, new_order)
 
         return full_order

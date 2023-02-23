@@ -28,7 +28,7 @@ class ElementService:
     def __init__(self):
         self.handler = ElementHandler()
 
-    def get_element(self, user: AbstractUser, element_id: int):
+    def get_element(self, user: AbstractUser, element_id: int) -> Element:
 
         element = self.handler.get_element(element_id)
 
@@ -41,7 +41,7 @@ class ElementService:
 
         return element
 
-    def get_elements(self, user: AbstractUser, page: Page):
+    def get_elements(self, user: AbstractUser, page: Page) -> List[Element]:
 
         CoreHandler().check_permissions(
             user,
@@ -92,7 +92,7 @@ class ElementService:
 
     def update_element(
         self, user: AbstractUser, element: Element, values: Dict[str, Any]
-    ):
+    ) -> Element:
         CoreHandler().check_permissions(
             user,
             UpdateElementOperationType.type,
@@ -106,7 +106,9 @@ class ElementService:
 
         return element
 
-    def order_elements(self, user: AbstractUser, page: Page, newOrder: List[int]):
+    def order_elements(
+        self, user: AbstractUser, page: Page, new_order: List[int]
+    ) -> List[int]:
         CoreHandler().check_permissions(
             user,
             OrderElementsPageOperationType.type,
@@ -127,10 +129,12 @@ class ElementService:
         element_ids = set(user_elements.values_list("id", flat=True))
 
         # Check if all ids belongs to the page and if the user has access to it
-        for element_id in newOrder:
+        for element_id in new_order:
             if element_id not in element_ids:
                 raise ElementNotInPage(element_id)
 
-        full_order = self.handler.order_elements(page, newOrder)
+        full_order = self.handler.order_elements(page, new_order)
 
         elements_reordered.send(self, page=page, order=full_order, user=user)
+
+        return full_order

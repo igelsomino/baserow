@@ -316,6 +316,7 @@ def _calculate_addition_interval_type(
     else:
         # date + interval = date
         resulting_type = arg1_type
+    resulting_type.nullable = arg1_type.nullable or arg2_type.nullable
     return resulting_type
 
 

@@ -26,6 +26,16 @@
       <div class="context__menu-title">{{ page.name }} ({{ page.id }})</div>
       <ul class="context__menu">
         <li
+          v-if="
+            $hasPermission('builder.page.run_export', page, builder.group.id)
+          "
+        >
+          <a @click="exportPage()">
+            <i class="context__menu-icon fas fa-fw fa-file-export"></i>
+            {{ $t('sidebarItemBuilder.exportPage') }}
+          </a>
+        </li>
+        <li
           v-if="$hasPermission('builder.page.update', page, builder.group.id)"
         >
           <a @click="enableRename()">
@@ -202,6 +212,7 @@ export default {
 
       this.$refs.context.hide()
     },
+    exportPage() {},
   },
 }
 </script>

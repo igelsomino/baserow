@@ -6,6 +6,9 @@
         "settings": "Settings",
         "createPage": "Create page"
     },
+    "sidebarItemBuilder":{
+        "exportPage": "Export page"
+    },
     "builderSettingsModal": {
         "title": "Application"
     },

@@ -25,3 +25,7 @@ class ReadPageOperationType(BuilderPageOperationType):
 
 class DuplicatePageOperationType(BuilderPageOperationType):
     type = "builder.page.duplicate"
+
+
+class ExportPageOperationType(BuilderPageOperationType):
+    type = "builder.page.run_export"

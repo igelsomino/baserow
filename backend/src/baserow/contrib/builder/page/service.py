@@ -89,7 +89,7 @@ class PageService:
 
         page_deleted.send(self, builder=page.builder, page_id=page.id, user=user)
 
-    def update_page(self, user: AbstractUser, page: Page, values: Dict) -> Page:
+    def update_page(self, user: AbstractUser, page: Page, **kwargs) -> Page:
         """
         Updates fields of a page
 
@@ -106,9 +106,9 @@ class PageService:
             context=page,
         )
 
-        allowed_updates = extract_allowed(values, ["name"])
+        allowed_updates = extract_allowed(kwargs, ["name"])
 
-        self.handler.update_page(page, allowed_updates)
+        self.handler.update_page(page, **allowed_updates)
 
         page_updated.send(self, page=page, user=user)
 

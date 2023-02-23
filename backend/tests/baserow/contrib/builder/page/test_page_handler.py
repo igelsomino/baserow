@@ -57,7 +57,7 @@ def test_delete_page(data_fixture):
 def test_update_page(data_fixture):
     page = data_fixture.create_builder_page(name="test")
 
-    PageHandler().update_page(page, {"name": "new"})
+    PageHandler().update_page(page, name="new")
 
     page.refresh_from_db()
 

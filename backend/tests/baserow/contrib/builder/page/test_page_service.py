@@ -98,7 +98,7 @@ def test_update_page(data_fixture):
 
     new_name = "test"
 
-    page_updated = PageService().update_page(user, page, {"name": new_name})
+    page_updated = PageService().update_page(user, page, name=new_name)
 
     assert page_updated.name == new_name
 
@@ -110,7 +110,7 @@ def test_update_page_user_not_in_group(data_fixture):
     page = data_fixture.create_builder_page(builder=builder)
 
     with pytest.raises(UserNotInGroup):
-        PageService().update_page(user, page, {"name": "test"})
+        PageService().update_page(user, page, name="test")
 
 
 @pytest.mark.django_db
@@ -119,7 +119,7 @@ def test_update_page_invalid_values(data_fixture):
     builder = data_fixture.create_builder_application(user=user)
     page = data_fixture.create_builder_page(builder=builder)
 
-    page_updated = PageService().update_page(user, page, {"nonsense": "hello"})
+    page_updated = PageService().update_page(user, page, nonsense="hello")
 
     assert hasattr(page_updated, "nonsense") is False
 

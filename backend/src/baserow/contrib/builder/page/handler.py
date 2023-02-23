@@ -50,7 +50,7 @@ class PageHandler:
 
         page.delete()
 
-    def update_page(self, page: Page, values: Dict) -> Page:
+    def update_page(self, page: Page, **kwargs) -> Page:
         """
         Updates fields of a page
 
@@ -59,7 +59,7 @@ class PageHandler:
         :return: The updated page
         """
 
-        for key, value in values.items():
+        for key, value in kwargs.items():
             setattr(page, key, value)
 
         page.save()

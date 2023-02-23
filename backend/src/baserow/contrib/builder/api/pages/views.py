@@ -107,7 +107,7 @@ class PageView(APIView):
     def patch(self, request, data: Dict, page_id: int):
         page = PageService().get_page(request.user, page_id)
 
-        page_updated = PageService().update_page(request.user, page, data)
+        page_updated = PageService().update_page(request.user, page, **data)
 
         serializer = PageSerializer(page_updated)
         return Response(serializer.data)

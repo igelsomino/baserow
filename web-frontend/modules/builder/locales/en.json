@@ -14,11 +14,11 @@
         "themeName": "Theme"
     },
     "createPageModal": {
-        "header": "Create page"
+        "header": "Create page",
+        "submit": "Add page"
     },
-    "createPageForm": {
+    "pageForm": {
         "nameLabel": "Name",
-        "submit": "Add page",
         "errorNameNotUnique": "A page with this name already exists",
         "defaultName": "Page"
     }

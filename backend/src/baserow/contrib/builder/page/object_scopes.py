@@ -3,7 +3,7 @@ from typing import Optional
 from django.db.models import Q
 
 from baserow.contrib.builder.object_scopes import BuilderObjectScopeType
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 from baserow.core.object_scopes import ApplicationObjectScopeType, GroupObjectScopeType
 from baserow.core.registries import ObjectScopeType, object_scope_type_registry
 from baserow.core.types import ContextObject

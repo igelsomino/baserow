@@ -5,6 +5,7 @@ from rest_framework.status import (
     HTTP_200_OK,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
 
@@ -40,8 +41,8 @@ def test_create_page_user_not_in_group(api_client, data_fixture):
         url, {"name": "test"}, format="json", HTTP_AUTHORIZATION=f"JWT {token}"
     )
 
-    assert response.status_code == HTTP_400_BAD_REQUEST
-    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+    assert response.json()["error"] == "PERMISSION_DENIED"
 
 
 @pytest.mark.django_db
@@ -122,8 +123,8 @@ def test_order_pages_user_not_in_group(api_client, data_fixture):
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
 
-    assert response.status_code == HTTP_400_BAD_REQUEST
-    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+    assert response.json()["error"] == "PERMISSION_DENIED"
 
 
 @pytest.mark.django_db
@@ -195,8 +196,8 @@ def test_delete_page_user_not_in_group(api_client, data_fixture):
         HTTP_AUTHORIZATION=f"JWT {token}",
     )
 
-    assert response.status_code == HTTP_400_BAD_REQUEST
-    assert response.json()["error"] == "ERROR_USER_NOT_IN_GROUP"
+    assert response.status_code == HTTP_401_UNAUTHORIZED
+    assert response.json()["error"] == "PERMISSION_DENIED"
 
 
 @pytest.mark.django_db

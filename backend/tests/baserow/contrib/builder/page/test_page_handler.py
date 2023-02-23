@@ -1,161 +1,78 @@
-from django.db import IntegrityError
-
 import pytest
 
-from baserow.contrib.builder.page.exceptions import PageNotInBuilder
+from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
 from baserow.contrib.builder.page.handler import PageHandler
-from baserow.contrib.builder.page.model import Page
-from baserow.core.exceptions import UserNotInGroup
-
-
-@pytest.mark.django_db
-def test_create_page(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-
-    page = PageHandler().create_page(user, builder, "test")
-
-    assert page.builder is builder
-    assert page.name == "test"
-    assert page.order == 1
-    assert Page.objects.count() == 1
-
-
-@pytest.mark.django_db(transaction=True)
-def test_create_page_same_page_name(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-
-    name = "test"
-
-    PageHandler().create_page(user, builder, name)
-
-    with pytest.raises(IntegrityError):
-        PageHandler().create_page(user, builder, name)
-
-    assert Page.objects.count() == 1
-
-
-@pytest.mark.django_db
-def test_create_page_user_not_in_group(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application()
-
-    with pytest.raises(UserNotInGroup):
-        PageHandler().create_page(user, builder, "test")
-
-
-@pytest.mark.django_db
-def test_delete_page(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-
-    page = PageHandler().create_page(user, builder, "test")
-
-    PageHandler().delete_page(user, page)
-
-    assert Page.objects.count() == 0
-
-
-@pytest.mark.django_db(transaction=True)
-def test_delete_page_user_not_in_group(data_fixture):
-    user = data_fixture.create_user()
-    user_unrelated = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-
-    page = PageHandler().create_page(user, builder, "test")
-
-    with pytest.raises(UserNotInGroup):
-        PageHandler().delete_page(user_unrelated, page)
-
-    assert Page.objects.count() == 1
+from baserow.contrib.builder.page.models import Page
 
 
 @pytest.mark.django_db
 def test_get_page(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-    page = data_fixture.create_builder_page(builder=builder)
-
-    assert PageHandler().get_page(user, page.id).id == page.id
+    page = data_fixture.create_builder_page()
+    assert PageHandler().get_page(page.id).id == page.id
 
 
 @pytest.mark.django_db
-def test_get_page_user_not_in_group(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application()
-    page = data_fixture.create_builder_page(builder=builder)
+def test_get_page_page_does_not_exist(data_fixture):
+    with pytest.raises(PageDoesNotExist):
+        PageHandler().get_page(9999)
 
-    with pytest.raises(UserNotInGroup):
-        PageHandler().get_page(user, page.id)
+
+@pytest.mark.django_db
+def test_create_page(data_fixture):
+    builder = data_fixture.create_builder_application()
+    expected_order = Page.get_last_order(builder)
+
+    page = PageHandler().create_page(builder, "test")
+
+    assert page.order == expected_order
+    assert page.name == "test"
+
+
+@pytest.mark.django_db
+def test_delete_page(data_fixture):
+    page = data_fixture.create_builder_page()
+
+    PageHandler().delete_page(page)
+
+    assert Page.objects.count() == 0
 
 
 @pytest.mark.django_db
 def test_update_page(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-    page = data_fixture.create_builder_page(builder=builder)
+    page = data_fixture.create_builder_page(name="test")
 
-    new_name = "test"
+    PageHandler().update_page(page, {"name": "new"})
 
-    page_updated = PageHandler().update_page(user, page, {"name": new_name})
+    page.refresh_from_db()
 
-    assert page_updated.name == new_name
-
-
-@pytest.mark.django_db
-def test_update_page_user_not_in_group(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application()
-    page = data_fixture.create_builder_page(builder=builder)
-
-    with pytest.raises(UserNotInGroup):
-        PageHandler().update_page(user, page, {"name": "test"})
-
-
-@pytest.mark.django_db
-def test_update_page_invalid_values(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-    page = data_fixture.create_builder_page(builder=builder)
-
-    page_updated = PageHandler().update_page(user, page, {"nonsense": "hello"})
-
-    assert hasattr(page_updated, "nonsense") is False
+    assert page.name == "new"
 
 
 @pytest.mark.django_db
 def test_order_pages(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
-    page_one = data_fixture.create_builder_page(builder=builder, order=1)
-    page_two = data_fixture.create_builder_page(builder=builder, order=2)
-
-    PageHandler().order_pages(user, builder, [page_two.id, page_one.id])
-
-    page_one.refresh_from_db()
-    page_two.refresh_from_db()
-
-    assert page_one.order > page_two.order
-
-
-@pytest.mark.django_db
-def test_order_pages_user_not_in_group(data_fixture):
-    user = data_fixture.create_user()
     builder = data_fixture.create_builder_application()
     page_one = data_fixture.create_builder_page(builder=builder, order=1)
     page_two = data_fixture.create_builder_page(builder=builder, order=2)
 
-    with pytest.raises(UserNotInGroup):
-        PageHandler().order_pages(user, builder, [page_two.id, page_one.id])
+    assert PageHandler().order_pages(builder, [page_two.id, page_one.id]) == [
+        page_two.id,
+        page_one.id,
+    ]
+
+    page_one.refresh_from_db()
+    page_two.refresh_from_db()
+
+    assert page_one.order == 2
+    assert page_two.order == 1
 
 
 @pytest.mark.django_db
 def test_order_pages_page_not_in_builder(data_fixture):
-    user = data_fixture.create_user()
-    builder = data_fixture.create_builder_application(user=user)
+    builder = data_fixture.create_builder_application()
     page_one = data_fixture.create_builder_page(builder=builder, order=1)
-    page_two = data_fixture.create_builder_page(order=2)
+    page_two = data_fixture.create_builder_page(builder=builder, order=2)
+
+    base_qs = Page.objects.filter(id=page_two.id)
 
     with pytest.raises(PageNotInBuilder):
-        PageHandler().order_pages(user, builder, [page_two.id, page_one.id])
+        PageHandler().order_pages(builder, [page_two.id, page_one.id], base_qs=base_qs)

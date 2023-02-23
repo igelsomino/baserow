@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from baserow.contrib.builder.page.model import Page
+from baserow.contrib.builder.page.models import Page
 
 
 class PageSerializer(serializers.ModelSerializer):

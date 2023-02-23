@@ -25,5 +25,7 @@ class BuilderObjectScopeType(ObjectScopeType):
             return Q(group__in=[s.id for s in scopes])
         if scope_type.type == ApplicationObjectScopeType.type:
             return Q(id__in=[s.id for s in scopes])
+        if scope_type.type == self.type:
+            return Q(id__in=[s.id for s in scopes])
 
         raise TypeError("The given type is not handled.")

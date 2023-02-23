@@ -46,7 +46,7 @@ const actions = {
   forceUpdate({ commit }, { page, values }) {
     commit('UPDATE_ITEM', { page, values })
   },
-  forceAdd({ commit }, { builder, page }) {
+  forceCreate({ commit }, { builder, page }) {
     commit('ADD_ITEM', { builder, page })
   },
   async selectById({ commit, dispatch }, { builderId, pageId }) {
@@ -83,7 +83,7 @@ const actions = {
 
     commit('DELETE_ITEM', { builder, id: page.id })
   },
-  async add({ commit, dispatch }, { builder, name }) {
+  async create({ commit, dispatch }, { builder, name }) {
     const { data: page } = await PageService(this.$client).create(
       builder.id,
       name
@@ -92,6 +92,8 @@ const actions = {
     commit('ADD_ITEM', { builder, page })
 
     dispatch('selectById', { builderId: builder.id, pageId: page.id })
+
+    return page
   },
   async update({ dispatch }, { builder, page, values }) {
     const { data } = await PageService(this.$client).update(page.id, values)
@@ -115,7 +117,7 @@ const actions = {
     commit('ORDER_PAGES', { builder, order, isHashed })
 
     try {
-      await PageService(this.$client).order(order)
+      await PageService(this.$client).order(builder.id, order)
     } catch (error) {
       commit('ORDER_PAGES', { builder, order: oldOrder, isHashed })
       throw error

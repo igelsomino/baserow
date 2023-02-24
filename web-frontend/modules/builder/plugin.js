@@ -16,7 +16,7 @@ import { registerRealtimeEvents } from '@baserow/modules/builder/realtime'
 import {
   HeaderElementType,
   ParagraphElementType,
-} from '@baserow/modules/builder/element_types'
+} from '@baserow/modules/builder/elementTypes'
 
 export default (context) => {
   const { store, app, isDev } = context

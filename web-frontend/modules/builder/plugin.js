@@ -13,6 +13,7 @@ import {
 
 import pageStore from '@baserow/modules/builder/store/page'
 import { registerRealtimeEvents } from '@baserow/modules/builder/realtime'
+import { HeaderElementType } from '@baserow/modules/builder/element_types'
 
 export default (context) => {
   const { store, app, isDev } = context
@@ -34,6 +35,7 @@ export default (context) => {
   store.registerModule('page', pageStore)
 
   app.$registry.registerNamespace('builderSettings')
+  app.$registry.registerNamespace('element')
 
   app.$registry.register('application', new BuilderApplicationType(context))
 
@@ -45,4 +47,6 @@ export default (context) => {
     'builderSettings',
     new ThemeBuilderSettingsType(context)
   )
+
+  app.$registry.register('element', new HeaderElementType(context))
 }

@@ -37,7 +37,7 @@ def test_can_undo_batch_assign_role(data_fixture, enterprise_data_fixture):
     viewer_role = Role.objects.get(uid="VIEWER")
 
     new_role_assignments = [
-        NewRoleAssignment(user2, editor_role, group),
+        NewRoleAssignment(user2, editor_role, workspace),
         NewRoleAssignment(user2, builder_role, table),
         NewRoleAssignment(user2, viewer_role, database.application_ptr),
         NewRoleAssignment(user3, builder_role, workspace),

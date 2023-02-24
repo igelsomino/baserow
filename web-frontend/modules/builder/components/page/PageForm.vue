@@ -83,13 +83,6 @@ export default {
     }
   },
   methods: {
-    submit() {
-      this.$v.$touch()
-      if (this.$v.$invalid) {
-        return
-      }
-      this.$emit('submit', this.values)
-    },
     isNameUnique(name) {
       return !this.pageNames.includes(name)
     },

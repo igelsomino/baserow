@@ -9,7 +9,7 @@ export const setToken = ({ $cookies, $env }, token, key = cookieTokenName) => {
   $cookies.set(key, token, {
     path: '/',
     maxAge: 60 * 60 * 24 * 7,
-    sameSite: 'lax',
+    sameSite: $env.BASEROW_SAME_SITE_TOKEN_COOKIE,
     secure,
   })
 }

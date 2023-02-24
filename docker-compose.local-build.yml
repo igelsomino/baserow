@@ -169,6 +169,7 @@ services:
       ADDITIONAL_MODULES:
       BASEROW_MAX_IMPORT_FILE_SIZE_MB:
       BASEROW_MAX_SNAPSHOTS_PER_GROUP:
+      BASEROW_SAME_SITE_TOKEN_COOKIE:
     depends_on:
       - backend
     networks:

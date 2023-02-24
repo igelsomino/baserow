@@ -106,6 +106,10 @@ export default function CoreModule(options) {
           key: 'BASEROW_FRONTEND_JOBS_POLLING_TIMEOUT_MS',
           default: 2000,
         },
+        {
+          key: 'BASEROW_SAME_SITE_TOKEN_COOKIE',
+          default: 'none',
+        },
       ],
     },
   ])

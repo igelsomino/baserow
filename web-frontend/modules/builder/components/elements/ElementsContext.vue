@@ -1,10 +1,10 @@
 <template>
   <Context class="elements-context">
     <Search
-      v-model="search"
       :placeholder="$t('elementsContext.searchPlaceholder')"
       class="elements-context__search"
       simple
+      @input="search = $event.target.value"
     />
     <ElementsList class="context__menu" :elements="elements" />
   </Context>
@@ -20,12 +20,26 @@ export default {
   mixins: [context],
   data() {
     return {
-      search: 'test',
+      search: null,
     }
   },
   computed: {
     elements() {
-      return this.$registry.getAll('element')
+      const allElements = Object.values(this.$registry.getAll('element'))
+
+      if (
+        this.search === '' ||
+        this.search === null ||
+        this.search === undefined
+      ) {
+        return allElements
+      }
+
+      return allElements.filter((element) => {
+        const nameSanitised = element.name.toLowerCase()
+        const searchSanitised = this.search.toLowerCase().trim()
+        return nameSanitised.includes(searchSanitised)
+      })
     },
   },
 }

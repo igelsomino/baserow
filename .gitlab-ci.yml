@@ -551,17 +551,15 @@ build-final-web-frontend-image:
 # ==================================== E2E TESTS ======================================
 
 e2e-tests:
+  extends:
+    - .skippable-job
+    - .docker-image-test-stage
   variables:
     RUN_WHEN_CHANGES_MADE_IN: "backend/ premium/backend/ enterprise/backend/ web-frontend/ premium/web-frontend/ enterprise/web-frontend/ e2e-tests/"
-  extends:
-    - .docker-image-test-stage
-    - .skippable-job
+    DOWNLOAD_AND_UNPACK_ARTIFACTS_ON_SKIP: 'true'
   needs:
     - job: build-backend-image
     - job: build-web-frontend-image
-  services:
-    - name: docker:20.10.12-dind
-      alias: docker
   script:
     - cd e2e-tests
     - docker-compose up --exit-code-from e2e-tests

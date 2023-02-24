@@ -1,5 +1,6 @@
 import abc
 import typing
+from datetime import datetime
 from decimal import Decimal
 from typing import Generic, List, Optional, Tuple, Type, TypeVar
 
@@ -290,6 +291,21 @@ class ArgCountSpecifier(abc.ABC):
         pass
 
 
+class BaserowExpressionContext:
+    def __init__(self, model: Type[Model], model_instance: Optional[Model]):
+        self.model = model
+        self.model_instance = model_instance
+        self.group = model.get_root()
+
+    def get_or_update_utc_now(self):
+        utc_now = self.group.last_formula_periodic_update_at
+        if utc_now is None:
+            self.group.last_formula_periodic_update_at = utc_now = datetime.utcnow()
+            self.group.save()
+            # trigger the update task to update all other formulas
+        return utc_now
+
+
 class BaserowFunctionCall(BaserowExpression[A]):
     """
     Represents a function call with arguments to the function defined by function_def.
@@ -345,12 +361,9 @@ class BaserowFunctionCall(BaserowExpression[A]):
     def to_django_expression_given_args(
         self,
         args: List["WrappedExpressionWithMetadata"],
-        model: Type[Model],
-        model_instance: Optional[Model],
+        context: BaserowExpressionContext,
     ) -> "WrappedExpressionWithMetadata":
-        return self.function_def.to_django_expression_given_args(
-            args, model, model_instance
-        )
+        return self.function_def.to_django_expression_given_args(args, context)
 
     def check_arg_type_valid(
         self,
@@ -468,8 +481,7 @@ class BaserowFunctionDefinition(Instance, abc.ABC):
     def to_django_expression_given_args(
         self,
         args: List["WrappedExpressionWithMetadata"],
-        model: Type[Model],
-        model_instance: Optional[Model],
+        context: BaserowExpressionContext,
     ) -> "WrappedExpressionWithMetadata":
         """
         Given the args already converted to Django Expressions should return a Django

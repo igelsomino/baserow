@@ -1,6 +1,6 @@
 from abc import ABC
 from decimal import Decimal
-from typing import List, Optional, Type, Union
+from typing import List, Union
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import JSONBAgg
@@ -15,7 +15,6 @@ from django.db.models import (
     JSONField,
     Max,
     Min,
-    Model,
     StdDev,
     Sum,
     Value,
@@ -41,7 +40,6 @@ from django.db.models.functions import (
     Log,
     Lower,
     Mod,
-    Now,
     Power,
     Replace,
     Reverse,
@@ -65,6 +63,7 @@ from baserow.contrib.database.formula.ast.function import (
 from baserow.contrib.database.formula.ast.tree import (
     BaserowDecimalLiteral,
     BaserowExpression,
+    BaserowExpressionContext,
     BaserowFunctionCall,
     BaserowIntegerLiteral,
 )
@@ -1169,6 +1168,7 @@ class BaserowLessThanOrEqual(BaseLimitComparableFunction):
 
 class BaserowNow(ZeroArgumentBaserowFunction):
     type = "now"
+    needs_periodic_update = True
 
     def type_function(
         self, func_call: BaserowFunctionCall[UnTyped]
@@ -1180,7 +1180,17 @@ class BaserowNow(ZeroArgumentBaserowFunction):
         )
 
     def to_django_expression(self) -> Expression:
-        return Now()
+        pass
+
+    def to_django_expression_given_args(
+        self,
+        args: List["WrappedExpressionWithMetadata"],
+        context: BaserowExpressionContext,
+    ) -> "WrappedExpressionWithMetadata":
+
+        return WrappedExpressionWithMetadata(
+            Value(context.get_or_update_utc_now(), output_field=fields.DateTimeField()),
+        )
 
 
 class BaserowToDate(TwoArgumentBaserowFunction):
@@ -1400,11 +1410,10 @@ class BaserowRowId(ZeroArgumentBaserowFunction):
 
     def to_django_expression_given_args(
         self,
-        args: List[WrappedExpressionWithMetadata],
-        model: Type[Model],
-        model_instance: Optional[Model],
-    ) -> WrappedExpressionWithMetadata:
-        if model_instance is None:
+        args: List["WrappedExpressionWithMetadata"],
+        context: BaserowExpressionContext,
+    ) -> "WrappedExpressionWithMetadata":
+        if context.model_instance is None:
             return WrappedExpressionWithMetadata(
                 ExpressionWrapper(F("id"), output_field=int_like_numeric_output_field())
             )
@@ -1412,7 +1421,7 @@ class BaserowRowId(ZeroArgumentBaserowFunction):
             # noinspection PyUnresolvedReferences
             return WrappedExpressionWithMetadata(
                 Cast(
-                    Value(model_instance.id),
+                    Value(context.model_instance.id),
                     output_field=fields.IntegerField(),
                 )
             )
@@ -1500,10 +1509,9 @@ class BaserowArrayAgg(OneArgumentBaserowFunction):
 
     def to_django_expression_given_args(
         self,
-        args: List[WrappedExpressionWithMetadata],
-        model: Type[Model],
-        model_instance: Optional[Model],
-    ) -> WrappedExpressionWithMetadata:
+        args: List["WrappedExpressionWithMetadata"],
+        context: BaserowExpressionContext,
+    ) -> "WrappedExpressionWithMetadata":
         pre_annotations = dict()
         aggregate_filters = []
         join_ids = []
@@ -1530,7 +1538,7 @@ class BaserowArrayAgg(OneArgumentBaserowFunction):
             WrappedExpressionWithMetadata(
                 expr, pre_annotations, aggregate_filters, join_ids
             ),
-            model,
+            context.model,
         ).expression
         return WrappedExpressionWithMetadata(
             Coalesce(
@@ -1562,11 +1570,10 @@ class Baserow2dArrayAgg(OneArgumentBaserowFunction):
 
     def to_django_expression_given_args(
         self,
-        args: List[WrappedExpressionWithMetadata],
-        model: Type[Model],
-        model_instance: Optional[Model],
-    ) -> WrappedExpressionWithMetadata:
-        subquery = super().to_django_expression_given_args(args, model, model_instance)
+        args: List["WrappedExpressionWithMetadata"],
+        context: BaserowExpressionContext,
+    ) -> "WrappedExpressionWithMetadata":
+        subquery = super().to_django_expression_given_args(args, context)
         return WrappedExpressionWithMetadata(
             Func(Func(subquery.expression, function="array"), function="to_jsonb")
         )
@@ -1618,11 +1625,10 @@ class BaserowFilter(TwoArgumentBaserowFunction):
 
     def to_django_expression_given_args(
         self,
-        args: List[WrappedExpressionWithMetadata],
-        model: Type[Model],
-        model_instance: Optional[Model],
-    ) -> WrappedExpressionWithMetadata:
-        result = super().to_django_expression_given_args(args, model, model_instance)
+        args: List["WrappedExpressionWithMetadata"],
+        context: BaserowExpressionContext,
+    ) -> "WrappedExpressionWithMetadata":
+        result = super().to_django_expression_given_args(args, context)
         return WrappedExpressionWithMetadata(
             result.expression,
             result.pre_annotations,
@@ -1772,10 +1778,9 @@ class BaserowAggJoin(TwoArgumentBaserowFunction):
 
     def to_django_expression_given_args(
         self,
-        args: List[WrappedExpressionWithMetadata],
-        model: Type[Model],
-        model_instance: Optional[Model],
-    ) -> WrappedExpressionWithMetadata:
+        args: List["WrappedExpressionWithMetadata"],
+        context: BaserowExpressionContext,
+    ) -> "WrappedExpressionWithMetadata":
         pre_annotations = {}
         aggregate_filters = []
         join_ids = []
@@ -1799,7 +1804,7 @@ class BaserowAggJoin(TwoArgumentBaserowFunction):
                 aggregate_filters,
                 join_ids,
             ),
-            model,
+            context.model,
         )
 
 

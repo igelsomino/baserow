@@ -421,6 +421,10 @@ class FormulaField(Field):
         max_length=32,
         help_text="24 (14:30) or 12 (02:30 PM)",
     )
+    needs_periodic_update = models.BooleanField(
+        default=False,
+        help_text="Indicates if the field needs to be periodically updated.",
+    )
 
     @cached_property
     def cached_untyped_expression(self):

@@ -1,7 +1,8 @@
 import typing
 from typing import Dict, Optional, Set, Type
 
-from django.db.models import Expression, Model
+from django.db.models import Count, Expression, Model
+from django.utils import timezone
 
 from baserow.contrib.database.fields.dependencies.types import FieldDependencies
 from baserow.contrib.database.fields.field_cache import FieldCache
@@ -39,6 +40,7 @@ from baserow.contrib.database.formula.types.visitors import (
     FieldDependencyExtractingVisitor,
     FunctionsUsedVisitor,
 )
+from baserow.core.models import Group
 
 if typing.TYPE_CHECKING:
     from baserow.contrib.database.fields.models import FormulaField
@@ -70,11 +72,71 @@ def _expression_requires_refresh_after_insert(expression: BaserowExpression):
     return any(f.requires_refresh_after_insert for f in functions_used)
 
 
+def _needs_periodic_update(expression: BaserowExpression):
+    functions_used: Set[BaserowFunctionDefinition] = expression.accept(
+        FunctionsUsedVisitor()
+    )
+    return any(getattr(f, "needs_periodic_update", False) for f in functions_used)
+
+
 class FormulaHandler:
     """
     Contains all the methods used to interact with formulas and formula fields in
     Baserow.
     """
+
+    @classmethod
+    def refresh_formulas_need_periodic_update_for_group(cls, group: Group):
+        """
+        Refreshes the last_formula_periodic_update_at field for all the groups
+        formulas. This is used to determine if a periodic update is required.
+
+        :param group: The group to refresh the periodic update field for.
+        """
+
+        from baserow.contrib.database.fields.models import FormulaField
+        from baserow.contrib.database.fields.field_types import FormulaFieldType
+
+        field_cache = FieldCache()
+
+        group.last_formula_periodic_update_at = timezone.now()
+        group.save()
+
+        via_path_to_starting_table = []
+
+        qs = FormulaField.objects.annotate(num_dependencies=Count("field_dependencies"))
+        for formula_field in qs.filter(
+            table__database__group_id=group.id,
+            needs_periodic_update=True,
+            num_dependencies=0,
+        ):
+
+            table = formula_field.table
+            table_model = table.get_model()
+            field_cache.cache_model_fields(table_model)
+            expr = cls.baserow_expression_to_update_django_expression(
+                formula_field.cached_typed_internal_expression, table_model
+            )
+            table_model.objects_and_trash.all().update(
+                **{f"{formula_field.db_column}": expr}
+            )
+
+            # update all the dependant fields accordingly
+            for (
+                dependant_field,
+                dependant_field_type,
+                _,
+            ) in formula_field.dependant_fields_with_types(
+                field_cache, via_path_to_starting_table
+            ):
+                if dependant_field_type.type != FormulaFieldType.type:
+                    continue
+                expr = cls.baserow_expression_to_update_django_expression(
+                    dependant_field.cached_typed_internal_expression, table_model
+                )
+                table_model.objects_and_trash.all().update(
+                    **{f"{dependant_field.db_column}": expr}
+                )
 
     @classmethod
     def baserow_expression_to_update_django_expression(
@@ -333,6 +395,8 @@ class FormulaHandler:
 
         formula_field.internal_formula = internal_formula
         formula_field.version = BASEROW_FORMULA_VERSION
+
+        formula_field.needs_periodic_update = _needs_periodic_update(expression)
         expression_type.persist_onto_formula_field(formula_field)
         formula_field.requires_refresh_after_insert = refresh_after_insert
         return expression

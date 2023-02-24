@@ -10,7 +10,12 @@ test.beforeEach(async () => {
 })
 
 test.afterEach(async () => {
-  await deleteUser(user)
+  // We only want to bother cleaning up in a devs local env or when pointed at a real
+  // server. If in CI then the first user will be the first admin and this will fail.
+  // Secondly in CI we are going to delete the database anyway so no need to clean-up.
+  if(!process.env.CI){
+    await deleteUser(user)
+  }
 })
 
 test('User can log in with email/password', async ({ page }) => {

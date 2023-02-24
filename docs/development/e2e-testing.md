@@ -32,4 +32,4 @@ yarn test-headed
 
 ## Configuration
 
-Besides Playwright configuration defined in `e2e-tests/playwright.config.ts` you can set environment variables to target a Baserow instance on any URL with `frontendBaseUrl` and `backendBaseUrl`. You can also use `e2e-tests/.env` file to do so, see `e2e-tests/.env-example`.
+Besides Playwright configuration defined in `e2e-tests/playwright.config.ts` you can set environment variables to target a Baserow instance on any URL with `PUBLIC_WEB_FRONTEND_URL` and `PUBLIC_BACKEND_URL`. You can also use `e2e-tests/.env` file to do so, see `e2e-tests/.env-example`.

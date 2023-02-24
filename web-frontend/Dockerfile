@@ -19,23 +19,6 @@ RUN apt-get update && \
     vim \
     git \
     gosu \
-    libgtk-3-0 \
-    libasound2 \ 
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libxtst6 \
-    libatk1.0-0 \
-    libdbus-glib-1-2 \
-    libdbus-1-3 \
-    libnspr4 \
-    libdrm2 \
-    libgbm1 \
-    libx11-xcb1 \
-    libxcursor1 \
-    libxi6 \
-    libnss3 \
     && apt-get autoclean \
     && apt-get clean \
     && apt-get autoremove \
@@ -53,12 +36,7 @@ USER $UID:$GID
 
 # Create and install the dependencies in separate COPY commands
 COPY --chown=$UID:$GID ./web-frontend/package.json ./web-frontend/yarn.lock /baserow/web-frontend/
-COPY --chown=$UID:$GID ./e2e-tests/package.json ./e2e-tests/yarn.lock /baserow/e2e-tests/
 
-WORKDIR /baserow/e2e-tests
-
-RUN yarn install && yarn playwright install
-# RUN npx playwright install-deps TODO:
 
 WORKDIR /baserow/web-frontend
 
@@ -69,7 +47,6 @@ COPY --chown=$UID:$GID ./web-frontend /baserow/web-frontend/
 COPY --chown=$UID:$GID ./premium/web-frontend /baserow/premium/web-frontend/
 COPY --chown=$UID:$GID ./enterprise/web-frontend /baserow/enterprise/web-frontend/
 COPY --chown=$UID:$GID ./deploy/plugins/*.sh /baserow/plugins/
-COPY --chown=$UID:$GID ./e2e-tests /baserow/e2e-tests/
 
 RUN dos2unix /baserow/web-frontend/docker/docker-entrypoint.sh && \
     chmod a+x /baserow/web-frontend/docker/docker-entrypoint.sh

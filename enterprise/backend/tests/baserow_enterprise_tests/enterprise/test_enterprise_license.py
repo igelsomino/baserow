@@ -32,7 +32,7 @@ from baserow_enterprise.role.seat_usage_calculator import (
 )
 from baserow_enterprise.teams.models import Team, TeamSubject
 
-PAID_COMMENTER_ROLE = "COMMENTER"
+PAID_EDITOR_ROLE = "EDITOR"
 
 FREE_VIEWER_ROLE = "VIEWER"
 
@@ -347,7 +347,7 @@ def test_enterprise_license_counts_viewers_as_free(
 
 @pytest.mark.django_db
 @override_settings(DEBUG=True)
-def test_user_who_is_commenter_in_one_workspace_and_viewer_in_another_is_not_free(
+def test_user_who_is_editor_in_one_workspace_and_viewer_in_another_is_not_free(
     enterprise_data_fixture, data_fixture
 ):
     license_object = enterprise_data_fixture.enable_enterprise()
@@ -357,7 +357,7 @@ def test_user_who_is_commenter_in_one_workspace_and_viewer_in_another_is_not_fre
     workspace2 = data_fixture.create_workspace(members=[user, user2])
 
     admin_role = Role.objects.get(uid="ADMIN")
-    commenter_role = Role.objects.get(uid="COMMENTER")
+    editor_role = Role.objects.get(uid="EDITOR")
     viewer_role = Role.objects.get(uid="VIEWER")
 
     role_assignment_handler = RoleAssignmentHandler()
@@ -365,7 +365,7 @@ def test_user_who_is_commenter_in_one_workspace_and_viewer_in_another_is_not_fre
     role_assignment_handler.assign_role(user, workspace1, admin_role)
     role_assignment_handler.assign_role(user2, workspace1, viewer_role)
     role_assignment_handler.assign_role(user, workspace2, admin_role)
-    role_assignment_handler.assign_role(user2, workspace2, commenter_role)
+    role_assignment_handler.assign_role(user2, workspace2, editor_role)
 
     assert len(RoleAssignment.objects.all()) == 0
 
@@ -377,8 +377,8 @@ def test_user_who_is_commenter_in_one_workspace_and_viewer_in_another_is_not_fre
         num_users_with_highest_role={
             "ADMIN": 1,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -398,7 +398,7 @@ def test_user_marked_for_deletion_is_not_counted_as_a_paid_user(
     workspace2 = data_fixture.create_workspace(members=[user, user2])
 
     admin_role = Role.objects.get(uid="ADMIN")
-    commenter_role = Role.objects.get(uid="COMMENTER")
+    editor_role = Role.objects.get(uid="EDITOR")
     viewer_role = Role.objects.get(uid="VIEWER")
 
     role_assignment_handler = RoleAssignmentHandler()
@@ -406,7 +406,7 @@ def test_user_marked_for_deletion_is_not_counted_as_a_paid_user(
     role_assignment_handler.assign_role(user, workspace1, admin_role)
     role_assignment_handler.assign_role(user2, workspace1, viewer_role)
     role_assignment_handler.assign_role(user, workspace2, admin_role)
-    role_assignment_handler.assign_role(user2, workspace2, commenter_role)
+    role_assignment_handler.assign_role(user2, workspace2, editor_role)
 
     assert len(RoleAssignment.objects.all()) == 0
 
@@ -442,7 +442,7 @@ def test_user_deactivated_user_is_not_counted_as_a_paid_user(
     workspace2 = data_fixture.create_workspace(members=[user, user2])
 
     admin_role = Role.objects.get(uid="ADMIN")
-    commenter_role = Role.objects.get(uid="COMMENTER")
+    editor_role = Role.objects.get(uid="EDITOR")
     builder_role = Role.objects.get(uid="BUILDER")
 
     role_assignment_handler = RoleAssignmentHandler()
@@ -450,7 +450,7 @@ def test_user_deactivated_user_is_not_counted_as_a_paid_user(
     role_assignment_handler.assign_role(user, workspace1, admin_role)
     role_assignment_handler.assign_role(user2, workspace1, builder_role)
     role_assignment_handler.assign_role(user, workspace2, admin_role)
-    role_assignment_handler.assign_role(user2, workspace2, commenter_role)
+    role_assignment_handler.assign_role(user2, workspace2, editor_role)
 
     user2.is_active = False
     user2.save()
@@ -591,7 +591,7 @@ def test_user_with_paid_table_role_is_not_free(
     table = data_fixture.create_database_table(database=database)
 
     RoleAssignmentHandler().assign_role(
-        user, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=table
+        user, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=table
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -602,8 +602,8 @@ def test_user_with_paid_table_role_is_not_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -663,7 +663,7 @@ def test_user_with_paid_database_role_is_not_free(
     table = data_fixture.create_database_table(database=database)
 
     RoleAssignmentHandler().assign_role(
-        user, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        user, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -674,8 +674,8 @@ def test_user_with_paid_database_role_is_not_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -738,7 +738,7 @@ def test_user_with_paid_table_role_is_not_free_from_team(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=table
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=table
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -749,8 +749,8 @@ def test_user_with_paid_table_role_is_not_free_from_team(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -816,7 +816,7 @@ def test_user_with_paid_database_role_is_not_free_from_team(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -827,8 +827,8 @@ def test_user_with_paid_database_role_is_not_free_from_team(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -894,7 +894,7 @@ def test_user_in_deleted_team_with_paid_role_is_free(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     TrashHandler().trash(user, workspace, None, team)
@@ -932,7 +932,7 @@ def test_inactive_user_with_paid_role_is_free(
     table = data_fixture.create_database_table(database=database)
 
     RoleAssignmentHandler().assign_role(
-        user, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        user, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -943,8 +943,8 @@ def test_inactive_user_with_paid_role_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -990,7 +990,7 @@ def test_inactive_user_in_team_with_paid_role_is_free(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1001,8 +1001,8 @@ def test_inactive_user_in_team_with_paid_role_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1045,7 +1045,7 @@ def test_user_to_be_deleted_with_paid_role_is_free(
     table = data_fixture.create_database_table(database=database)
 
     RoleAssignmentHandler().assign_role(
-        user, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        user, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1056,8 +1056,8 @@ def test_user_to_be_deleted_with_paid_role_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1103,7 +1103,7 @@ def test_user_to_be_deleted_in_team_with_paid_role_is_free(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1114,8 +1114,8 @@ def test_user_to_be_deleted_in_team_with_paid_role_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1154,7 +1154,7 @@ def test_complex_free_vs_paid_scenario(
     workspace1 = data_fixture.create_workspace()
     workspace2 = data_fixture.create_workspace()
     data_fixture.create_user_workspace(
-        user=user1_paid_in_grp1, workspace=workspace1, permissions=PAID_COMMENTER_ROLE
+        user=user1_paid_in_grp1, workspace=workspace1, permissions=PAID_EDITOR_ROLE
     )
     data_fixture.create_user_workspace(
         user=user2_free_in_grp1_paid_grp2,
@@ -1164,7 +1164,7 @@ def test_complex_free_vs_paid_scenario(
     data_fixture.create_user_workspace(
         user=user2_free_in_grp1_paid_grp2,
         workspace=workspace2,
-        permissions=PAID_COMMENTER_ROLE,
+        permissions=PAID_EDITOR_ROLE,
     )
     data_fixture.create_user_workspace(
         user=user3_free_both_grps, workspace=workspace1, permissions=FREE_VIEWER_ROLE
@@ -1205,7 +1205,7 @@ def test_complex_free_vs_paid_scenario(
     RoleAssignmentHandler().assign_role(
         grp1_team_with_paid_role_on_db,
         workspace1,
-        role=Role.objects.get(uid=PAID_COMMENTER_ROLE),
+        role=Role.objects.get(uid=PAID_EDITOR_ROLE),
         scope=table1,
     )
     RoleAssignmentHandler().assign_role(
@@ -1223,8 +1223,8 @@ def test_complex_free_vs_paid_scenario(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 2,
+            "EDITOR": 2,
+            "COMMENTER": 0,
             "VIEWER": 1,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1248,7 +1248,7 @@ def test_user_with_role_paid_on_trashed_database_is_free(
     table = data_fixture.create_database_table(database=database)
 
     RoleAssignmentHandler().assign_role(
-        user, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        user, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1259,8 +1259,8 @@ def test_user_with_role_paid_on_trashed_database_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1302,7 +1302,7 @@ def test_user_with_role_paid_on_database_in_trashed_workspace_is_free(
     table = data_fixture.create_database_table(database=database)
 
     RoleAssignmentHandler().assign_role(
-        user, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=table
+        user, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=table
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1313,8 +1313,8 @@ def test_user_with_role_paid_on_database_in_trashed_workspace_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1356,7 +1356,7 @@ def test_user_with_role_paid_on_trashed_table_is_free(
     table = data_fixture.create_database_table(database=database)
 
     RoleAssignmentHandler().assign_role(
-        user, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=table
+        user, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=table
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1367,8 +1367,8 @@ def test_user_with_role_paid_on_trashed_table_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1413,7 +1413,7 @@ def test_user_in_team_with_role_paid_on_trashed_database_is_free(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=database
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=database
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1424,8 +1424,8 @@ def test_user_in_team_with_role_paid_on_trashed_database_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1470,7 +1470,7 @@ def test_user_in_team_with_role_paid_on_trashed_table_is_free(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=table
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=table
     )
 
     assert EnterpriseLicenseType().get_seat_usage_summary(
@@ -1481,8 +1481,8 @@ def test_user_in_team_with_role_paid_on_trashed_table_is_free(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1528,7 +1528,7 @@ def test_user_summary_calculation_for_enterprise_doesnt_do_n_plus_one_queries(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=table
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=table
     )
 
     # Make sure the content type cached properties contain these models so we don't
@@ -1546,8 +1546,8 @@ def test_user_summary_calculation_for_enterprise_doesnt_do_n_plus_one_queries(
             num_users_with_highest_role={
                 "ADMIN": 0,
                 "BUILDER": 0,
-                "EDITOR": 0,
-                "COMMENTER": 1,
+                "EDITOR": 1,
+                "COMMENTER": 0,
                 "VIEWER": 0,
                 "NO_ACCESS": 0,
                 "NO_ROLE_LOW_PRIORITY": 0,
@@ -1563,7 +1563,7 @@ def test_user_summary_calculation_for_enterprise_doesnt_do_n_plus_one_queries(
         user=user2, workspace=workspace2, permissions=FREE_VIEWER_ROLE
     )
     data_fixture.create_user_workspace(
-        user=user, workspace=workspace2, permissions=PAID_COMMENTER_ROLE
+        user=user, workspace=workspace2, permissions=PAID_EDITOR_ROLE
     )
     database2 = data_fixture.create_database_application(workspace=workspace2)
     table2 = data_fixture.create_database_table(database=database2)
@@ -1605,7 +1605,7 @@ def test_can_query_for_summary_per_workspace(
     workspace1 = data_fixture.create_workspace()
     workspace2 = data_fixture.create_workspace()
     data_fixture.create_user_workspace(
-        user=user1_paid_in_grp1, workspace=workspace1, permissions=PAID_COMMENTER_ROLE
+        user=user1_paid_in_grp1, workspace=workspace1, permissions=PAID_EDITOR_ROLE
     )
     data_fixture.create_user_workspace(
         user=user2_free_in_grp1_paid_grp2,
@@ -1615,7 +1615,7 @@ def test_can_query_for_summary_per_workspace(
     data_fixture.create_user_workspace(
         user=user2_free_in_grp1_paid_grp2,
         workspace=workspace2,
-        permissions=PAID_COMMENTER_ROLE,
+        permissions=PAID_EDITOR_ROLE,
     )
     data_fixture.create_user_workspace(
         user=user3_free_both_grps, workspace=workspace1, permissions=FREE_VIEWER_ROLE
@@ -1656,7 +1656,7 @@ def test_can_query_for_summary_per_workspace(
     RoleAssignmentHandler().assign_role(
         grp1_team_with_paid_role_on_db,
         workspace1,
-        role=Role.objects.get(uid=PAID_COMMENTER_ROLE),
+        role=Role.objects.get(uid=PAID_EDITOR_ROLE),
         scope=table1,
     )
     RoleAssignmentHandler().assign_role(
@@ -1674,8 +1674,8 @@ def test_can_query_for_summary_per_workspace(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 2,
+            "EDITOR": 2,
+            "COMMENTER": 0,
             "VIEWER": 1,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1689,8 +1689,8 @@ def test_can_query_for_summary_per_workspace(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 1,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1717,7 +1717,7 @@ def test_user_with_team_and_user_role_picks_highest_of_either(
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
     RoleAssignmentHandler().assign_role(
-        team, workspace, role=Role.objects.get(uid=PAID_COMMENTER_ROLE), scope=table
+        team, workspace, role=Role.objects.get(uid=PAID_EDITOR_ROLE), scope=table
     )
     RoleAssignmentHandler().assign_role(
         user, workspace, role=Role.objects.get(uid=FREE_VIEWER_ROLE), scope=table
@@ -1731,8 +1731,8 @@ def test_user_with_team_and_user_role_picks_highest_of_either(
         num_users_with_highest_role={
             "ADMIN": 0,
             "BUILDER": 0,
-            "EDITOR": 0,
-            "COMMENTER": 1,
+            "EDITOR": 1,
+            "COMMENTER": 0,
             "VIEWER": 0,
             "NO_ACCESS": 0,
             "NO_ROLE_LOW_PRIORITY": 0,
@@ -1838,7 +1838,7 @@ def test_weird_ras_for_wrong_workspace_not_counted_when_querying_for_single_work
     team_in_other_workspace = enterprise_data_fixture.create_team(workspace=workspace2)
     enterprise_data_fixture.create_subject(team=team, subject=user)
 
-    paid_role = Role.objects.get(uid=PAID_COMMENTER_ROLE)
+    paid_role = Role.objects.get(uid=PAID_EDITOR_ROLE)
 
     for scope in [workspace2, database_in_other_workspace, table_in_other_workspace]:
         RoleAssignment.objects.create(
@@ -1924,7 +1924,7 @@ def test_orphaned_paid_role_assignments_dont_get_counted(
         Database, Application, Table, Workspace
     ).values()
     user_ct = ContentType.objects.get_for_model(get_user_model())
-    paid_role = Role.objects.get(uid=PAID_COMMENTER_ROLE)
+    paid_role = Role.objects.get(uid=PAID_EDITOR_ROLE)
 
     # RA's on scopes that no longer exist
     for ct in scope_cts:

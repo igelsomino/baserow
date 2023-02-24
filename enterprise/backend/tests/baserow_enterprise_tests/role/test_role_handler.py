@@ -146,13 +146,13 @@ def test_get_current_role_assignments(data_fixture, enterprise_data_fixture):
 
     admin_role = Role.objects.get(uid="ADMIN")
     builder_role = Role.objects.get(uid="BUILDER")
-    commenter_role = Role.objects.get(uid="COMMENTER")
+    editor_role = Role.objects.get(uid="EDITOR")
     viewer_role = Role.objects.get(uid="VIEWER")
 
     RoleAssignmentHandler().assign_role(user, workspace, role=admin_role)
     RoleAssignmentHandler().assign_role(user1, workspace, role=builder_role)
     RoleAssignmentHandler().assign_role(user2, workspace, role=viewer_role)
-    RoleAssignmentHandler().assign_role(team1, workspace, role=commenter_role)
+    RoleAssignmentHandler().assign_role(team1, workspace, role=editor_role)
     RoleAssignmentHandler().assign_role(
         user, workspace, role=viewer_role, scope=database.application_ptr
     )
@@ -195,7 +195,7 @@ def test_get_current_role_assignments(data_fixture, enterprise_data_fixture):
         (user, workspace, admin_role.uid),
         (user1, workspace, builder_role.uid),
         (user2, workspace, viewer_role.uid),
-        (team1, workspace, commenter_role.uid),
+        (team1, workspace, editor_role.uid),
         (user, database.application_ptr, viewer_role.uid),
         (user1, database.application_ptr, None),
         (user2, database.application_ptr, admin_role.uid),

@@ -33,11 +33,11 @@ def test_can_undo_batch_assign_role(data_fixture, enterprise_data_fixture):
     team1 = enterprise_data_fixture.create_team(workspace=workspace, members=[])
 
     builder_role = Role.objects.get(uid="BUILDER")
-    commenter_role = Role.objects.get(uid="COMMENTER")
+    editor_role = Role.objects.get(uid="EDITOR")
     viewer_role = Role.objects.get(uid="VIEWER")
 
     new_role_assignments = [
-        NewRoleAssignment(user2, commenter_role, workspace),
+        NewRoleAssignment(user2, editor_role, workspace),
         NewRoleAssignment(user2, builder_role, table),
         NewRoleAssignment(user2, viewer_role, database.application_ptr),
         NewRoleAssignment(user3, builder_role, workspace),
@@ -80,10 +80,10 @@ def test_batch_assign_role_description_for_one_item(
         members=[user2, user3],
     )
 
-    commenter_role = Role.objects.get(uid="COMMENTER")
+    editor_role = Role.objects.get(uid="EDITOR")
 
     new_role_assignments = [
-        NewRoleAssignment(user2, commenter_role, workspace),
+        NewRoleAssignment(user2, editor_role, workspace),
     ]
 
     action_type_registry.get_by_type(BatchAssignRoleActionType).do(
@@ -113,16 +113,16 @@ def test_can_redo_batch_assign_role(data_fixture, enterprise_data_fixture):
     team1 = enterprise_data_fixture.create_team(workspace=workspace, members=[])
 
     builder_role = Role.objects.get(uid="BUILDER")
-    commenter_role = Role.objects.get(uid="COMMENTER")
+    editor_role = Role.objects.get(uid="EDITOR")
     viewer_role = Role.objects.get(uid="VIEWER")
 
     RoleAssignmentHandler().assign_role(
         user2, workspace, builder_role, scope=database.application_ptr
     )
-    RoleAssignmentHandler().assign_role(user2, workspace, commenter_role, scope=table)
+    RoleAssignmentHandler().assign_role(user2, workspace, editor_role, scope=table)
 
     new_role_assignments = [
-        NewRoleAssignment(user2, commenter_role, workspace),
+        NewRoleAssignment(user2, editor_role, workspace),
         NewRoleAssignment(user2, builder_role, table),
         NewRoleAssignment(user2, viewer_role, database.application_ptr),
         NewRoleAssignment(user3, builder_role, workspace),

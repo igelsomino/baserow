@@ -47,7 +47,7 @@ def api_client():
 
 
 @pytest.fixture
-def reset_schema(django_db_setup, django_db_blocker):
+def reset_schema(django_db_blocker):
     yield
     with django_db_blocker.unblock():
         call_command("migrate", verbosity=0, database=DEFAULT_DB_ALIAS)
@@ -386,6 +386,37 @@ class TestMigrator:
         return new_state
 
 
+@pytest.fixture(scope="session")
+def second_separate_database_for_migrations(
+    request,
+    django_test_environment: None,
+    django_db_blocker,
+) -> None:
+    from django.test.utils import setup_databases, teardown_databases
+
+    setup_databases_args = {}
+
+    with django_db_blocker.unblock():
+        db_cfg = setup_databases(
+            verbosity=request.config.option.verbose,
+            interactive=False,
+            **setup_databases_args,
+        )
+
+    def teardown_database() -> None:
+        with django_db_blocker.unblock():
+            try:
+                teardown_databases(db_cfg, verbosity=request.config.option.verbose)
+            except Exception as exc:
+                request.node.warn(
+                    pytest.PytestWarning(
+                        f"Error when trying to teardown test databases: {exc!r}"
+                    )
+                )
+
+    request.addfinalizer(teardown_database)
+
+
 @pytest.fixture
-def migrator(reset_schema):
+def migrator(second_separate_database_for_migrations, transactional_db, reset_schema):
     yield TestMigrator()

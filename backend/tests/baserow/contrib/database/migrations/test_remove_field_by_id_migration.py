@@ -4,8 +4,6 @@ import pytest
 
 
 # noinspection PyPep8Naming
-@pytest.mark.django_db(transaction=True)
-@pytest.mark.run(order=1)
 def test_forwards_migration(data_fixture, migrator, teardown_table_metadata):
     migrate_from = [
         ("database", "0039_formulafield"),

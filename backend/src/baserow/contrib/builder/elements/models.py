@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from baserow.contrib.builder.page.models import Page
+from baserow.contrib.builder.pages.models import Page
 from baserow.core.mixins import (
     CreatedAndUpdatedOnMixin,
     HierarchicalModelMixin,

@@ -1,6 +1,6 @@
 from abc import ABC
 
-from baserow.contrib.builder.page.operations import BuilderPageOperationType
+from baserow.contrib.builder.pages.operations import BuilderPageOperationType
 from baserow.core.registries import OperationType
 
 

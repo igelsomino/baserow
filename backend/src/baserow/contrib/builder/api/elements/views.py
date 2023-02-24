@@ -33,8 +33,8 @@ from baserow.contrib.builder.elements.exceptions import (
 from baserow.contrib.builder.elements.handler import ElementHandler
 from baserow.contrib.builder.elements.registries import element_type_registry
 from baserow.contrib.builder.elements.service import ElementService
-from baserow.contrib.builder.page.exceptions import PageDoesNotExist
-from baserow.contrib.builder.page.handler import PageHandler
+from baserow.contrib.builder.pages.exceptions import PageDoesNotExist
+from baserow.contrib.builder.pages.handler import PageHandler
 
 
 class ElementsView(APIView):

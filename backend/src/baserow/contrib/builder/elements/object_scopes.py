@@ -4,7 +4,7 @@ from django.db.models import Q
 
 from baserow.contrib.builder.elements.models import Element
 from baserow.contrib.builder.object_scopes import BuilderObjectScopeType
-from baserow.contrib.builder.page.object_scopes import BuilderPageObjectScopeType
+from baserow.contrib.builder.pages.object_scopes import BuilderPageObjectScopeType
 from baserow.core.object_scopes import ApplicationObjectScopeType, GroupObjectScopeType
 from baserow.core.registries import ObjectScopeType, object_scope_type_registry
 from baserow.core.types import ContextObject

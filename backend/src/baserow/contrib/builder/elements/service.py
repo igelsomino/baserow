@@ -20,7 +20,7 @@ from baserow.contrib.builder.elements.signals import (
     element_updated,
     elements_reordered,
 )
-from baserow.contrib.builder.page.models import Page
+from baserow.contrib.builder.pages.models import Page
 from baserow.core.handler import CoreHandler
 
 

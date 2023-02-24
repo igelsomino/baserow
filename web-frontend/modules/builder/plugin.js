@@ -13,7 +13,10 @@ import {
 
 import pageStore from '@baserow/modules/builder/store/page'
 import { registerRealtimeEvents } from '@baserow/modules/builder/realtime'
-import { HeaderElementType } from '@baserow/modules/builder/element_types'
+import {
+  HeaderElementType,
+  ParagraphElementType,
+} from '@baserow/modules/builder/element_types'
 
 export default (context) => {
   const { store, app, isDev } = context
@@ -49,4 +52,5 @@ export default (context) => {
   )
 
   app.$registry.register('element', new HeaderElementType(context))
+  app.$registry.register('element', new ParagraphElementType(context))
 }

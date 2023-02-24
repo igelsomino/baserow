@@ -23,3 +23,17 @@ export class HeaderElementType extends Registerable {
     return 'heading'
   }
 }
+
+export class ParagraphElementType extends Registerable {
+  getType() {
+    return 'paragraph'
+  }
+
+  get name() {
+    return this.app.i18n.t('elementType.paragraph')
+  }
+
+  get iconClass() {
+    return 'paragraph'
+  }
+}

@@ -29,6 +29,7 @@
         "searchPlaceholder": "Search elements"
     },
     "elementType": {
-        "header": "Header"
+        "header": "Header",
+        "paragraph": "Paragraph"
     }
 }

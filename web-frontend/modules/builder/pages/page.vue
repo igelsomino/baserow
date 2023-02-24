@@ -1,12 +1,16 @@
 <template>
-  <div>PAGE</div>
+  <div>
+    <PageHeader />
+  </div>
 </template>
 
 <script>
 import { StoreItemLookupError } from '@baserow/modules/core/errors'
+import PageHeader from '@baserow/modules/builder/components/page/PageHeader'
 
 export default {
   name: 'Page',
+  components: { PageHeader },
   layout: 'app',
 
   async asyncData({ store, params, error }) {

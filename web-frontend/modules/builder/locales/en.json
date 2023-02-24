@@ -21,5 +21,11 @@
         "nameLabel": "Name",
         "errorNameNotUnique": "A page with this name already exists",
         "defaultName": "Page"
+    },
+    "pageHeaderElements": {
+        "label": "Elements"
+    },
+    "elementsContext": {
+        "searchPlaceholder": "Search elements"
     }
 }

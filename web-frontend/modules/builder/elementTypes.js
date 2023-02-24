@@ -27,6 +27,10 @@ export class HeaderElementType extends Registerable {
   get iconClass() {
     return 'heading'
   }
+
+  get component() {
+    return ParagraphElement
+  }
 }
 
 export class ParagraphElementType extends Registerable {

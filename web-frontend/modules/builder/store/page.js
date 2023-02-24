@@ -91,7 +91,7 @@ const actions = {
 
     commit('ADD_ITEM', { builder, page })
 
-    dispatch('selectById', { builderId: builder.id, pageId: page.id })
+    await dispatch('selectById', { builderId: builder.id, pageId: page.id })
 
     return page
   },
@@ -103,12 +103,12 @@ const actions = {
       return result
     }, {})
 
-    dispatch('forceUpdate', { builder, page, values: update })
+    await dispatch('forceUpdate', { builder, page, values: update })
   },
   async delete({ dispatch }, { builder, page }) {
     await PageService(this.$client).delete(page.id)
 
-    dispatch('forceDelete', { builder, page })
+    await dispatch('forceDelete', { builder, page })
   },
   async order(
     { commit, getters },

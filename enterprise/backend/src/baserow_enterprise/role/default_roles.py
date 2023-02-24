@@ -15,7 +15,7 @@ from baserow.contrib.builder.operations import (
     ListPagesBuilderOperationType,
     OrderPagesBuilderOperationType,
 )
-from baserow.contrib.builder.page.operations import (
+from baserow.contrib.builder.pages.operations import (
     CreatePageOperationType,
     DeletePageOperationType,
     ReadPageOperationType,

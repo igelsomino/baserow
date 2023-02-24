@@ -43,7 +43,7 @@
         "builderDefaultName": "Untitled Application",
         "cantSelectTableTitle": "Couldn't select the database.",
         "cantSelectTableDescription": "The database couldn't be selected because it doesn't have any tables. Use the sidebar to create one.",
-        "cantSelectPageTitle": "Couldn't select the application builder.",
+        "cantSelectPageTitle": "Couldn't select the application.",
         "cantSelectPageDescription": "The application builder couldn't be selected because it doesn't have any pages. Use the sidebar to create one."
     },
     "settingType": {
@@ -131,6 +131,8 @@
     "viewFilter": {
         "contains": "contains",
         "containsNot": "doesn't contain",
+        "containsWord": "contains word",
+        "doesntContainWord": "doesn't contain word",
         "filenameContains": "filename contains",
         "has": "has",
         "hasNot": "doesn't have",

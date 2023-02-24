@@ -6,10 +6,10 @@ from django.dispatch import receiver
 
 from baserow.contrib.builder.api.pages.serializers import PageSerializer
 from baserow.contrib.builder.models import Builder
-from baserow.contrib.builder.page import signals as page_signals
-from baserow.contrib.builder.page.models import Page
-from baserow.contrib.builder.page.object_scopes import BuilderPageObjectScopeType
-from baserow.contrib.builder.page.operations import ReadPageOperationType
+from baserow.contrib.builder.pages import signals as page_signals
+from baserow.contrib.builder.pages.models import Page
+from baserow.contrib.builder.pages.object_scopes import BuilderPageObjectScopeType
+from baserow.contrib.builder.pages.operations import ReadPageOperationType
 from baserow.core.utils import generate_hash
 from baserow.ws.tasks import broadcast_to_group, broadcast_to_permitted_users
 

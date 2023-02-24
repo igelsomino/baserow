@@ -1,18 +1,18 @@
-from typing import Dict, List
+from typing import List
 
 from django.contrib.auth.models import AbstractUser
 
 from baserow.contrib.builder.models import Builder
 from baserow.contrib.builder.operations import OrderPagesBuilderOperationType
-from baserow.contrib.builder.page.handler import PageHandler
-from baserow.contrib.builder.page.models import Page
-from baserow.contrib.builder.page.operations import (
+from baserow.contrib.builder.pages.handler import PageHandler
+from baserow.contrib.builder.pages.models import Page
+from baserow.contrib.builder.pages.operations import (
     CreatePageOperationType,
     DeletePageOperationType,
     ReadPageOperationType,
     UpdatePageOperationType,
 )
-from baserow.contrib.builder.page.signals import (
+from baserow.contrib.builder.pages.signals import (
     page_created,
     page_deleted,
     page_updated,
@@ -35,7 +35,8 @@ class PageService:
         :return: The model instance of the Page
         """
 
-        page = self.handler.get_page(page_id)
+        base_queryset = Page.objects.select_related("builder", "builder__group")
+        page = self.handler.get_page(page_id, base_queryset=base_queryset)
 
         CoreHandler().check_permissions(
             user,
@@ -73,7 +74,7 @@ class PageService:
         """
         Deletes the page provided
 
-        :param user: The user trying to delte the page
+        :param user: The user trying to delete the page
         :param page: The page that's supposed to be deleted
         """
 
@@ -88,7 +89,7 @@ class PageService:
 
         page_deleted.send(self, builder=page.builder, page_id=page.id, user=user)
 
-    def update_page(self, user: AbstractUser, page: Page, values: Dict) -> Page:
+    def update_page(self, user: AbstractUser, page: Page, **kwargs) -> Page:
         """
         Updates fields of a page
 
@@ -105,15 +106,17 @@ class PageService:
             context=page,
         )
 
-        allowed_updates = extract_allowed(values, ["name"])
+        allowed_updates = extract_allowed(kwargs, ["name"])
 
-        self.handler.update_page(page, allowed_updates)
+        self.handler.update_page(page, **allowed_updates)
 
         page_updated.send(self, page=page, user=user)
 
         return page
 
-    def order_pages(self, user: AbstractUser, builder: Builder, order: List[int]):
+    def order_pages(
+        self, user: AbstractUser, builder: Builder, order: List[int]
+    ) -> List[int]:
         """
         Assigns a new order to the pages in a builder application.
 

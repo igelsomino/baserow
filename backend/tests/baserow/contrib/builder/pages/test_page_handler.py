@@ -1,8 +1,8 @@
 import pytest
 
-from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.handler import PageHandler
-from baserow.contrib.builder.page.models import Page
+from baserow.contrib.builder.pages.exceptions import PageDoesNotExist, PageNotInBuilder
+from baserow.contrib.builder.pages.handler import PageHandler
+from baserow.contrib.builder.pages.models import Page
 
 
 @pytest.mark.django_db
@@ -15,6 +15,22 @@ def test_get_page(data_fixture):
 def test_get_page_page_does_not_exist(data_fixture):
     with pytest.raises(PageDoesNotExist):
         PageHandler().get_page(9999)
+
+
+@pytest.mark.django_db
+def test_get_page_base_queryset(data_fixture, django_assert_num_queries):
+    page = data_fixture.create_builder_page()
+
+    # Without selecting related
+    page = PageHandler().get_page(page.id)
+    with django_assert_num_queries(2):
+        group = page.builder.group
+
+    # With selecting related
+    base_queryset = Page.objects.select_related("builder", "builder__group")
+    page = PageHandler().get_page(page.id, base_queryset=base_queryset)
+    with django_assert_num_queries(0):
+        group = page.builder.group
 
 
 @pytest.mark.django_db
@@ -41,7 +57,7 @@ def test_delete_page(data_fixture):
 def test_update_page(data_fixture):
     page = data_fixture.create_builder_page(name="test")
 
-    PageHandler().update_page(page, {"name": "new"})
+    PageHandler().update_page(page, name="new")
 
     page.refresh_from_db()
 

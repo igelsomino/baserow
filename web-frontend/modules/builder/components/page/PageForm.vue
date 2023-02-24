@@ -21,6 +21,12 @@
         {{ $t('error.requiredField') }}
       </div>
       <div
+        v-if="$v.values.name.$dirty && !$v.values.name.maxLength"
+        class="error"
+      >
+        {{ $t('error.maxLength', { max: 255 }) }}
+      </div>
+      <div
         v-if="$v.values.name.$dirty && !$v.values.name.isUnique"
         class="error"
       >
@@ -33,7 +39,7 @@
 
 <script>
 import form from '@baserow/modules/core/mixins/form'
-import { required } from 'vuelidate/lib/validators'
+import { maxLength, required } from 'vuelidate/lib/validators'
 import { getNextAvailableNameInSequence } from '@baserow/modules/core/utils/string'
 
 export default {
@@ -77,13 +83,6 @@ export default {
     }
   },
   methods: {
-    submit() {
-      this.$v.$touch()
-      if (this.$v.$invalid) {
-        return
-      }
-      this.$emit('submit', this.values)
-    },
     isNameUnique(name) {
       return !this.pageNames.includes(name)
     },
@@ -91,7 +90,11 @@ export default {
   validations() {
     return {
       values: {
-        name: { required, isUnique: this.isNameUnique },
+        name: {
+          required,
+          isUnique: this.isNameUnique,
+          maxLength: maxLength(255),
+        },
       },
     }
   },

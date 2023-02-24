@@ -1,21 +1,30 @@
-from typing import Dict, List
+from typing import List
+
+from django.db.models import QuerySet
 
 from baserow.contrib.builder.models import Builder
-from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.models import Page
+from baserow.contrib.builder.pages.exceptions import PageDoesNotExist, PageNotInBuilder
+from baserow.contrib.builder.pages.models import Page
+from baserow.core.exceptions import IdDoesNotExist
 
 
 class PageHandler:
-    def get_page(self, page_id: int) -> Page:
+    def get_page(self, page_id: int, base_queryset: QuerySet = None) -> Page:
         """
         Gets a page by ID
 
         :param page_id: The ID of the page
+        :param base_queryset: Can be provided to already filter or apply performance
+            improvements to the queryset when it's being executed
+        :raises PageDoesNotExist: If the page doesn't exist
         :return: The model instance of the Page
         """
 
+        if base_queryset is None:
+            base_queryset = Page.objects
+
         try:
-            return Page.objects.get(id=page_id)
+            return base_queryset.get(id=page_id)
         except Page.DoesNotExist:
             raise PageDoesNotExist()
 
@@ -42,7 +51,7 @@ class PageHandler:
 
         page.delete()
 
-    def update_page(self, page: Page, values: Dict) -> Page:
+    def update_page(self, page: Page, **kwargs) -> Page:
         """
         Updates fields of a page
 
@@ -51,7 +60,7 @@ class PageHandler:
         :return: The updated page
         """
 
-        for key, value in values.items():
+        for key, value in kwargs.items():
             setattr(page, key, value)
 
         page.save()
@@ -68,18 +77,16 @@ class PageHandler:
         :param builder: The builder that the pages belong to
         :param order: The new order of the pages
         :param base_qs: A QS that can have filters already applied
+        :raises PageNotInBuilder: If the page is not part of the provided builder
         :return: The new order of the pages
         """
 
         if base_qs is None:
             base_qs = Page.objects.filter(builder=builder)
 
-        page_ids = base_qs.values_list("id", flat=True)
-
-        for page_id in order:
-            if page_id not in page_ids:
-                raise PageNotInBuilder(page_id)
-
-        full_order = Page.order_objects(base_qs, order)
+        try:
+            full_order = Page.order_objects(base_qs, order)
+        except IdDoesNotExist as error:
+            raise PageNotInBuilder(error.not_existing_id)
 
         return full_order

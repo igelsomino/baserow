@@ -21,8 +21,8 @@ from baserow.contrib.builder.api.pages.serializers import (
     PageSerializer,
 )
 from baserow.contrib.builder.handler import BuilderHandler
-from baserow.contrib.builder.page.exceptions import PageDoesNotExist, PageNotInBuilder
-from baserow.contrib.builder.page.serivce import PageService
+from baserow.contrib.builder.pages.exceptions import PageDoesNotExist, PageNotInBuilder
+from baserow.contrib.builder.pages.service import PageService
 from baserow.core.exceptions import ApplicationDoesNotExist
 
 
@@ -107,7 +107,7 @@ class PageView(APIView):
     def patch(self, request, data: Dict, page_id: int):
         page = PageService().get_page(request.user, page_id)
 
-        page_updated = PageService().update_page(request.user, page, data)
+        page_updated = PageService().update_page(request.user, page, **data)
 
         serializer = PageSerializer(page_updated)
         return Response(serializer.data)

@@ -24,7 +24,6 @@ export default {
       data.builder = builder
       data.page = page
     } catch (e) {
-      console.log(e)
       // In case of a network error we want to fail hard.
       if (e.response === undefined && !(e instanceof StoreItemLookupError)) {
         throw e

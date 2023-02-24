@@ -3,7 +3,7 @@
     <h2 class="box__title">
       {{ $t('createPageModal.header') }}
     </h2>
-    <PageForm :creation="true" :builder="builder" @submit="addPage">
+    <PageForm :creation="true" :builder="builder" @submitted="addPage">
       <FormElement>
         <div class="actions actions--right">
           <button

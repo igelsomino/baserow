@@ -6,6 +6,7 @@
       class="margin-left-1"
       :placeholder="placeholder"
       :class="{ 'search-input--simple': simple }"
+      v-bind="$attrs"
       v-on="$listeners"
     />
   </div>

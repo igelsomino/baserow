@@ -25,6 +25,8 @@ export default {
   },
   computed: {
     elements() {
+      // TODO Instead of all elements these need to be the elements currently on the
+      // page
       const allElements = Object.values(this.$registry.getAll('element'))
 
       if (

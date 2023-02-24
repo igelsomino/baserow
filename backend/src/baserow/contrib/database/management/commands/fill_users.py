@@ -51,7 +51,7 @@ class Command(BaseCommand):
             # Manually create the user profile
             UserProfile.objects.create(user=user)
 
-            workspace = Workspace.objects.create(name=name + "'s group")
+            workspace = Workspace.objects.create(name=name + "'s workspace")
             WorkspaceUser.objects.create(
                 workspace=workspace,
                 user=user,

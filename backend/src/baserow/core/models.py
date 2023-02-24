@@ -126,7 +126,7 @@ class UserProfile(models.Model):
 
 
 class Workspace(HierarchicalModelMixin, TrashableModelMixin, CreatedAndUpdatedOnMixin):
-    name = models.CharField(max_length=160)
+    name = models.CharField(max_length=165)
     users = models.ManyToManyField(User, through="WorkspaceUser")
     storage_usage = models.IntegerField(null=True)
     storage_usage_updated_at = models.DateTimeField(null=True)

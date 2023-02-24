@@ -210,7 +210,7 @@ class UserHandler:
         if not workspace_user and instance_settings.allow_global_workspace_creation:
             with translation.override(language):
                 workspace_user = core_handler.create_workspace(
-                    user=user, name=_("%(name)s's group") % {"name": name}
+                    user=user, name=_("%(name)s's workspace") % {"name": name}
                 )
 
         # If we've created a `WorkspaceUser` at some point, pluck out the `Workspace`.

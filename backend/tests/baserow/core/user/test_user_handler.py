@@ -103,7 +103,7 @@ def test_create_user(data_fixture):
         assert Workspace.objects.all().count() == 1
         workspace = Workspace.objects.all().first()
         assert workspace.users.filter(id=user.id).count() == 1
-        assert workspace.name == "Test1's group"
+        assert workspace.name == "Test1's workspace"
 
         assert Database.objects.all().count() == 1
         assert Table.objects.all().count() == 2

@@ -13,6 +13,19 @@ export class ElementType extends Registerable {
   get component() {
     return null
   }
+
+  /**
+   * By default, the properties available for an element are the props of its component.
+   * You can override this function to define your own props that are made available
+   * to the user.
+   *
+   * @returns {string[]}
+   */
+  get properties() {
+    if (this.component !== null) {
+      return Object.keys(this.component.$props)
+    }
+  }
 }
 
 export class HeaderElementType extends Registerable {

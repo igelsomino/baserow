@@ -1,8 +1,4 @@
 # noinspection PyPep8Naming
-import pytest
-
-
-# noinspection PyPep8Naming
 def test_forwards_migration(data_fixture, migrator, teardown_table_metadata):
     migrate_from = [("database", "0043_webhooks"), ("core", "0012_add_trashed_indexes")]
     migrate_to = [("database", "0044_field_dependencies")]

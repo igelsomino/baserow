@@ -142,8 +142,8 @@ class AuditLogExportJobType(JobType):
             {
                 "user_email": _("User Email"),
                 "user_id": _("User ID"),
-                "workspace_name": _("Workspace Name"),
-                "workspace_id": _("Workspace ID"),
+                "workspace_name": _("Group Name"),  # GroupDeprecation
+                "workspace_id": _("Group ID"),
                 "type": _("Action Type"),
                 "description": _("Description"),
                 "action_timestamp": _("Timestamp"),

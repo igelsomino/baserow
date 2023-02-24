@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from baserow.core.action.registries import ActionScopeStr, ActionScopeType
 
-WORKSPACE_ACTION_CONTEXT = _('in workspace "%(workspace_name)s" (%(workspace_id)s).')
+WORKSPACE_ACTION_CONTEXT = _('in group "%(group_name)s" (%(group_id)s).')
 
 
 class RootActionScopeType(ActionScopeType):

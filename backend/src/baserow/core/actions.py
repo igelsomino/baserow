@@ -30,11 +30,11 @@ from baserow.core.utils import ChildProgressBuilder
 
 
 class DeleteWorkspaceActionType(UndoableActionType):
-    type = "delete_workspace"
+    type = "delete_group"
 
     description = ActionTypeDescription(
-        _("Delete workspace"),
-        _('Workspace "%(workspace_name)s" (%(workspace_id)s) deleted.'),
+        _("Delete group"),
+        _('Group "%(group_name)s" (%(group_id)s) deleted.'),
     )
 
     @dataclasses.dataclass
@@ -92,10 +92,10 @@ class DeleteWorkspaceActionType(UndoableActionType):
 
 
 class CreateWorkspaceActionType(UndoableActionType):
-    type = "create_workspace"
+    type = "create_group"
     description = ActionTypeDescription(
-        _("Create workspace"),
-        _('Workspace "%(workspace_name)s" (%(workspace_id)s) created.'),
+        _("Create group"),
+        _('Group "%(group_name)s" (%(group_id)s) created.'),
     )
 
     @dataclasses.dataclass
@@ -151,12 +151,12 @@ class CreateWorkspaceActionType(UndoableActionType):
 
 
 class UpdateWorkspaceActionType(UndoableActionType):
-    type = "update_workspace"
+    type = "update_group"
     description = ActionTypeDescription(
-        _("Update workspace"),
+        _("Update group"),
         _(
-            "Workspace (%(workspace_id)s) name changed from "
-            '"%(original_workspace_name)s" to "%(workspace_name)s."'
+            "Group (%(group_id)s) name changed from "
+            '"%(original_group_name)s" to "%(group_name)s."'
         ),
     )
 
@@ -232,10 +232,10 @@ class UpdateWorkspaceActionType(UndoableActionType):
 
 
 class OrderWorkspacesActionType(UndoableActionType):
-    type = "order_workspaces"
+    type = "order_groups"
     description = ActionTypeDescription(
-        _("Order workspaces"),
-        _("workspaces order changed."),
+        _("Order groups"),
+        _("Groups order changed."),
     )
 
     @dataclasses.dataclass
@@ -729,12 +729,12 @@ class InstallTemplateActionType(UndoableActionType):
 
 
 class CreateWorkspaceInvitationActionType(ActionType):
-    type = "create_workspace_invitation"
+    type = "create_group_invitation"
     description = ActionTypeDescription(
-        _("Create workspace invitation"),
+        _("Create group invitation"),
         _(
-            'Workspace invitation created for "%(email)s" to join '
-            '"%(workspace_name)s" (%(workspace_id)s) as %(permissions)s.'
+            'Group invitation created for "%(email)s" to join '
+            '"%(group_name)s" (%(group_id)s) as %(permissions)s.'
         ),
     )
 
@@ -782,12 +782,12 @@ class CreateWorkspaceInvitationActionType(ActionType):
 
 
 class DeleteWorkspaceInvitationActionType(ActionType):
-    type = "delete_workspace_invitation"
+    type = "delete_group_invitation"
     description = ActionTypeDescription(
-        _("Delete workspace invitation"),
+        _("Delete group invitation"),
         _(
-            'Workspace invitation (%(invitation_id)s) deleted for "%(email)s" '
-            'to join "%(workspace_name)s" (%(workspace_id)s) as %(permissions)s.'
+            'Group invitation (%(invitation_id)s) deleted for "%(email)s" '
+            'to join "%(group_name)s" (%(group_id)s) as %(permissions)s.'
         ),
     )
 
@@ -837,12 +837,12 @@ class DeleteWorkspaceInvitationActionType(ActionType):
 
 
 class AcceptWorkspaceInvitationActionType(ActionType):
-    type = "accept_workspace_invitation"
+    type = "accept_group_invitation"
     description = ActionTypeDescription(
-        _("Accept workspace invitation"),
+        _("Accept group invitation"),
         _(
             'Invitation (%(invitation_id)s) sent by "%(sender)s" to join '
-            '"%(workspace_name)s" (%(workspace_id)s) as %(permissions)s was accepted.'
+            '"%(group_name)s" (%(group_id)s) as %(permissions)s was accepted.'
         ),
     )
 
@@ -892,12 +892,12 @@ class AcceptWorkspaceInvitationActionType(ActionType):
 
 
 class RejectWorkspaceInvitationActionType(ActionType):
-    type = "reject_workspace_invitation"
+    type = "reject_group_invitation"
     description = ActionTypeDescription(
-        _("Reject workspace invitation"),
+        _("Reject group invitation"),
         _(
             'Invitation (%(invitation_id)s) sent by "%(sender)s" to join '
-            '"%(workspace_name)s" (%(workspace_id)s) as %(permissions)s was rejected.'
+            '"%(group_name)s" (%(group_id)s) as %(permissions)s was rejected.'
         ),
     )
 
@@ -947,13 +947,13 @@ class RejectWorkspaceInvitationActionType(ActionType):
 
 
 class UpdateWorkspaceInvitationActionType(ActionType):
-    type = "update_workspace_invitation_permissions"
+    type = "update_group_invitation_permissions"
     description = ActionTypeDescription(
-        _("Update workspace invitation permissions"),
+        _("Update group invitation permissions"),
         _(
             "Invitation (%(invitation_id)s) permissions changed from "
             "%(original_permissions)s to %(permissions)s for %(email)s "
-            ' on workspace "%(workspace_name)s" (%(workspace_id)s).'
+            ' on group "%(group_name)s" (%(group_id)s).'
         ),
     )
 
@@ -1006,10 +1006,10 @@ class UpdateWorkspaceInvitationActionType(ActionType):
 
 
 class LeaveWorkspaceActionType(ActionType):
-    type = "leave_workspace"
+    type = "leave_group"
     description = ActionTypeDescription(
-        _("Leave workspace"),
-        _('Workspace "%(workspace_name)s" (%(workspace_id)s) left.'),
+        _("Leave group"),
+        _('Group "%(group_name)s" (%(group_id)s) left.'),
     )
 
     @dataclasses.dataclass

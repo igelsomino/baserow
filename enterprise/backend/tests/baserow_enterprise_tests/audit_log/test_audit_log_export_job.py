@@ -52,9 +52,12 @@ def test_audit_log_export_csv_correctly(
 
     assert data == (
         bom
-        + "User Email,User ID,Workspace Name,Workspace ID,Action Type,Description,Timestamp,IP Address\r\n"
-        + f'{user.email},{user.id},{workspace_2.name},{workspace_2.id},Create workspace,"Workspace ""{workspace_2.name}"" ({workspace_2.id}) created.",2023-01-01 12:00:10+00:00,\r\n'
-        + f'{user.email},{user.id},{workspace_1.name},{workspace_1.id},Create workspace,"Workspace ""{workspace_1.name}"" ({workspace_1.id}) created.",2023-01-01 12:00:00+00:00,\r\n'
+        + "User Email,User ID,Group Name,Group ID,Action Type,Description,Timestamp,IP Address\r\n"
+        + f"{user.email},{user.id},{workspace_2.name},{workspace_2.id},Create group,"
+        f'"Group ""{workspace_2.name}"" ({workspace_2.id}) created.",2023-01-01 12:00:10+00:00,\r\n'
+        + f"{user.email},{user.id},{workspace_1.name},{workspace_1.id},Create group,"
+        f'"Group ""{workspace_1.name}"" ({workspace_1.id}) created.",2023-01-01 '
+        f"12:00:00+00:00,\r\n"
     )
 
     close()
@@ -81,9 +84,12 @@ def test_audit_log_export_csv_correctly(
     bom = "\ufeff"
 
     assert data == (
-        bom
-        + f'{user.email}|{user.id}|{workspace_2.name}|{workspace_2.id}|Create workspace|"Workspace ""{workspace_2.name}"" ({workspace_2.id}) created."|2023-01-01 12:00:10+00:00|\r\n'
-        + f'{user.email}|{user.id}|{workspace_1.name}|{workspace_1.id}|Create workspace|"Workspace ""{workspace_1.name}"" ({workspace_1.id}) created."|2023-01-01 12:00:00+00:00|\r\n'
+        bom + f"{user.email}|{user.id}|{workspace_2.name}|{workspace_2.id}|Create "
+        f'group|"Group ""{workspace_2.name}"" ({workspace_2.id}) '
+        f'created."|2023-01-01 12:00:10+00:00|\r\n'
+        + f"{user.email}|{user.id}|{workspace_1.name}|{workspace_1.id}|Create "
+        f'group|"Group ""{workspace_1.name}"" ({workspace_1.id}) '
+        f'created."|2023-01-01 12:00:00+00:00|\r\n'
     )
 
     close()

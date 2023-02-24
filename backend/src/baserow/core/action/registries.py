@@ -120,6 +120,21 @@ def render_action_type_description(
     "Created table My table".
     """
 
+    # The action type description translations currently still point to "group"
+    # variables. To ensure that existing log entries can be rendered, we'll
+    # update `params_dict` with the value of `group_compat_map` if the key exists
+    # in `params_dict`.
+    group_compat_map = {  # GroupDeprecation
+        "workspace_id": "group_id",
+        "workspace_name": "group_name",
+        "original_workspace_name": "original_group_name",
+    }
+    for workspace_field, group_compat_field in group_compat_map.items():
+        # `workspace_field` will be in `params_dict` if we're rendering an
+        #  action type description after we renamed group to workspace.
+        if workspace_field in params_dict:
+            params_dict[group_compat_field] = params_dict[workspace_field]
+
     if not description.long:
         return f"{description.short}: {params_dict}"
 

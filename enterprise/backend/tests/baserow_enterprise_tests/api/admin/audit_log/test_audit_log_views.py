@@ -238,7 +238,6 @@ def test_audit_log_action_type_filter_returns_action_types_correctly(
 
 @pytest.mark.django_db
 @override_settings(DEBUG=True)
-@pytest.mark.skip("Need to re-build the translations first.")
 def test_audit_log_action_types_are_translated_in_the_admin_language(
     api_client, enterprise_data_fixture
 ):
@@ -266,7 +265,7 @@ def test_audit_log_action_types_are_translated_in_the_admin_language(
         "count": 1,
         "next": None,
         "previous": None,
-        "results": [{"id": "create_workspace", "value": "Crea gruppo"}],
+        "results": [{"id": "create_group", "value": "Crea gruppo"}],
     }
 
 
@@ -309,11 +308,12 @@ def test_audit_log_entries_are_created_from_actions_and_returned_in_order(
         ActionHandler.redo(admin_user, [CreateWorkspaceActionType.scope()], session_id)
 
     common_json = {
-        "action_type": "create_workspace",
+        "action_type": "create_group",
+        "group": f"{workspace_1.name} ({workspace_1.id})",  # GroupDeprecation
         "workspace": f"{workspace_1.name} ({workspace_1.id})",
         "id": AnyInt(),
         "ip_address": None,
-        "type": "Create workspace",
+        "type": "Create group",
         "user": f"{admin_user.email} ({admin_user.id})",
     }
 
@@ -330,17 +330,17 @@ def test_audit_log_entries_are_created_from_actions_and_returned_in_order(
         "results": [
             {
                 **common_json,
-                "description": f'REDONE: Workspace "{workspace_1.name}" ({workspace_1.id}) created.',
+                "description": f'REDONE: Group "{workspace_1.name}" ({workspace_1.id}) created.',
                 "timestamp": "2023-01-01T12:00:20Z",
             },
             {
                 **common_json,
-                "description": f'UNDONE: Workspace "{workspace_1.name}" ({workspace_1.id}) created.',
+                "description": f'UNDONE: Group "{workspace_1.name}" ({workspace_1.id}) created.',
                 "timestamp": "2023-01-01T12:00:10Z",
             },
             {
                 **common_json,
-                "description": f'Workspace "{workspace_1.name}" ({workspace_1.id}) created.',
+                "description": f'Group "{workspace_1.name}" ({workspace_1.id}) created.',
                 "timestamp": "2023-01-01T12:00:00Z",
             },
         ],
@@ -349,7 +349,6 @@ def test_audit_log_entries_are_created_from_actions_and_returned_in_order(
 
 @pytest.mark.django_db
 @override_settings(DEBUG=True)
-@pytest.mark.skip("Need to re-build the translations first.")
 def test_audit_log_entries_are_translated_in_the_user_language(
     api_client, enterprise_data_fixture
 ):
@@ -384,8 +383,9 @@ def test_audit_log_entries_are_translated_in_the_user_language(
         "previous": None,
         "results": [
             {
-                "action_type": "create_workspace",
+                "action_type": "create_group",
                 "description": f'Gruppo "{workspace_2.name}" ({workspace_2.id}) creato.',
+                "group": f"{workspace_2.name} ({workspace_2.id})",  # GroupDeprecation
                 "workspace": f"{workspace_2.name} ({workspace_2.id})",
                 "id": AnyInt(),
                 "ip_address": None,
@@ -394,8 +394,9 @@ def test_audit_log_entries_are_translated_in_the_user_language(
                 "user": f"{admin_user.email} ({admin_user.id})",
             },
             {
-                "action_type": "create_workspace",
+                "action_type": "create_group",
                 "description": f'Gruppo "{workspace_1.name}" ({workspace_1.id}) creato.',
+                "group": f"{workspace_1.name} ({workspace_1.id})",  # GroupDeprecation
                 "workspace": f"{workspace_1.name} ({workspace_1.id})",
                 "id": AnyInt(),
                 "ip_address": None,
@@ -424,23 +425,25 @@ def test_audit_log_entries_can_be_filtered(api_client, enterprise_data_fixture):
         workspace_2 = CreateWorkspaceActionType.do(user, "workspace 2").workspace
 
     json_workspace_1 = {
-        "action_type": "create_workspace",
-        "description": f'Workspace "{workspace_1.name}" ({workspace_1.id}) created.',
+        "action_type": "create_group",
+        "description": f'Group "{workspace_1.name}" ({workspace_1.id}) created.',
+        "group": f"{workspace_1.name} ({workspace_1.id})",  # GroupDeprecation
         "workspace": f"{workspace_1.name} ({workspace_1.id})",
         "id": AnyInt(),
         "ip_address": None,
         "timestamp": "2023-01-01T12:00:00Z",
-        "type": "Create workspace",
+        "type": "Create group",
         "user": f"{admin_user.email} ({admin_user.id})",
     }
     json_workspace_2 = {
-        "action_type": "create_workspace",
-        "description": f'Workspace "{workspace_2.name}" ({workspace_2.id}) created.',
+        "action_type": "create_group",
+        "description": f'Group "{workspace_2.name}" ({workspace_2.id}) created.',
+        "group": f"{workspace_2.name} ({workspace_2.id})",  # GroupDeprecation
         "workspace": f"{workspace_2.name} ({workspace_2.id})",
         "id": AnyInt(),
         "ip_address": None,
         "timestamp": "2023-01-01T12:00:01Z",
-        "type": "Create workspace",
+        "type": "Create group",
         "user": f"{user.email} ({user.id})",
     }
 
@@ -476,8 +479,7 @@ def test_audit_log_entries_can_be_filtered(api_client, enterprise_data_fixture):
 
     # by action_type
     response = api_client.get(
-        reverse("api:enterprise:admin:audit_log:list")
-        + "?action_type=create_workspace",
+        reverse("api:enterprise:admin:audit_log:list") + "?action_type=create_group",
         format="json",
         HTTP_AUTHORIZATION=f"JWT {admin_token}",
     )

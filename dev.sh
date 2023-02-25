@@ -86,6 +86,10 @@ launch_tab_and_exec(){
   new_tab "$tab_name" "$command"
 }
 
+launch_e2e_tab(){
+  new_tab "e2e tests" "cd e2e-tests && bash --init-file <(echo 'history -s yarn run test-all-browsers;./run-e2e-tests-locally.sh')"
+}
+
 show_help() {
     echo """
 ./dev.sh starts the baserow development environment and by default attempts to
@@ -469,6 +473,7 @@ if [ "$dont_attach" != true ] && [ "$up" = true ] ; then
       launch_tab_and_exec "backend lint" \
               "backend" \
               "/bin/bash /baserow/backend/docker/docker-entrypoint.sh lint-shell"
+      launch_e2e_tab
     fi
 
     if [ "$attach_all" = true ] ; then

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeo pipefail
 
+# This script waits 60 seconds by default for the backend and web-frontend services
+# to become healthy.
+
 baserow_ready() {
     curlf() {
       HTTP_CODE=$(curl --silent -o /dev/null --write-out "%{http_code}" --max-time 10 "$@")
@@ -10,7 +13,7 @@ baserow_ready() {
       return 0
     }
 
-    if curlf "http://web-frontend:3000/_health/" && curlf "http://backend:8000/_health/"; then
+    if curlf "${PUBLIC_WEB_FRONTEND_URL:-http://web-frontend:3000}/_health/" && curlf "${PUBLIC_BACKEND_URL:-http://backend:8000}/_health/"; then
       return 0
     else
       return 1

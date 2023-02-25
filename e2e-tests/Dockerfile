@@ -32,4 +32,4 @@ WORKDIR /baserow/e2e-tests
 
 RUN yarn install && yarn playwright install && chmod +x wait-for-services.sh
 
-CMD bash ./wait-for-services.sh && yarn run test-all-browsers
+CMD bash ./wait-for-services.sh && yarn run test
